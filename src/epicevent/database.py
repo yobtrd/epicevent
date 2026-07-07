@@ -9,7 +9,7 @@ db_url = os.getenv("DATABASE_URL")
 if db_url is None:
     raise RuntimeError("DATABASE_URL is not definied.")
 
-engine = create_engine(db_url)
+engine = create_engine(db_url, echo=True)
 
 Session = sessionmaker(bind=engine)
 
