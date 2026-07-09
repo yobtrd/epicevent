@@ -5,7 +5,7 @@ from src.epicevent.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 
-Session = sessionmaker(bind=engine)
+SessionLocal = sessionmaker(bind=engine)
 
 
 class Base(DeclarativeBase):
