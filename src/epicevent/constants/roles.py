@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import IntEnum
 
 
-class RoleName(StrEnum):
-    SALES = "sales"
-    SUPPORT = "support"
-    MANAGEMENT = "management"
+class RoleId(IntEnum):
+    MANAGEMENT = 1
+    SALES = 2
+    SUPPORT = 3
