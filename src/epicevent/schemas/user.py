@@ -20,7 +20,7 @@ class UserResponse(BaseModel):
     employee_number: str
     first_name: str
     last_name: str
-    password_hash: str
+    email: str
     role_id: int
 
     model_config = ConfigDict(

@@ -8,6 +8,7 @@ from src.epicevent.constants.roles import RoleId
 from src.epicevent.database import Base
 from src.epicevent.models.user import Role, User
 from src.epicevent.schemas.user import UserCreate
+from src.epicevent.services.password_service import PasswordService
 from src.epicevent.unit_of_work import UnitOfWork
 
 
@@ -72,7 +73,7 @@ USER_MODEL_DATA = {
     "first_name": "Jon",
     "last_name": "Doe",
     "email": "jon@test.com",
-    "password_hash": "password",
+    "password_hash": PasswordService().hash("password"),
     "role_id": 1,
 }
 

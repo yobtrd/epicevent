@@ -1,14 +1,9 @@
 import jwt
 import pytest
 from freezegun import freeze_time
-from jwt.exceptions import (
-    DecodeError,
-    ExpiredSignatureError,
-    InvalidSignatureError,
-)
 
 from src.epicevent.config import SECRET_KEY
-from src.epicevent.exception import InvalidTokenTypeError
+from src.epicevent.exception import InvalidTokenError
 from src.epicevent.services.auth_service import TokenService
 from tests.conftest import create_user
 
@@ -71,40 +66,40 @@ def test_decode_refresh_token():
 
 def test_decode_expired_token():
     token_service = TokenService()
-    user = create_user(id=1)
+    user = create_user()
 
     with freeze_time("2023-01-01 10:00:00"):
         token = token_service.create_access_token(user)
 
     with freeze_time("2023-01-01 11:00:00"):
-        with pytest.raises(ExpiredSignatureError):
+        with pytest.raises(InvalidTokenError):
             token_service.decode_token(token)
 
 
 def test_decode_invalid_signature():
     token_service = TokenService()
-    user = create_user(id=1)
+    user = create_user()
 
     token = token_service.create_access_token(user)
 
     invalid_token = token[:-1] + ("a" if token[-1] != "a" else "b")
 
-    with pytest.raises(InvalidSignatureError):
+    with pytest.raises(InvalidTokenError):
         token_service.decode_token(invalid_token)
 
 
 def test_decode_malformed_token():
     token_service = TokenService()
 
-    with pytest.raises(DecodeError):
+    with pytest.raises(InvalidTokenError):
         token_service.decode_token("malformed.jwt")
 
 
 def test_decode_wrong_type_token():
     token_service = TokenService()
-    user = create_user(id=1)
+    user = create_user()
 
     token = token_service.create_access_token(user)
 
-    with pytest.raises(InvalidTokenTypeError):
+    with pytest.raises(InvalidTokenError):
         token_service.decode_token(token, "refresh")

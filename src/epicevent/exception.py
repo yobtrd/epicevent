@@ -14,5 +14,5 @@ class InvalidCredentialsError(Exception):
     pass
 
 
-class InvalidTokenTypeError(Exception):
+class InvalidTokenError(Exception):
     pass

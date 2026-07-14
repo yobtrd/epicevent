@@ -39,7 +39,7 @@ class UserService:
 
             user = User(**data)
             self.uow.users.create(user)
-        return UserResponse.model_validate(user)
+            return UserResponse.model_validate(user)
 
     def change_role(self, current_user: User, user_id: int, role_id: int):
         with self.uow:
