@@ -7,8 +7,9 @@ from src.epicevent.models.user import User
 from src.epicevent.schemas.user import UserCreate, UserResponse, UserUpdate
 from src.epicevent.security import authorization
 from src.epicevent.security.permission import Permission
-from src.epicevent.services.password_service import PasswordService
 from src.epicevent.unit_of_work import UnitOfWork
+
+from .password_service import PasswordService
 
 
 class UserService:
@@ -19,7 +20,7 @@ class UserService:
     def _get_user(self, user_id: int) -> User:
         user = self.uow.users.find_by_id(user_id)
         if user is None:
-            raise UserNotFoundError
+            raise UserNotFoundError()
         return user
 
     def _ensure_management_permission(self, current_user, permission):
@@ -57,7 +58,7 @@ class UserService:
             )
             is_owner = authorization.can_update_profile(current_user.id, user_id)
             if not is_management and not is_owner:
-                raise RolePermissionError
+                raise RolePermissionError()
 
             user = self._get_user(user_id)
 

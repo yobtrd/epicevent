@@ -52,7 +52,7 @@ def test_create_user_with_same_email_raises_error(uow, session):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cant_create_user(uow, role):
+def test_unauthorized_user_cannot_create_user(uow, role):
     user_service = UserService(uow)
     current_user = create_user(role_id=role)
 
@@ -87,7 +87,7 @@ def test_change_role_with_invalid_user_returns_error(uow):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cant_modify_role(uow, session, role):
+def test_unauthorized_user_cannot_modify_role(uow, session, role):
     user_service = UserService(uow)
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session, role_id=RoleId.SUPPORT)
@@ -134,7 +134,7 @@ def test_update_profile_with_invalid_user_returns_error(uow):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cant_update_user(uow, session, role):
+def test_unauthorized_user_cannot_update_user(uow, session, role):
     user_service = UserService(uow)
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session, email="original@email.com")
@@ -168,7 +168,7 @@ def test_deactivate_with_invalid_user_returns_error(uow):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cant_deactivate_user(uow, session, role):
+def test_unauthorized_user_cannot_deactivate_user(uow, session, role):
     user_service = UserService(uow)
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session)

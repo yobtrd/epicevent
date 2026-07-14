@@ -8,3 +8,11 @@ class UserNotFoundError(Exception):
 
 class RolePermissionError(Exception):
     pass
+
+
+class InvalidCredentialsError(Exception):
+    pass
+
+
+class InvalidTokenTypeError(Exception):
+    pass
