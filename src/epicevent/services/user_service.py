@@ -1,13 +1,13 @@
-from src.epicevent.exception import (
+from epicevent.exception import (
     EmailAlreadyExistsError,
     RolePermissionError,
     UserNotFoundError,
 )
-from src.epicevent.models.user import User
-from src.epicevent.schemas.user import UserCreate, UserResponse, UserUpdate
-from src.epicevent.security import authorization
-from src.epicevent.security.permission import Permission
-from src.epicevent.unit_of_work import UnitOfWork
+from epicevent.models.user import User
+from epicevent.schemas.user import UserCreate, UserResponse, UserUpdate
+from epicevent.security import authorization
+from epicevent.security.permission import Permission
+from epicevent.unit_of_work import UnitOfWork
 
 from .password_service import PasswordService
 

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -25,3 +26,10 @@ if SECRET_KEY is None:
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 10
 ALGORITHM = "HS256"
+
+# Cli config
+######################
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+APP_DIR = PROJECT_ROOT / ".epicevent"
+# APP_DIR = Path.home() / ".epicevent" PROD
+TOKEN_PATH = APP_DIR / "tokens.json"

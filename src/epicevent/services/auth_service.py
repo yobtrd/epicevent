@@ -1,7 +1,7 @@
-from src.epicevent.exception import InvalidCredentialsError, UserNotFoundError
-from src.epicevent.schemas.auth import AuthRequest, AuthResponse
-from src.epicevent.schemas.user import UserResponse
-from src.epicevent.unit_of_work import UnitOfWork
+from epicevent.exception import InvalidCredentialsError, UserNotFoundError
+from epicevent.schemas.auth import AuthRequest, AuthResponse
+from epicevent.schemas.user import UserResponse
+from epicevent.unit_of_work import UnitOfWork
 
 from .password_service import PasswordService
 from .token_service import TokenService

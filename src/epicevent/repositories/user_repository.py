@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.epicevent.models.user import User
+from epicevent.models.user import User
 
 
 class UserRepository:

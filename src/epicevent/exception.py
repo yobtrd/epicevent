@@ -16,3 +16,11 @@ class InvalidCredentialsError(Exception):
 
 class InvalidTokenError(Exception):
     pass
+
+
+class InvalidSessionError(Exception):
+    pass
+
+
+class AuthenticationError(Exception):
+    pass

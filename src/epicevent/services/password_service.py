@@ -1,5 +1,5 @@
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from argon2.exceptions import VerificationError, VerifyMismatchError
 
 
 class PasswordService:
@@ -12,5 +12,5 @@ class PasswordService:
     def verify(self, password_hash: str, password: str) -> bool:
         try:
             return self.ph.verify(password_hash, password)
-        except VerifyMismatchError:
+        except (VerifyMismatchError, VerificationError):
             return False

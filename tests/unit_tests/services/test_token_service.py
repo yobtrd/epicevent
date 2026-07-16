@@ -2,9 +2,9 @@ import jwt
 import pytest
 from freezegun import freeze_time
 
-from src.epicevent.config import SECRET_KEY
-from src.epicevent.exception import InvalidTokenError
-from src.epicevent.services.auth_service import TokenService
+from epicevent.config import SECRET_KEY
+from epicevent.exception import InvalidTokenError
+from epicevent.services.auth_service import TokenService
 from tests.conftest import create_user
 
 

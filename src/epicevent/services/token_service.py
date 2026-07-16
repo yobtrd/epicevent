@@ -3,15 +3,15 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from jwt.exceptions import InvalidTokenError as JWTInvalidTokenError
 
-from src.epicevent.config import (
+from epicevent.config import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     ALGORITHM,
     REFRESH_TOKEN_EXPIRE_DAYS,
     SECRET_KEY,
 )
-from src.epicevent.exception import InvalidTokenError
-from src.epicevent.models.user import User
-from src.epicevent.schemas.auth import TokenPayload
+from epicevent.exception import InvalidTokenError
+from epicevent.models.user import User
+from epicevent.schemas.auth import TokenPayload
 
 
 class TokenService:

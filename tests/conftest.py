@@ -2,14 +2,15 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-import src.epicevent.models  # noqa: F401
-from src.epicevent.config import TEST_DATABASE_URL
-from src.epicevent.constants.roles import RoleId
-from src.epicevent.database import Base
-from src.epicevent.models.user import Role, User
-from src.epicevent.schemas.user import UserCreate
-from src.epicevent.services.password_service import PasswordService
-from src.epicevent.unit_of_work import UnitOfWork
+import epicevent.models  # noqa: F401
+from epicevent import bootstrap
+from epicevent.config import TEST_DATABASE_URL
+from epicevent.constants.roles import RoleId
+from epicevent.database import Base
+from epicevent.models.user import Role, User
+from epicevent.schemas.user import UserCreate
+from epicevent.services.password_service import PasswordService
+from epicevent.unit_of_work import UnitOfWork
 
 
 # Database
@@ -47,14 +48,34 @@ def session(engine, create_table_role):
     try:
         yield session
     finally:
-        session.close()
         transaction.rollback()
         connection.close()
+        session.close()
 
 
 @pytest.fixture
 def uow(session):
     return UnitOfWork(session, use_nested_transaction=True)
+
+
+@pytest.fixture
+def app_factory(session, uow):
+    bootstrap.application_factory = bootstrap.ApplicationFactory(
+        lambda: session, lambda _: uow
+    )
+    return bootstrap.application_factory
+
+
+@pytest.fixture
+def token_path(monkeypatch, tmp_path):
+    path = tmp_path / "token.json"
+
+    monkeypatch.setattr(
+        "epicevent.config.TOKEN_PATH",
+        path,
+    )
+
+    return path
 
 
 # Factory

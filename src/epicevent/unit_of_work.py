@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from src.epicevent.repositories.user_repository import UserRepository
+from epicevent.repositories.user_repository import UserRepository
 
 
 class UnitOfWork:

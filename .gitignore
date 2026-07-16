@@ -12,3 +12,6 @@ wheels/
 .env
 venv
 env
+
+# App
+.epicevent

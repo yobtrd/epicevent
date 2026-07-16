@@ -1,10 +1,10 @@
 import pytest
 
-from src.epicevent.exception import InvalidCredentialsError, UserNotFoundError
-from src.epicevent.schemas.auth import AuthRequest
-from src.epicevent.services.auth_service import AuthService
-from src.epicevent.services.password_service import PasswordService
-from src.epicevent.services.token_service import TokenService
+from epicevent.exception import InvalidCredentialsError, UserNotFoundError
+from epicevent.schemas.auth import AuthRequest
+from epicevent.services.auth_service import AuthService
+from epicevent.services.password_service import PasswordService
+from epicevent.services.token_service import TokenService
 from tests.conftest import create_persisted_user, create_user
 
 
@@ -67,7 +67,7 @@ def test_get_current_user_with_valid_token(uow, session):
 
     user_found = auth_service.get_current_user(token)
 
-    assert user_found.id == user_found.id
+    assert user_found.id == user.id
     assert user_found.last_name == "Doe"
 
 

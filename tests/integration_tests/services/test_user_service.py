@@ -1,13 +1,13 @@
 import pytest
 
-from src.epicevent.constants.roles import RoleId
-from src.epicevent.exception import (
+from epicevent.constants.roles import RoleId
+from epicevent.exception import (
     EmailAlreadyExistsError,
     RolePermissionError,
     UserNotFoundError,
 )
-from src.epicevent.schemas.user import UserUpdate
-from src.epicevent.services.user_service import UserService
+from epicevent.schemas.user import UserUpdate
+from epicevent.services.user_service import UserService
 from tests.conftest import create_persisted_user, create_user, create_user_dto
 
 
