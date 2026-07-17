@@ -1,19 +1,23 @@
-from rich.console import Console
+from epicevent.cli.console import ask, console
+from epicevent.schemas.user_schema import UserResponse
 
-from epicevent.schemas.user import UserResponse
 
-console = Console()
+def ask_user_credentials():
+    email = ask("email")
+    password = ask("password", hide_input=True)
+
+    return {"email": email, "password": password}
 
 
 def display_login_success(user: UserResponse):
     console.print(
-        f"[green]Bienvenue {user.first_name}, votre session est ouverte.[/green]"
+        f"[success]Bienvenue {user.first_name}, votre session est ouverte.[/success]"
     )
 
 
-def display_invalid_credentials():
-    console.print("[red]Email ou mot de passe incorrect, veuillez réessayer[/red]")
-
-
 def display_logout_success():
-    console.print("[red]Votre session est fermée.[/red]")
+    console.print("[success]Votre session est fermée.[/success]")
+
+
+def display_credentials_error():
+    console.print("[error]Email ou mot de passe incorrect, veuillez réessayer.[/error]")

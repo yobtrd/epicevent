@@ -1,7 +1,7 @@
 import pytest
 
 from epicevent.exception import InvalidCredentialsError, UserNotFoundError
-from epicevent.schemas.auth import AuthRequest
+from epicevent.schemas.auth_schema import AuthRequest
 from epicevent.services.auth_service import AuthService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService

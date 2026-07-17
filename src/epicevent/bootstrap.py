@@ -2,15 +2,20 @@ from collections.abc import Callable
 from contextlib import contextmanager
 
 from epicevent.controllers.auth_controller import AuthController
+from epicevent.controllers.user_controller import UserController
+from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.services.auth_service import AuthService
-from epicevent.unit_of_work import UnitOfWork
+from epicevent.services.authorization_service import AuthorizationService
+from epicevent.services.user_service import UserService
 
-from .database import SessionLocal
+from .infrastructure.base import SessionLocal
 
 
 class Application:
     def __init__(self, uow: UnitOfWork):
+        self.authorization = AuthorizationService()
         self.auth = AuthController(AuthService(uow))
+        self.users = UserController(UserService(uow, self.authorization))
 
 
 class ApplicationFactory:

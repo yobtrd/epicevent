@@ -25,7 +25,7 @@ dev = [
 ]
 
 [project.scripts]
-epicevent = "epicevent.cli.main:cli"
+epicevent = "epicevent.cli.main:main"
 
 [build-system]
 requires = ["hatchling"]

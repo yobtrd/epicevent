@@ -1,4 +1,4 @@
-from epicevent.constants.roles import RoleId
+from epicevent.security.roles import RoleId
 
 from .permission import Permission
 

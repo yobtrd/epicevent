@@ -1,20 +1,19 @@
 import pytest
 
-from epicevent.constants.roles import RoleId
 from epicevent.exception import (
     EmailAlreadyExistsError,
+    EmployeeNumberAlreadyExistsError,
     RolePermissionError,
     UserNotFoundError,
 )
-from epicevent.schemas.user import UserUpdate
-from epicevent.services.user_service import UserService
+from epicevent.schemas.user_schema import UserUpdate
+from epicevent.security.roles import RoleId
 from tests.conftest import create_persisted_user, create_user, create_user_dto
 
 
 # create
 ######################
-def test_management_can_create_user(uow):
-    user_service = UserService(uow)
+def test_management_can_create_user(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     user_dto = create_user_dto()
 
@@ -24,8 +23,7 @@ def test_management_can_create_user(uow):
     assert created.id is not None
 
 
-def test_create_user_hashes_password(uow):
-    user_service = UserService(uow)
+def test_create_user_hashes_password(uow, user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     user_dto = create_user_dto()
 
@@ -40,20 +38,28 @@ def test_create_user_hashes_password(uow):
     )
 
 
-def test_create_user_with_same_email_raises_error(uow, session):
-    user_service = UserService(uow)
+def test_create_user_with_same_email_raises_error(user_service, session):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
 
-    create_persisted_user(session, employee_number="001", email="same@email.com")
-    user_dto = create_user_dto(employee_number="002", email="same@email.com")
+    create_persisted_user(session, email="same@email.com")
+    user_dto = create_user_dto(email="same@email.com")
 
     with pytest.raises(EmailAlreadyExistsError):
         user_service.create_user(current_user, user_dto)
 
 
+def test_create_user_with_same_employee_number_raises_error(user_service, session):
+    current_user = create_user(role_id=RoleId.MANAGEMENT)
+
+    create_persisted_user(session, employee_number="001")
+    user_dto = create_user_dto(employee_number="001")
+
+    with pytest.raises(EmployeeNumberAlreadyExistsError):
+        user_service.create_user(current_user, user_dto)
+
+
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cannot_create_user(uow, role):
-    user_service = UserService(uow)
+def test_unauthorized_user_cannot_create_user(user_service, role):
     current_user = create_user(role_id=role)
 
     user_dto = create_user_dto()
@@ -64,8 +70,7 @@ def test_unauthorized_user_cannot_create_user(uow, role):
 
 # change_role
 ######################
-def test_management_can_modify_role(uow, session):
-    user_service = UserService(uow)
+def test_management_can_modify_role(user_service, session):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     persisted_user = create_persisted_user(session, role_id=RoleId.SUPPORT)
 
@@ -77,8 +82,7 @@ def test_management_can_modify_role(uow, session):
     assert persisted_user.role.name == "sales"
 
 
-def test_change_role_with_invalid_user_returns_error(uow):
-    user_service = UserService(uow)
+def test_change_role_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     bad_user_id = 9999
 
@@ -87,8 +91,7 @@ def test_change_role_with_invalid_user_returns_error(uow):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cannot_modify_role(uow, session, role):
-    user_service = UserService(uow)
+def test_unauthorized_user_cannot_modify_role(user_service, session, role):
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session, role_id=RoleId.SUPPORT)
 
@@ -98,8 +101,7 @@ def test_unauthorized_user_cannot_modify_role(uow, session, role):
 
 # update_profile
 ######################
-def test_management_can_update_profile(uow, session):
-    user_service = UserService(uow)
+def test_management_can_update_profile(user_service, session):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     persisted_user = create_persisted_user(session, email="original@email.com")
 
@@ -110,8 +112,7 @@ def test_management_can_update_profile(uow, session):
     assert persisted_user.email == "new@email.com"
 
 
-def test_current_user_can_update_his_profile(uow, session):
-    user_service = UserService(uow)
+def test_current_user_can_update_his_profile(user_service, session):
     persisted_user = create_persisted_user(session, last_name="Doe")
     current_user = persisted_user
 
@@ -122,8 +123,7 @@ def test_current_user_can_update_his_profile(uow, session):
     assert persisted_user.last_name == "Dae"
 
 
-def test_update_profile_with_invalid_user_returns_error(uow):
-    user_service = UserService(uow)
+def test_update_profile_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     bad_user_id = 9999
 
@@ -134,8 +134,7 @@ def test_update_profile_with_invalid_user_returns_error(uow):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cannot_update_user(uow, session, role):
-    user_service = UserService(uow)
+def test_unauthorized_user_cannot_update_user(user_service, session, role):
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session, email="original@email.com")
 
@@ -147,8 +146,7 @@ def test_unauthorized_user_cannot_update_user(uow, session, role):
 
 # deactivate
 ######################
-def test_management_can_deactivate_user(uow, session):
-    user_service = UserService(uow)
+def test_management_can_deactivate_user(user_service, session):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     persisted_user = create_persisted_user(session)
 
@@ -158,8 +156,7 @@ def test_management_can_deactivate_user(uow, session):
     assert persisted_user.is_active is False
 
 
-def test_deactivate_with_invalid_user_returns_error(uow):
-    user_service = UserService(uow)
+def test_deactivate_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     bad_user_id = 9999
 
@@ -168,8 +165,7 @@ def test_deactivate_with_invalid_user_returns_error(uow):
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
-def test_unauthorized_user_cannot_deactivate_user(uow, session, role):
-    user_service = UserService(uow)
+def test_unauthorized_user_cannot_deactivate_user(user_service, session, role):
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session)
 

@@ -82,7 +82,8 @@ def test_decode_invalid_signature():
 
     token = token_service.create_access_token(user)
 
-    invalid_token = token[:-1] + ("a" if token[-1] != "a" else "b")
+    header, payload, signature = token.split(".")
+    invalid_token = f"{header}.{payload}.invalidsignature"
 
     with pytest.raises(InvalidTokenError):
         token_service.decode_token(invalid_token)

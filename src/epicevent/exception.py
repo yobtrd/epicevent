@@ -1,26 +1,63 @@
-class EmailAlreadyExistsError(Exception):
+class ApplicationError(Exception):
+    """Base exception for all application-level errors."""
+
     pass
 
 
-class UserNotFoundError(Exception):
+# Authentication / Authorization
+##################################
+class AuthenticationError(ApplicationError):
+    """Base exception for authentication-related errors."""
+
     pass
 
 
-class RolePermissionError(Exception):
+class InvalidCredentialsError(AuthenticationError):
     pass
 
 
-class InvalidCredentialsError(Exception):
+class InvalidTokenError(AuthenticationError):
     pass
 
 
-class InvalidTokenError(Exception):
+class InvalidSessionError(AuthenticationError):
     pass
 
 
-class InvalidSessionError(Exception):
+class AuthorizationError(ApplicationError):
+    """Base exception for authorization-related errors."""
+
     pass
 
 
-class AuthenticationError(Exception):
+class RolePermissionError(AuthorizationError):
+    pass
+
+
+# Domain errors
+##################################
+class UserNotFoundError(ApplicationError):
+    pass
+
+
+class EmailAlreadyExistsError(ApplicationError):
+    pass
+
+
+class EmployeeNumberAlreadyExistsError(ApplicationError):
+    pass
+
+
+# Validation errors
+##################################
+class InvalidInputError(ApplicationError):
+    def __init__(self, errors: list[dict]):
+        self.errors = errors
+
+
+# Persistence errors
+##################################
+class DatabaseError(ApplicationError):
+    """Unexpected database or persistence error."""
+
     pass

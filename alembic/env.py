@@ -4,8 +4,8 @@ from sqlalchemy import engine_from_config, pool
 
 import src.epicevent.models  # noqa: F401
 from alembic import context
+from epicevent.infrastructure.base import Base
 from src.epicevent.config import DATABASE_URL
-from src.epicevent.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -8,7 +8,7 @@ from epicevent.exception import (
     InvalidTokenError,
     UserNotFoundError,
 )
-from epicevent.schemas.user import UserResponse
+from epicevent.schemas.user_schema import UserResponse
 
 from .token_storage import TokenStorage
 

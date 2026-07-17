@@ -1,5 +1,5 @@
-from epicevent.schemas.auth import AuthRequest
-from epicevent.schemas.user import UserResponse
+from epicevent.schemas.auth_schema import AuthRequest
+from epicevent.schemas.user_schema import UserResponse
 from epicevent.services.auth_service import AuthResponse, AuthService
 
 
@@ -7,11 +7,8 @@ class AuthController:
     def __init__(self, auth_service: AuthService):
         self.auth_service = auth_service
 
-    def login(self, email: str, password: str) -> AuthResponse:
-        request = AuthRequest(
-            email=email,
-            password=password,
-        )
+    def login(self, credentials: dict) -> AuthResponse:
+        request = AuthRequest(**credentials)
 
         return self.auth_service.authenticate(request)
 

@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 from jwt.exceptions import InvalidTokenError as JWTInvalidTokenError
+from pydantic import ValidationError
 
 from epicevent.config import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -11,7 +12,7 @@ from epicevent.config import (
 )
 from epicevent.exception import InvalidTokenError
 from epicevent.models.user import User
-from epicevent.schemas.auth import TokenPayload
+from epicevent.schemas.auth_schema import TokenPayload
 
 
 class TokenService:
@@ -41,10 +42,11 @@ class TokenService:
     def decode_token(self, token: str, token_type: str | None = None) -> TokenPayload:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
-        except JWTInvalidTokenError as exc:
+
+            if token_type and payload.get("type") != token_type:
+                raise InvalidTokenError()
+
+            return TokenPayload.model_validate(payload)
+
+        except (JWTInvalidTokenError, ValidationError) as exc:
             raise InvalidTokenError() from exc
-
-        if token_type and payload.get("type") != token_type:
-            raise InvalidTokenError()
-
-        return TokenPayload.model_validate(payload)

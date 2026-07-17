@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from epicevent.database import Base
+from epicevent.infrastructure.base import Base
 
 if TYPE_CHECKING:
     from .contract import Contract

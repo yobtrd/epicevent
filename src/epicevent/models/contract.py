@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import DateTime, ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from epicevent.database import Base
+from epicevent.infrastructure.base import Base
 
 if TYPE_CHECKING:
     from .client import Client

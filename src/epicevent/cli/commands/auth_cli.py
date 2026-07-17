@@ -1,5 +1,6 @@
 import click
 
+from epicevent.bootstrap import Application
 from epicevent.cli.helpers import get_token_storage, with_app
 from epicevent.cli.views import auth_view
 from epicevent.exception import InvalidCredentialsError
@@ -13,14 +14,13 @@ def auth():
 
 @auth.command()
 @with_app
-def login(app):
-    email = click.prompt("Email")
-    password = click.prompt("Password", hide_input=True)
+def login(app: Application):
+    credentials = auth_view.ask_user_credentials()
 
     try:
-        response = app.auth.login(email, password)
+        response = app.auth.login(credentials)
     except InvalidCredentialsError:
-        auth_view.display_invalid_credentials()
+        auth_view.display_credentials_error()
         return
 
     storage = get_token_storage()

@@ -1,5 +1,5 @@
-from epicevent.constants.roles import RoleId
-from epicevent.repositories.user_repository import UserRepository
+from epicevent.infrastructure.repositories.user_repository import UserRepository
+from epicevent.security.roles import RoleId
 from tests.conftest import create_persisted_user, create_user
 
 

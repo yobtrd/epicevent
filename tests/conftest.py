@@ -4,17 +4,22 @@ from sqlalchemy.orm import Session
 
 import epicevent.models  # noqa: F401
 from epicevent import bootstrap
+from epicevent.cli.helpers import get_token_storage
 from epicevent.config import TEST_DATABASE_URL
-from epicevent.constants.roles import RoleId
-from epicevent.database import Base
-from epicevent.models.user import Role, User
-from epicevent.schemas.user import UserCreate
+from epicevent.infrastructure.base import Base
+from epicevent.infrastructure.unit_of_work import UnitOfWork
+from epicevent.models.role import Role
+from epicevent.models.user import User
+from epicevent.schemas.user_schema import UserCreate
+from epicevent.security.roles import RoleId
+from epicevent.services.authorization_service import AuthorizationService
 from epicevent.services.password_service import PasswordService
-from epicevent.unit_of_work import UnitOfWork
+from epicevent.services.token_service import TokenService
+from epicevent.services.user_service import UserService
 
 
-# Database
-###############
+# Database / config
+#######################
 @pytest.fixture(scope="session")
 def engine():
     engine = create_engine(TEST_DATABASE_URL)
@@ -78,22 +83,78 @@ def token_path(monkeypatch, tmp_path):
     return path
 
 
+# Logged user
+#######################
+@pytest.fixture
+def logged_management_user(session, app_factory, token_path):
+    user = create_persisted_user(
+        session,
+        email="manager@test.com",
+        role_id=RoleId.MANAGEMENT,
+    )
+
+    token_service = TokenService()
+
+    access_token = token_service.create_access_token(user)
+    refresh_token = token_service.create_refresh_token(user)
+
+    storage = get_token_storage()
+    storage.save(
+        access_token,
+        refresh_token,
+    )
+
+    return user
+
+
+@pytest.fixture
+def logged_sales_user(session, app_factory, token_path):
+    user = create_persisted_user(
+        session,
+        email="sales@test.com",
+        role_id=RoleId.SALES,
+    )
+
+    token_service = TokenService()
+
+    access_token = token_service.create_access_token(user)
+    refresh_token = token_service.create_refresh_token(user)
+
+    storage = get_token_storage()
+    storage.save(
+        access_token,
+        refresh_token,
+    )
+
+    return user
+
+
+# Services
+#######################
+@pytest.fixture
+def user_service(uow):
+    return UserService(
+        uow,
+        AuthorizationService(),
+    )
+
+
 # Factory
-###############
+#######################
 USER_DATA = {
-    "employee_number": "001",
-    "first_name": "Jon",
+    "employee_number": "002",
+    "first_name": "Jane",
     "last_name": "Doe",
-    "email": "jon@test.com",
+    "email": "jane@test.com",
     "password": "password",
     "role_id": RoleId.MANAGEMENT,
 }
 
 USER_MODEL_DATA = {
     "employee_number": "001",
-    "first_name": "Jon",
+    "first_name": "John",
     "last_name": "Doe",
-    "email": "jon@test.com",
+    "email": "john@test.com",
     "password_hash": PasswordService().hash("password"),
     "role_id": 1,
 }

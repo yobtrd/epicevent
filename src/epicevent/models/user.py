@@ -3,12 +3,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from epicevent.database import Base
+from epicevent.infrastructure.base import Base
 
 if TYPE_CHECKING:
     from .client import Client
     from .contract import Contract
     from .event import Event
+    from .role import Role
 
 
 class User(Base):
@@ -58,18 +59,3 @@ class User(Base):
     supported_events: Mapped[list["Event"]] = relationship(
         back_populates="support_representative"
     )
-
-
-class Role(Base):
-    __tablename__ = "role"
-
-    id: Mapped[int] = mapped_column(
-        primary_key=True,
-    )
-    name: Mapped[str] = mapped_column(
-        String(20),
-        unique=True,
-        nullable=False,
-    )
-
-    users: Mapped[list["User"]] = relationship(back_populates="role")
