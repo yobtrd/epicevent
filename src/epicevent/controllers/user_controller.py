@@ -12,6 +12,6 @@ class UserController:
     def create_user(self, current_user: UserResponse, data: dict) -> UserResponse:
         try:
             request = UserCreate(**data)
-            return self.user_service.create_user(current_user, request)
         except ValidationError as e:
             raise InvalidInputError(e.errors()) from e
+        return self.user_service.create_user(current_user, request)

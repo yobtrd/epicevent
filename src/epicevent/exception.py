@@ -20,6 +20,10 @@ class InvalidTokenError(AuthenticationError):
     pass
 
 
+class ExpiredTokenError(AuthenticationError):
+    pass
+
+
 class InvalidSessionError(AuthenticationError):
     pass
 

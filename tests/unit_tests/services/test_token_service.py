@@ -3,7 +3,7 @@ import pytest
 from freezegun import freeze_time
 
 from epicevent.config import SECRET_KEY
-from epicevent.exception import InvalidTokenError
+from epicevent.exception import ExpiredTokenError, InvalidTokenError
 from epicevent.services.auth_service import TokenService
 from tests.conftest import create_user
 
@@ -64,15 +64,27 @@ def test_decode_refresh_token():
     assert payload.type == "refresh"
 
 
-def test_decode_expired_token():
+def test_decode_expired_access_token():
     token_service = TokenService()
     user = create_user()
 
-    with freeze_time("2023-01-01 10:00:00"):
+    with freeze_time("2020-01-01 10:00:00"):
         token = token_service.create_access_token(user)
 
-    with freeze_time("2023-01-01 11:00:00"):
-        with pytest.raises(InvalidTokenError):
+    with freeze_time("2020-01-01 12:00:00"):
+        with pytest.raises(ExpiredTokenError):
+            token_service.decode_token(token)
+
+
+def test_decode_expired_refresh_token():
+    token_service = TokenService()
+    user = create_user()
+
+    with freeze_time("2020-01-01 10:00:00"):
+        token = token_service.create_refresh_token(user)
+
+    with freeze_time("2030-01-01 11:00:00"):
+        with pytest.raises(ExpiredTokenError):
             token_service.decode_token(token)
 
 

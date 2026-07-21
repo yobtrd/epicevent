@@ -5,6 +5,7 @@ from epicevent.exception import (
     AuthenticationError,
     AuthorizationError,
     InvalidInputError,
+    UserNotFoundError,
 )
 
 from .commands.auth_cli import auth
@@ -24,6 +25,8 @@ def main():
         display_error(ErrorMessage.NOT_AUTHENTICATED)
     except AuthorizationError:
         display_error(ErrorMessage.NOT_AUTHORIZED)
+    except UserNotFoundError:
+        display_error(ErrorMessage.USER_NOT_FOUND)
     except InvalidInputError as e:
         display_invalid_input_error(e)
     except ApplicationError:

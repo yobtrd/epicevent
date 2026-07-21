@@ -1,7 +1,8 @@
 import click
 
 from epicevent.bootstrap import Application
-from epicevent.cli.helpers import get_current_user, with_app
+from epicevent.cli.authentification import get_authenticated_user
+from epicevent.cli.helpers import with_app
 from epicevent.cli.views import user_view
 from epicevent.cli.views.error_view import ErrorMessage, display_error
 from epicevent.exception import (
@@ -19,7 +20,7 @@ def user():
 @user.command()
 @with_app
 def create(app: Application):
-    current_user = get_current_user(app)
+    current_user = get_authenticated_user(app)
     app.authorization.ensure_can_create_user(current_user)
 
     data = data = user_view.ask_user_creation_data()

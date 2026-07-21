@@ -21,7 +21,7 @@ if SECRET_KEY is None:
     raise RuntimeError("SECRET_KEY is not configured")
 
 
-# App config
+# Tokens config
 ######################
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 10

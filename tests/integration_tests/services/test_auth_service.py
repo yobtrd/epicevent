@@ -71,7 +71,7 @@ def test_get_current_user_with_valid_token(uow, session):
     assert user_found.last_name == "Doe"
 
 
-def test_get_current_user_when_user_not_found(uow):
+def test_get_current_user_when_user_not_found_returns_error(uow):
     auth_service = AuthService(uow)
 
     user = create_user(id=999)
@@ -80,3 +80,31 @@ def test_get_current_user_when_user_not_found(uow):
 
     with pytest.raises(UserNotFoundError):
         auth_service.get_current_user(token)
+
+
+# refresh_session
+######################
+def test_refresh_session_return_new_session(uow, session):
+    auth_service = AuthService(uow)
+    token_service = TokenService()
+
+    user = create_persisted_user(session, last_name="Doe")
+    refresh_token = token_service.create_refresh_token(user)
+
+    response = auth_service.refresh_session(refresh_token)
+
+    assert response.user.id == user.id
+    assert response.user.last_name == "Doe"
+    assert response.access_token is not None
+    assert response.refresh_token is not None
+
+
+def test_refresh_session_when_user_not_found_returns_error(uow):
+    auth_service = AuthService(uow)
+    token_service = TokenService()
+
+    user = create_user(id=999)
+    refresh_token = token_service.create_refresh_token(user)
+
+    with pytest.raises(UserNotFoundError):
+        auth_service.refresh_session(refresh_token)

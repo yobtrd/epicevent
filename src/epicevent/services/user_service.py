@@ -15,14 +15,16 @@ class UserService:
         self.password_service = PasswordService()
         self.authorization = authorization
 
-    def get_user(self, user_id: int) -> User:
+    def _get_user(self, user_id: int) -> User:
         user = self.uow.users.find_by_id(user_id)
         if user is None:
             raise UserNotFoundError()
         return user
 
     def create_user(
-        self, current_user: UserResponse, user_dto: UserCreate
+        self,
+        current_user: UserResponse,
+        user_dto: UserCreate,
     ) -> UserResponse:
         with self.uow:
             self.authorization.ensure_can_create_user(current_user)
@@ -38,28 +40,24 @@ class UserService:
     def change_role(self, current_user: UserResponse, user_id: int, role_id: int):
         with self.uow:
             self.authorization.ensure_can_change_role(current_user)
-
-            user = self.get_user(user_id)
-
+            user = self._get_user(user_id)
             user.role_id = role_id
 
     def update_profile(
-        self, current_user: UserResponse, user_id: int, user_data: UserUpdate
+        self,
+        current_user: UserResponse,
+        user_id: int,
+        user_data: UserUpdate,
     ):
         with self.uow:
             self.authorization.ensure_can_update_user(current_user, user_id)
-
-            user = self.get_user(user_id)
-
+            user = self._get_user(user_id)
             data = user_data.model_dump(exclude_unset=True)
-
             for field, value in data.items():
                 setattr(user, field, value)
 
     def deactivate(self, current_user: UserResponse, user_id: int):
         with self.uow:
             self.authorization.ensure_can_deactivate_user(current_user)
-
-            user = self.get_user(user_id)
-
+            user = self._get_user(user_id)
             user.is_active = False
