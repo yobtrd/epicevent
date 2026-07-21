@@ -1,9 +1,8 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from epicevent.exception import DatabaseError
 from epicevent.infrastructure.repositories.user_repository import UserRepository
-
-from .db_error_translator import translate_database_error
 
 
 class UnitOfWork:
@@ -11,8 +10,8 @@ class UnitOfWork:
     Manages database transactions and repository access.
 
     Acts as a context manager that automatically commits successful operations
-    and rolls back failed ones. Integrity errors raised during flush or commit
-    are translated into customs exceptions.
+    and rolls back failed ones. Unknown integrity errors raised during commit are
+    translated into generic application exceptions..
 
     Nested transactions can be enabled for testing purposes to isolate changes
     within an outer transaction.
@@ -44,17 +43,16 @@ class UnitOfWork:
         """
         Handles transaction completion.
 
-        Rolls back on exceptions and translates database integrity errors.
-        Commits when the context exits successfully and translates commit failures.
+        Rolls back when an exception occurs.
+        Commits successful transactions.
+        Converts unknown database integrity errors into application exceptions.
         """
         if exc_type:
             self.rollback()
-            if isinstance(exc, IntegrityError):
-                raise translate_database_error(exc) from exc
-            return
+            return False
 
         try:
             self.commit()
-        except IntegrityError as e:
+        except IntegrityError as exc:
             self.rollback()
-            raise translate_database_error(e) from e
+            raise DatabaseError() from exc

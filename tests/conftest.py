@@ -51,7 +51,8 @@ def session(engine, create_table_role):
     session = Session(bind=connection, expire_on_commit=False)
 
     try:
-        yield session
+        with session.begin_nested():
+            yield session
     finally:
         transaction.rollback()
         connection.close()

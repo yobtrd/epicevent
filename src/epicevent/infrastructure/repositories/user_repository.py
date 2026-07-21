@@ -1,6 +1,12 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from epicevent.exception import (
+    DatabaseError,
+    EmailAlreadyExistsError,
+    EmployeeNumberAlreadyExistsError,
+)
 from epicevent.models.user import User
 
 
@@ -8,11 +14,26 @@ class UserRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def create(self, user: User) -> User:
-        self.session.add(user)
-        self.session.flush()
+    def _translate_integrity_error(self, exc):
+        constraint = exc.orig.diag.constraint_name
 
-        return user
+        match constraint:
+            case "user_email_key":
+                raise EmailAlreadyExistsError() from exc
+
+            case "user_employee_number_key":
+                raise EmployeeNumberAlreadyExistsError() from exc
+
+            case _:
+                raise DatabaseError() from exc
+
+    def create(self, user: User) -> User:
+        try:
+            self.session.add(user)
+            self.session.flush()
+            return user
+        except IntegrityError as exc:
+            self._translate_integrity_error(exc)
 
     def find_by_id(self, user_id: int) -> User | None:
         return self.session.get(User, user_id)

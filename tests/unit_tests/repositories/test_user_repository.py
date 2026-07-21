@@ -1,9 +1,17 @@
+import pytest
+
+from epicevent.exception import (
+    EmailAlreadyExistsError,
+    EmployeeNumberAlreadyExistsError,
+)
 from epicevent.infrastructure.repositories.user_repository import UserRepository
 from epicevent.security.roles import RoleId
 from tests.conftest import create_persisted_user, create_user
 
 
-def test_create_user(session):
+# create_user
+######################
+def test_create_user_success(session):
     repository = UserRepository(session)
     user = create_user()
 
@@ -14,6 +22,28 @@ def test_create_user(session):
     assert created.role_id == RoleId.MANAGEMENT
 
 
+def test_create_user_with_existing_email_raises_error(session):
+    repository = UserRepository(session)
+
+    create_persisted_user(session, employee_number="001", email="same@email.com")
+    user = create_user(employee_number="002", email="same@email.com")
+
+    with pytest.raises(EmailAlreadyExistsError):
+        repository.create(user)
+
+
+def test_create_user_with_existing_emp_number_raises_error(session):
+    repository = UserRepository(session)
+
+    create_persisted_user(session, employee_number="001", email="mail1@email.com")
+    user = create_user(employee_number="001", email="mail2@email.com")
+
+    with pytest.raises(EmployeeNumberAlreadyExistsError):
+        repository.create(user)
+
+
+# find_by_mail
+######################
 def test_find_by_email_returns_user(session):
     repository = UserRepository(session)
     persisted_user = create_persisted_user(session)
@@ -30,6 +60,8 @@ def test_find_by_email_returns_none_when_email_does_not_exist(session):
     assert repository.find_by_email("invalid@test.com") is None
 
 
+# find_by_id
+######################
 def test_find_by_id_returns_user(session):
     repository = UserRepository(session)
     persisted_user = create_persisted_user(session)
