@@ -1,9 +1,6 @@
 from functools import wraps
 
 import epicevent.bootstrap as bootstrap
-import epicevent.config as config
-
-from .token_storage import TokenStorage
 
 
 def with_app(func):
@@ -13,7 +10,3 @@ def with_app(func):
             return func(app, *args, **kwargs)
 
     return wrapper
-
-
-def get_token_storage() -> TokenStorage:
-    return TokenStorage(config.TOKEN_PATH)

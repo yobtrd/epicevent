@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from epicevent import config
 from epicevent.exception import InvalidSessionError
 
 
@@ -39,3 +40,7 @@ class TokenStorage:
 
     def clear(self):
         self.path.unlink(missing_ok=True)
+
+
+def get_token_storage() -> TokenStorage:
+    return TokenStorage(config.TOKEN_PATH)

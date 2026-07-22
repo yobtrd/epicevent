@@ -1,7 +1,7 @@
 import pytest
 from freezegun import freeze_time
 
-from epicevent.cli.authentification import get_authenticated_user
+from epicevent.cli.auth import get_authenticated_user
 from epicevent.cli.token_storage import TokenStorage
 from epicevent.exception import AuthenticationError
 from epicevent.services.auth_service import AuthService

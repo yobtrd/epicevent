@@ -21,17 +21,9 @@ class AuthorizationService:
         )
 
     def ensure_can_update_user(self, user, target_user_id):
-        is_management = authorization.has_permission(
-            user,
-            Permission.UPDATE_USER,
-        )
-
-        is_owner = authorization.can_update_profile(
-            user.id,
-            target_user_id,
-        )
-
-        if not is_management and not is_owner:
+        is_management = authorization.has_permission(user, Permission.UPDATE_USER)
+        is_owner = user.id == target_user_id
+        if not (is_management or is_owner):
             raise RolePermissionError()
 
     def ensure_can_deactivate_user(self, user):

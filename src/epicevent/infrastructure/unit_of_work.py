@@ -17,9 +17,14 @@ class UnitOfWork:
     within an outer transaction.
     """
 
-    def __init__(self, session: Session, use_nested_transaction=False):
+    def __init__(
+        self,
+        session: Session,
+        users: UserRepository,
+        use_nested_transaction=False,
+    ):
         self.session = session
-        self.users = UserRepository(session)
+        self.users = users
         self.use_nested_transaction = use_nested_transaction
 
     def commit(self):

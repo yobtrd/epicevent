@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 
 import epicevent.models  # noqa: F401
 from epicevent import bootstrap
-from epicevent.cli.helpers import get_token_storage
+from epicevent.cli.token_storage import get_token_storage
 from epicevent.config import TEST_DATABASE_URL
 from epicevent.infrastructure.base import Base
+from epicevent.infrastructure.repositories.user_repository import UserRepository
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.role import Role
 from epicevent.models.user import User
@@ -51,23 +52,28 @@ def session(engine, create_table_role):
     session = Session(bind=connection, expire_on_commit=False)
 
     try:
-        with session.begin_nested():
-            yield session
+        session.begin_nested()
+        yield session
     finally:
+        session.close()
         transaction.rollback()
         connection.close()
-        session.close()
 
 
 @pytest.fixture
 def uow(session):
-    return UnitOfWork(session, use_nested_transaction=True)
+    return UnitOfWork(
+        session,
+        users=UserRepository(session),
+        use_nested_transaction=True,
+    )
 
 
 @pytest.fixture
 def app_factory(session, uow):
     bootstrap.application_factory = bootstrap.ApplicationFactory(
-        lambda: session, lambda _: uow
+        session_factory=lambda: session,
+        use_nested_transaction=True,
     )
     return bootstrap.application_factory
 
@@ -136,6 +142,7 @@ def logged_sales_user(session, app_factory, token_path):
 def user_service(uow):
     return UserService(
         uow,
+        PasswordService(),
         AuthorizationService(),
     )
 
