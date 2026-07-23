@@ -56,6 +56,7 @@ class EmployeeNumberAlreadyExistsError(ApplicationError):
 ##################################
 class InvalidInputError(ApplicationError):
     def __init__(self, errors: list[dict]):
+        super().__init__()
         self.errors = errors
 
 

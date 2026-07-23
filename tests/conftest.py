@@ -12,7 +12,7 @@ from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.role import Role
 from epicevent.models.user import User
 from epicevent.schemas.user_schema import UserCreate
-from epicevent.security.roles import RoleId
+from epicevent.security.roles import UserRole
 from epicevent.services.authorization_service import AuthorizationService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
@@ -35,9 +35,9 @@ def engine():
 @pytest.fixture(scope="session")
 def create_table_role(engine):
     with Session(engine, expire_on_commit=False) as session:
-        management = Role(id=RoleId.MANAGEMENT, name="management")
-        sales = Role(id=RoleId.SALES, name="sales")
-        support = Role(id=RoleId.SUPPORT, name="support")
+        management = Role(id=UserRole.MANAGEMENT, name="management")
+        sales = Role(id=UserRole.SALES, name="sales")
+        support = Role(id=UserRole.SUPPORT, name="support")
 
         session.add_all([sales, support, management])
         session.commit()
@@ -109,7 +109,7 @@ USER_DATA = {
     "last_name": "Doe",
     "email": "jane@test.com",
     "password": "password",
-    "role_id": RoleId.MANAGEMENT,
+    "role_id": UserRole.MANAGEMENT,
 }
 
 USER_MODEL_DATA = {

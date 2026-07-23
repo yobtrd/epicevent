@@ -1,11 +1,11 @@
 from epicevent.cli.console import ask, console
 from epicevent.schemas.user_schema import UserResponse
-from epicevent.security.roles import RoleId
+from epicevent.security.roles import UserRole
 
 ROLE_MAPPING = {
-    "Gestion": RoleId.MANAGEMENT,
-    "Commercial": RoleId.SALES,
-    "Support": RoleId.SUPPORT,
+    "Gestion": UserRole.MANAGEMENT,
+    "Commercial": UserRole.SALES,
+    "Support": UserRole.SUPPORT,
 }
 
 
@@ -18,7 +18,8 @@ def ask_choice(label: str, choices: list[str]) -> str:
                 return choice
 
         console.print(
-            f"[error]Choix invalide. Valeurs possibles : {', '.join(choices)}.[/error]"
+            f"Choix invalide. Valeurs possibles : {', '.join(choices)}.",
+            style="error",
         )
 
 
@@ -42,8 +43,8 @@ def ask_user_creation_data():
 
 def display_creation_success(user_response: UserResponse):
     console.print(
-        f"[success]L'utilisateur (n°{user_response.employee_number}) "
-        "a été enregistré.[/success]"
+        f"L'utilisateur (n°{user_response.employee_number}) a été enregistré.",
+        style="success",
     )
 
 
@@ -52,21 +53,39 @@ def ask_target_user_employee_number():
 
 
 def ask_user_update_data():
-    first_name = ask("Prénom")
-    last_name = ask("Nom")
-    email = ask("Email")
-    password = ask("Password")
-
-    return {
-        "first_name": first_name,
-        "last_name": last_name,
-        "email": email,
-        "password": password,
+    fields = {
+        "1": ("first_name", "Prénom"),
+        "2": ("last_name", "Nom"),
+        "3": ("email", "Email"),
+        "4": ("password", "Mot de passe"),
     }
 
+    updates = {}
 
-def display_update_success(user_response):
+    while True:
+        console.print("\nChoisissez le champ à modifier :", style="highlight")
+        for key, (_attr, label) in fields.items():
+            console.print(f"{key}. {label}")
+        console.print("q. Terminer la saisie")
+
+        choice = ask("Votre choix")
+
+        if choice.lower() == "q":
+            break
+
+        if choice in fields:
+            attr, label = fields[choice]
+            value = ask(f"\nNouveau {label}")
+            if value:
+                updates[attr] = value
+        else:
+            console.print("Choix invalide", style="error")
+
+    return updates
+
+
+def display_update_success(user_response: UserResponse):
     console.print(
-        f"[success]L'utilisateur (n°{user_response.employee_number}) "
-        "a été mis à jour.[/success]"
+        f"L'utilisateur (n°{user_response.employee_number}) a été mis à jour.",
+        style="success",
     )

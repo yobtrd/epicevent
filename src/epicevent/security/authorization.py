@@ -1,9 +1,9 @@
-from epicevent.security.roles import RoleId
+from epicevent.security.roles import UserRole
 
 from .permission import Permission
 
 ROLE_PERMISSIONS = {
-    RoleId.MANAGEMENT: [
+    UserRole.MANAGEMENT: [
         Permission.CREATE_USER,
         Permission.UPDATE_USER,
         Permission.UPDATE_USER_ROLE,

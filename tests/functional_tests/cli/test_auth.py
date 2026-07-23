@@ -22,6 +22,7 @@ def test_login_with_correct_credentials(session, token_path, app_factory):
             "login",
         ],
         input="test@email.com\npassword\n",
+        color=False,
     )
 
     assert result.exit_code == 0

@@ -1,13 +1,15 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+from epicevent.security.roles import UserRole
 
 
 class UserCreate(BaseModel):
-    employee_number: str
-    first_name: str
-    last_name: str
+    employee_number: str = Field(min_length=1)
+    first_name: str = Field(min_length=1)
+    last_name: str = Field(min_length=1)
     email: EmailStr
-    password: str
-    role_id: int
+    password: str = Field(min_length=8)
+    role_id: UserRole
 
     model_config = ConfigDict(
         extra="forbid",
@@ -17,7 +19,7 @@ class UserCreate(BaseModel):
     @field_validator("employee_number")
     @classmethod
     def normalize_employee_number(cls, value: str) -> str:
-        return value.strip().upper()
+        return value.upper()
 
 
 class UserResponse(BaseModel):
@@ -30,14 +32,15 @@ class UserResponse(BaseModel):
 
     model_config = ConfigDict(
         from_attributes=True,
+        extra="forbid",
     )
 
 
 class UserUpdate(BaseModel):
-    first_name: str | None = None
-    last_name: str | None = None
-    email: EmailStr | None = None
-    password: str | None = None
+    first_name: str | None = Field(default=None, min_length=1)
+    last_name: str | None = Field(default=None, min_length=1)
+    email: EmailStr | None = Field(default=None)
+    password: str | None = Field(default=None, min_length=8)
 
     model_config = ConfigDict(
         extra="forbid",

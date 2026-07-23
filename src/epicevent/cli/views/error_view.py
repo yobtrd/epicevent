@@ -1,20 +1,32 @@
-from enum import Enum
-
 from epicevent.cli.console import console
-from epicevent.exception import InvalidInputError
+from epicevent.exception import (
+    ApplicationError,
+    AuthenticationError,
+    EmailAlreadyExistsError,
+    EmployeeNumberAlreadyExistsError,
+    InvalidCredentialsError,
+    InvalidInputError,
+    RolePermissionError,
+    UserNotFoundError,
+)
+
+ERROR_MESSAGES = {
+    AuthenticationError: "Vous n'êtes pas connecté à une session.",
+    RolePermissionError: "Vous n'avez pas les droits pour cette action.",
+    InvalidCredentialsError: "Email ou mot de passe incorrect, veuillez réessayer.",
+    UserNotFoundError: "L'utilisateur n'a pas été trouvé.",
+    EmailAlreadyExistsError: "Cet email existe déjà.",
+    EmployeeNumberAlreadyExistsError: "Ce numéro d'employé existe déjà.",
+}
 
 
-class ErrorMessage(Enum):
-    NOT_AUTHENTICATED = "Vous n'êtes pas connecté à une session."
-    NOT_AUTHORIZED = "Vous n'avez pas les droits pour cette action."
-    USER_NOT_FOUND = "L'utilisateur n'a pas été trouvé."
-    EMAIL_ALREADY_EXISTS = "Cet email existe déjà."
-    EMPLOYEE_NUMBER_ALREADY_EXISTS = "Ce numéro d'employé existe déjà."
-    UNKNOWN = "Une erreur inattendue est survenue."
+def display_application_error(error: ApplicationError):
+    message = ERROR_MESSAGES.get(type(error))
 
-
-def display_error(message: ErrorMessage):
-    console.print(f"[error]Erreur: {message.value}[/error]")
+    if message:
+        console.print(f"Erreur: {message}", style="error")
+    else:
+        console.print("Erreur: Une erreur inattendue est survenue.", style="error")
 
 
 def display_invalid_input_error(error: InvalidInputError):
@@ -28,4 +40,4 @@ def display_invalid_input_error(error: InvalidInputError):
         field = ".".join(err["loc"])
         message = messages.get((field, err["type"]), "Valeur invalide.")
 
-        console.print(f"[error]Erreur sur le champ {field}: {message}[/error]")
+        console.print(f"Erreur sur le champ {field}: {message}", style="error")

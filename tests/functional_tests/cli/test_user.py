@@ -1,8 +1,7 @@
 from click.testing import CliRunner
 
 from epicevent.cli.main import cli
-from epicevent.exception import RolePermissionError
-from epicevent.security.roles import RoleId
+from epicevent.security.roles import UserRole
 from tests.conftest import create_persisted_user
 
 
@@ -10,7 +9,7 @@ from tests.conftest import create_persisted_user
 ######################
 def test_create_user_success(logged_user_factory):
     runner = CliRunner()
-    logged_user_factory(role_id=RoleId.MANAGEMENT)
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
     user_emp_number = "003"
 
     result = runner.invoke(
@@ -25,7 +24,7 @@ def test_create_user_success(logged_user_factory):
 
 def test_create_user_duplicate_email_displays_error(session, logged_user_factory):
     runner = CliRunner()
-    logged_user_factory(role_id=RoleId.MANAGEMENT)
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
 
     create_persisted_user(session, employee_number="002", email="exist@email.com")
 
@@ -41,7 +40,7 @@ def test_create_user_duplicate_email_displays_error(session, logged_user_factory
 
 def test_create_user_duplicate_emp_number_displays_error(session, logged_user_factory):
     runner = CliRunner()
-    logged_user_factory(role_id=RoleId.MANAGEMENT)
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
 
     create_persisted_user(session, employee_number="010", email="exist@email.com")
 
@@ -57,7 +56,7 @@ def test_create_user_duplicate_emp_number_displays_error(session, logged_user_fa
 
 def test_create_user_with_invalid_input_displays_error(logged_user_factory):
     runner = CliRunner()
-    logged_user_factory(role_id=RoleId.MANAGEMENT)
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
 
     result = runner.invoke(
         cli,
@@ -72,21 +71,22 @@ def test_create_user_with_invalid_input_displays_error(logged_user_factory):
 
 def test_create_user_with_no_authorization(logged_user_factory):
     runner = CliRunner()
-    logged_user_factory(role_id=RoleId.SALES)
+    logged_user_factory(role_id=UserRole.SALES)
 
     result = runner.invoke(
         cli,
         ["user", "create"],
     )
 
-    assert isinstance(result.exception, RolePermissionError)
+    assert result.exit_code == 0
+    assert "Vous n'avez pas les droits pour cette action." in result.output
 
 
 # update_user
 ######################
 def test_update_user_by_management_success(logged_user_factory, session):
     runner = CliRunner()
-    logged_user_factory(role_id=RoleId.MANAGEMENT)
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
 
     target_user_emp_number = "002"
     create_persisted_user(
@@ -96,7 +96,7 @@ def test_update_user_by_management_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["user", "update"],
-        input=(f"{target_user_emp_number}\nJohn\nDoe\njohn@test.com\nnewpassword"),
+        input=(f"{target_user_emp_number}\n4\nnnewpassword\nq"),
     )
 
     assert result.exit_code == 0
@@ -108,12 +108,12 @@ def test_update_user_by_management_success(logged_user_factory, session):
 def test_update_user_by_owner_success(logged_user_factory, session):
     runner = CliRunner()
     owner_user_emp_number = "002"
-    logged_user_factory(employee_number=owner_user_emp_number, role_id=RoleId.SUPPORT)
+    logged_user_factory(employee_number=owner_user_emp_number, role_id=UserRole.SUPPORT)
 
     result = runner.invoke(
         cli,
         ["user", "update"],
-        input=(f"{owner_user_emp_number}\nJohn\nDoe\njohn@test.com\nnewpassword"),
+        input=(f"{owner_user_emp_number}\n3\njohn@test.com\nq"),
     )
 
     assert result.exit_code == 0
@@ -127,7 +127,7 @@ def test_update_user_with_invalid_role_and_not_owner_displays_error(
 ):
     runner = CliRunner()
     logged_user_factory(
-        employee_number="001", email="sales@email.com", role_id=RoleId.SALES
+        employee_number="001", email="sales@email.com", role_id=UserRole.SALES
     )
 
     target_user_emp_number = "002"
@@ -141,14 +141,14 @@ def test_update_user_with_invalid_role_and_not_owner_displays_error(
         input=(f"{target_user_emp_number}"),
     )
 
-    assert result.exit_code == 1
+    assert result.exit_code == 0
     assert "Erreur: Vous n'avez pas les droits pour cette action."
 
 
 def test_update_user_duplicate_email_displays_error(session, logged_user_factory):
     runner = CliRunner()
     logged_user_factory(
-        employee_number="001", email="oldmail@email.com", role_id=RoleId.SALES
+        employee_number="001", email="oldmail@email.com", role_id=UserRole.SALES
     )
 
     create_persisted_user(session, employee_number="002", email="exists@email.com")
@@ -156,7 +156,7 @@ def test_update_user_duplicate_email_displays_error(session, logged_user_factory
     result = runner.invoke(
         cli,
         ["user", "update"],
-        input=("001\nJohn\nDoe\nexists@email.com\npassword\nSupport\n"),
+        input=("001\n3\nexists@email.com\nq"),
     )
 
     assert result.exit_code == 0

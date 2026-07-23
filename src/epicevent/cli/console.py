@@ -4,14 +4,19 @@ from rich.theme import Theme
 
 theme = Theme(
     {
-        "error": "red",
+        "error": "bold red",
         "warning": "yellow",
-        "success": "green",
+        "success": "bold green",
         "info": "blue",
+        "highlight": "bold white",
     }
 )
 
-console = Console(theme=theme)
+console = Console(
+    theme=theme,
+    highlight=False,
+    markup=False,
+)
 
 
 def ask(label: str, **kwargs):

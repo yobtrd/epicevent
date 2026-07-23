@@ -11,14 +11,10 @@ def ask_user_credentials():
 
 def display_login_success(user: UserResponse):
     console.print(
-        f"[success]Bienvenue, votre session est ouverte "
-        f"(Utilisateur N°{user.employee_number}).[/success]"
+        f"Bienvenue, votre session est ouverte (Utilisateur N°{user.employee_number}).",
+        style="success",
     )
 
 
 def display_logout_success():
-    console.print("[success]Votre session est fermée.[/success]")
-
-
-def display_credentials_error():
-    console.print("[error]Email ou mot de passe incorrect, veuillez réessayer.[/error]")
+    console.print("Votre session est fermée.", style="success")

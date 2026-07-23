@@ -5,7 +5,7 @@ from epicevent.exception import (
     EmployeeNumberAlreadyExistsError,
 )
 from epicevent.infrastructure.repositories.user_repository import UserRepository
-from epicevent.security.roles import RoleId
+from epicevent.security.roles import UserRole
 from tests.conftest import create_persisted_user, create_user
 
 
@@ -19,7 +19,7 @@ def test_create_user_success(session):
 
     assert created.id is not None
     assert created.email == user.email
-    assert created.role_id == RoleId.MANAGEMENT
+    assert created.role_id == UserRole.MANAGEMENT
 
 
 def test_create_user_with_existing_email_raises_error(session):

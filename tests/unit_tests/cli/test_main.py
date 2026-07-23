@@ -1,54 +1,29 @@
 from epicevent.cli.main import main
-from epicevent.exception import (
-    AuthenticationError,
-    AuthorizationError,
-    InvalidInputError,
-)
+from epicevent.exception import ApplicationError
 
 
-def test_main_displays_authorization_error(mocker, capsys):
+def test_main_handles_application_error(mocker, capsys):
     mocker.patch(
         "epicevent.cli.main.cli",
-        side_effect=AuthorizationError(),
+        side_effect=ApplicationError("Message de test"),
     )
 
     main()
 
     captured = capsys.readouterr()
+    assert "Erreur:" in captured.out
 
-    assert "Vous n'avez pas les droits pour cette action." in captured.out
 
+def test_main_displays_unexpected_error(mocker, capsys):
+    class UnknownApplicationError(ApplicationError):
+        pass
 
-def test_main_displays_authentication_error(mocker, capsys):
     mocker.patch(
         "epicevent.cli.main.cli",
-        side_effect=AuthenticationError(),
+        side_effect=UnknownApplicationError(),
     )
 
     main()
 
     captured = capsys.readouterr()
-
-    assert "Vous n'êtes pas connecté à une session." in captured.out
-
-
-def test_main_displays_invalid_input_error(mocker, capsys):
-    error = InvalidInputError(
-        [
-            {
-                "loc": ("email",),
-                "type": "value_error",
-            }
-        ]
-    )
-
-    mocker.patch(
-        "epicevent.cli.main.cli",
-        side_effect=error,
-    )
-
-    main()
-
-    captured = capsys.readouterr()
-
-    assert "Erreur sur le champ email" in captured.out
+    assert "Erreur: Une erreur inattendue est survenue." in captured.out

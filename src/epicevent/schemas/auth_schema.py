@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from .user_schema import UserResponse
 
@@ -9,13 +9,22 @@ class TokenPayload(BaseModel):
     exp: int
     iat: int
 
+    model_config = ConfigDict(extra="forbid")
+
 
 class AuthRequest(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(min_length=1)
+
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
 
 
 class AuthResponse(BaseModel):
     user: UserResponse
     access_token: str
     refresh_token: str
+
+    model_config = ConfigDict(extra="forbid")
