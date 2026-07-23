@@ -40,8 +40,33 @@ def ask_user_creation_data():
     }
 
 
-def display_creation_success(user: UserResponse):
+def display_creation_success(user_response: UserResponse):
     console.print(
-        f"[success]L'utilisateur {user.first_name} {user.last_name} "
+        f"[success]L'utilisateur (n°{user_response.employee_number}) "
         "a été enregistré.[/success]"
+    )
+
+
+def ask_target_user_employee_number():
+    return ask("Numéro de l'employé à mettre à jour")
+
+
+def ask_user_update_data():
+    first_name = ask("Prénom")
+    last_name = ask("Nom")
+    email = ask("Email")
+    password = ask("Password")
+
+    return {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "password": password,
+    }
+
+
+def display_update_success(user_response):
+    console.print(
+        f"[success]L'utilisateur (n°{user_response.employee_number}) "
+        "a été mis à jour.[/success]"
     )

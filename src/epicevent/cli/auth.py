@@ -1,5 +1,4 @@
 import epicevent.bootstrap as bootstrap
-from epicevent.bootstrap import Application
 from epicevent.cli.token_storage import get_token_storage
 from epicevent.exception import (
     AuthenticationError,
@@ -8,7 +7,6 @@ from epicevent.exception import (
     InvalidTokenError,
 )
 from epicevent.schemas.user_schema import UserResponse
-from epicevent.security.permission import Permission
 
 
 def get_authenticated_user(app: bootstrap.Application) -> UserResponse:
@@ -26,9 +24,3 @@ def get_authenticated_user(app: bootstrap.Application) -> UserResponse:
         except (InvalidSessionError, InvalidTokenError, ExpiredTokenError) as exc:
             storage.clear()
             raise AuthenticationError() from exc
-
-
-def get_authorized_user(app: Application, permission: Permission):
-    current_user = get_authenticated_user(app)
-    app.authorization_controller.require_permission(current_user, permission)
-    return current_user

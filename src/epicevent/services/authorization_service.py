@@ -1,33 +1,16 @@
 from epicevent.exception import RolePermissionError
+from epicevent.models.user import User
 from epicevent.security import authorization
 from epicevent.security.permission import Permission
 
 
 class AuthorizationService:
-    def ensure_permission(self, user, permission):
+    def ensure_permission(self, user: User, permission: Permission):
         if not authorization.has_permission(user, permission):
             raise RolePermissionError()
 
-    def ensure_can_create_user(self, user):
-        self.ensure_permission(
-            user,
-            Permission.CREATE_USER,
-        )
-
-    def ensure_can_change_role(self, user):
-        self.ensure_permission(
-            user,
-            Permission.UPDATE_USER_ROLE,
-        )
-
-    def ensure_can_update_user(self, user, target_user_id):
+    def ensure_can_update_user(self, user: User, target_employee_number: str):
         is_management = authorization.has_permission(user, Permission.UPDATE_USER)
-        is_owner = user.id == target_user_id
+        is_owner = user.employee_number == target_employee_number
         if not (is_management or is_owner):
             raise RolePermissionError()
-
-    def ensure_can_deactivate_user(self, user):
-        self.ensure_permission(
-            user,
-            Permission.DEACTIVATE_USER,
-        )

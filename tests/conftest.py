@@ -90,52 +90,6 @@ def token_path(monkeypatch, tmp_path):
     return path
 
 
-# Logged user
-#######################
-@pytest.fixture
-def logged_management_user(session, app_factory, token_path):
-    user = create_persisted_user(
-        session,
-        email="manager@test.com",
-        role_id=RoleId.MANAGEMENT,
-    )
-
-    token_service = TokenService()
-
-    access_token = token_service.create_access_token(user)
-    refresh_token = token_service.create_refresh_token(user)
-
-    storage = get_token_storage()
-    storage.save(
-        access_token,
-        refresh_token,
-    )
-
-    return user
-
-
-@pytest.fixture
-def logged_sales_user(session, app_factory, token_path):
-    user = create_persisted_user(
-        session,
-        email="sales@test.com",
-        role_id=RoleId.SALES,
-    )
-
-    token_service = TokenService()
-
-    access_token = token_service.create_access_token(user)
-    refresh_token = token_service.create_refresh_token(user)
-
-    storage = get_token_storage()
-    storage.save(
-        access_token,
-        refresh_token,
-    )
-
-    return user
-
-
 # Services
 #######################
 @pytest.fixture
@@ -189,3 +143,22 @@ def create_user_dto(**kwargs):
     user_dto = {**USER_DATA}
     user_dto.update(kwargs)
     return UserCreate(**user_dto)
+
+
+@pytest.fixture
+def logged_user_factory(session, app_factory, token_path):
+    def _create_logged_user(**kwargs):
+        defaults = {"employee_number": "000", "email": "logged@test.com"}
+        user_params = {**defaults, **kwargs}
+        user = create_persisted_user(session, **user_params)
+
+        token_service = TokenService()
+        access_token = token_service.create_access_token(user)
+        refresh_token = token_service.create_refresh_token(user)
+
+        storage = get_token_storage()
+        storage.save(access_token, refresh_token)
+
+        return user
+
+    return _create_logged_user

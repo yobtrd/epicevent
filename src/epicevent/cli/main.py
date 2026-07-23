@@ -4,13 +4,11 @@ from epicevent.exception import (
     ApplicationError,
     AuthenticationError,
     AuthorizationError,
-    InvalidInputError,
-    UserNotFoundError,
 )
 
 from .commands.auth_cli import auth
 from .commands.user_cli import user
-from .views.error_view import ErrorMessage, display_error, display_invalid_input_error
+from .views.error_view import ErrorMessage, display_error
 
 
 @click.group()
@@ -25,10 +23,10 @@ def main():
         display_error(ErrorMessage.NOT_AUTHENTICATED)
     except AuthorizationError:
         display_error(ErrorMessage.NOT_AUTHORIZED)
-    except UserNotFoundError:
-        display_error(ErrorMessage.USER_NOT_FOUND)
-    except InvalidInputError as e:
-        display_invalid_input_error(e)
+    # except UserNotFoundError:
+    #     display_error(ErrorMessage.USER_NOT_FOUND)
+    # except InvalidInputError as e:
+    #     display_invalid_input_error(e)
     except ApplicationError:
         display_error(ErrorMessage.UNKNOWN)
 

@@ -11,7 +11,8 @@ def ask_user_credentials():
 
 def display_login_success(user: UserResponse):
     console.print(
-        f"[success]Bienvenue {user.first_name}, votre session est ouverte.[/success]"
+        f"[success]Bienvenue, votre session est ouverte "
+        f"(Utilisateur N°{user.employee_number}).[/success]"
     )
 
 

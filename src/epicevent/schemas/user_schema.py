@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 
 class UserCreate(BaseModel):
@@ -13,6 +13,11 @@ class UserCreate(BaseModel):
         extra="forbid",
         str_strip_whitespace=True,
     )
+
+    @field_validator("employee_number")
+    @classmethod
+    def normalize_employee_number(cls, value: str) -> str:
+        return value.strip().upper()
 
 
 class UserResponse(BaseModel):
@@ -32,6 +37,7 @@ class UserUpdate(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     email: EmailStr | None = None
+    password: str | None = None
 
     model_config = ConfigDict(
         extra="forbid",

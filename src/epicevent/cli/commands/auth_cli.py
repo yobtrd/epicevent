@@ -19,15 +19,15 @@ def login(app: Application):
     credentials = auth_view.ask_user_credentials()
 
     try:
-        response = app.auth_controller.login(credentials)
+        auth_response = app.auth_controller.login(credentials)
     except InvalidCredentialsError:
         auth_view.display_credentials_error()
         return
 
     storage = get_token_storage()
-    storage.save(response.access_token, response.refresh_token)
+    storage.save(auth_response.access_token, auth_response.refresh_token)
 
-    auth_view.display_login_success(response.user)
+    auth_view.display_login_success(auth_response.user)
 
 
 @auth.command()

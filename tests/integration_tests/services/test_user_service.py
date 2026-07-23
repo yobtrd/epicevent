@@ -75,7 +75,7 @@ def test_management_can_modify_role(user_service, session):
     persisted_user = create_persisted_user(session, role_id=RoleId.SUPPORT)
 
     assert persisted_user.role.name == "support"
-    user_service.change_role(current_user, persisted_user.id, RoleId.SALES)
+    user_service.change_role(current_user, persisted_user.employee_number, RoleId.SALES)
 
     session.refresh(persisted_user)
     assert persisted_user.role_id == RoleId.SALES
@@ -84,10 +84,10 @@ def test_management_can_modify_role(user_service, session):
 
 def test_change_role_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
-    bad_user_id = 9999
+    bad_employee_number = "9999"
 
     with pytest.raises(UserNotFoundError):
-        user_service.change_role(current_user, bad_user_id, RoleId.SALES)
+        user_service.change_role(current_user, bad_employee_number, RoleId.SALES)
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
@@ -96,7 +96,9 @@ def test_unauthorized_user_cannot_modify_role(user_service, session, role):
     persisted_user = create_persisted_user(session, role_id=RoleId.SUPPORT)
 
     with pytest.raises(RolePermissionError):
-        user_service.change_role(current_user, persisted_user.id, RoleId.MANAGEMENT)
+        user_service.change_role(
+            current_user, persisted_user.employee_number, RoleId.MANAGEMENT
+        )
 
 
 # update_profile
@@ -106,7 +108,7 @@ def test_management_can_update_profile(user_service, session):
     persisted_user = create_persisted_user(session, email="original@email.com")
 
     new_data = UserUpdate(email="new@email.com")
-    user_service.update_profile(current_user, persisted_user.id, new_data)
+    user_service.update_profile(current_user, persisted_user.employee_number, new_data)
 
     session.refresh(persisted_user)
     assert persisted_user.email == "new@email.com"
@@ -117,7 +119,7 @@ def test_current_user_can_update_his_profile(user_service, session):
     current_user = persisted_user
 
     new_data = UserUpdate(last_name="Dae")
-    user_service.update_profile(current_user, persisted_user.id, new_data)
+    user_service.update_profile(current_user, persisted_user.employee_number, new_data)
 
     session.refresh(persisted_user)
     assert persisted_user.last_name == "Dae"
@@ -125,23 +127,27 @@ def test_current_user_can_update_his_profile(user_service, session):
 
 def test_update_profile_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
-    bad_user_id = 9999
+    bad_employee_number = "9999"
 
     new_data = UserUpdate(email="new@email.com")
 
     with pytest.raises(UserNotFoundError):
-        user_service.update_profile(current_user, bad_user_id, new_data)
+        user_service.update_profile(current_user, bad_employee_number, new_data)
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
 def test_unauthorized_user_cannot_update_user(user_service, session, role):
-    current_user = create_user(role_id=role)
-    persisted_user = create_persisted_user(session, email="original@email.com")
+    current_user = create_user(role_id=role, employee_number="001")
+    persisted_user = create_persisted_user(
+        session, employee_number="002", email="original@email.com"
+    )
 
     new_data = UserUpdate(email="new@email.com")
 
     with pytest.raises(RolePermissionError):
-        user_service.update_profile(current_user, persisted_user.id, new_data)
+        user_service.update_profile(
+            current_user, persisted_user.employee_number, new_data
+        )
 
 
 # deactivate
@@ -150,7 +156,7 @@ def test_management_can_deactivate_user(user_service, session):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
     persisted_user = create_persisted_user(session)
 
-    user_service.deactivate(current_user, persisted_user.id)
+    user_service.deactivate(current_user, persisted_user.employee_number)
 
     session.refresh(persisted_user)
     assert persisted_user.is_active is False
@@ -158,10 +164,10 @@ def test_management_can_deactivate_user(user_service, session):
 
 def test_deactivate_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=RoleId.MANAGEMENT)
-    bad_user_id = 9999
+    bad_employee_number = "9999"
 
     with pytest.raises(UserNotFoundError):
-        user_service.deactivate(current_user, bad_user_id)
+        user_service.deactivate(current_user, bad_employee_number)
 
 
 @pytest.mark.parametrize("role", [RoleId.SALES, RoleId.SUPPORT])
