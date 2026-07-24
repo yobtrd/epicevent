@@ -11,7 +11,11 @@ ROLE_MAPPING = {
 
 def _ask_choice(label: str, choices: list[str]) -> str:
     while True:
-        value = ask(label)
+        value = ask_required(label).strip()
+
+        if not value:
+            console.print("Veuillez saisir un département.", style="warning")
+            continue
 
         for choice in choices:
             if value.casefold() == choice.casefold():
@@ -19,7 +23,7 @@ def _ask_choice(label: str, choices: list[str]) -> str:
 
         console.print(
             f"Choix invalide. Valeurs possibles : {', '.join(choices)}.",
-            style="error",
+            style="warning",
         )
 
 
@@ -74,18 +78,18 @@ def ask_user_update_data():
             console.print(f"{key}. {label}")
         console.print("q. Terminer la saisie")
 
-        choice = ask("Votre choix")
+        choice = ask("Votre choix").strip()
 
         if choice.lower() == "q":
             break
 
         if choice in fields:
             attr, label = fields[choice]
-            value = ask(f"\nNouveau {label}")
+            value = ask(f"\nNouveau {label.lower()}")
             if value:
                 updates[attr] = value
         else:
-            console.print("Choix invalide", style="error")
+            console.print("Choix invalide", style="warning")
 
     return updates
 

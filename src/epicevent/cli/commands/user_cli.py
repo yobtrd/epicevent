@@ -43,9 +43,9 @@ def update(app: Application, current_user: UserResponse):
     target_user = _get_target_user_by_employee_number(app)
     app.authorization_controller.ensure_can_update_user(current_user, target_user)
     data = user_view.ask_user_update_data()
-
-    user = app.user_controller.update_user(current_user, target_user, data)
-    user_view.display_update_success(user)
+    if data:
+        user = app.user_controller.update_user(current_user, target_user, data)
+        user_view.display_update_success(user)
 
 
 @user.command("update-role")
@@ -61,3 +61,11 @@ def update_role(app: Application, current_user: UserResponse):
 
     user = app.user_controller.update_role(current_user, target_user, new_role)
     user_view.display_update_role_success(user)
+
+
+@user.command()
+@with_app
+@handle_errors
+@require_auth
+def deactivate(app: Application, curren_user: UserResponse):
+    pass

@@ -80,6 +80,28 @@ def test_login_with_incorrect_password(session, token_path, app_factory):
     assert "Email ou mot de passe incorrect, veuillez réessayer" in result.output
 
 
+def test_login_with_invalid_inpput_display_error(session, token_path, app_factory):
+    runner = CliRunner()
+    create_persisted_user(
+        session,
+        email="test@email.com",
+        password_hash=PasswordService().hash("password"),
+    )
+
+    result = runner.invoke(
+        cli,
+        [
+            "auth",
+            "login",
+        ],
+        input="notanemail\npassword\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Format invalide" in result.output
+    assert "adresse email" in result.output
+
+
 def test_logout(token_path):
     runner = CliRunner()
 

@@ -30,14 +30,21 @@ def display_application_error(error: ApplicationError):
 
 
 def display_invalid_input_error(error: InvalidInputError):
-    messages = {
-        (
-            "email",
-            "value_error",
-        ): 'Format invalide, une adresse email doit contenir un "@".'
+    labels = {
+        "email": "Email",
+        "password": "Mot de passe",
+        "employee_number": "Numéro d'employé",
     }
-    for err in error.errors:
-        field = ".".join(err["loc"])
-        message = messages.get((field, err["type"]), "Valeur invalide.")
 
-        console.print(f"Erreur sur le champ {field}: {message}", style="error")
+    messages = {
+        "Email": 'Format invalide, une adresse email doit contenir un "@".',
+        "Mot de passe": "Format invalide, le mot de passe doit contenir "
+        "au moins 8 caractères.",
+    }
+
+    for err in error.errors:
+        raw_field = err["loc"][-1]
+        label = labels.get(raw_field, raw_field)
+        message = messages.get(label, "Saisie invalide.")
+
+        console.print(f"{label}: {message}", style="warning")

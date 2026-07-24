@@ -29,6 +29,6 @@ def ask(label: str, **kwargs):
 def ask_required(label: str, **kwargs):
     while True:
         value = ask(label, default="", show_default=False, **kwargs)
-        if value and value.strip():
-            return value
+        if value.strip():
+            return value.strip()
         console.print("Ce champ est obligatoire.", style="warning")
