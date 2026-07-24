@@ -8,7 +8,7 @@ class UserCreate(BaseModel):
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=1)
     role_id: UserRole
 
     model_config = ConfigDict(
@@ -36,11 +36,24 @@ class UserResponse(BaseModel):
     )
 
 
-class UserUpdate(BaseModel):
+class UserUpdateSelf(BaseModel):
     first_name: str | None = Field(default=None, min_length=1)
     last_name: str | None = Field(default=None, min_length=1)
     email: EmailStr | None = Field(default=None)
-    password: str | None = Field(default=None, min_length=8)
+    password: str | None = Field(default=None, min_length=1)
+
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+
+class UserUpdateManagement(BaseModel):
+    employee_number: str | None = Field(default=None, min_length=1)
+    first_name: str | None = Field(default=None, min_length=1)
+    last_name: str | None = Field(default=None, min_length=1)
+    email: EmailStr | None = Field(default=None)
+    role_id: UserRole | None = Field(default=None)
 
     model_config = ConfigDict(
         extra="forbid",

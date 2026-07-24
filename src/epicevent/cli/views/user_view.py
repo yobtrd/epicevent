@@ -9,6 +9,8 @@ ROLE_MAPPING = {
 }
 
 
+# Helpers / generic
+######################
 def _ask_choice(label: str, choices: list[str]) -> str:
     while True:
         value = ask_required(label).strip()
@@ -34,6 +36,41 @@ def _ask_for_role():
     return role_label
 
 
+def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
+    updates = {}
+    while True:
+        console.print("\nChoisissez le champ à modifier :", style="highlight")
+        for key, (_, label) in fields.items():
+            console.print(f"{key}. {label}")
+        console.print("q. Terminer la saisie")
+
+        choice = ask("Votre choix").strip()
+        if choice.lower() == "q":
+            break
+
+        if choice == "5" and "role" in [f[0] for f in fields.values()]:
+            role_label = _ask_for_role()
+            updates["role_id"] = ROLE_MAPPING[role_label]
+            continue
+
+        if choice in fields:
+            attr, label = fields[choice]
+            kwargs = {"hide_input": True} if attr == "password" else {}
+            value = ask(f"\nNouveau {label.lower()}", **kwargs)
+
+            if value:
+                updates[attr] = value
+        else:
+            console.print("Choix invalide", style="warning")
+    return updates
+
+
+def display_employee_not_found_warning():
+    console.print("Cet employé n'existe pas. Veuillez réessayer.", style="warning")
+
+
+# create
+######################
 def ask_user_creation_data():
     employee_number = ask_required("Numéro d'employé")
     first_name = ask_required("Prénom")
@@ -58,40 +95,21 @@ def display_creation_success(user_response: UserResponse):
     )
 
 
+# update
+######################
 def ask_target_user_employee_number():
     return ask_required("Numéro de l'employé à mettre à jour")
 
 
 def ask_user_update_data():
     fields = {
-        "1": ("first_name", "Prénom"),
-        "2": ("last_name", "Nom"),
-        "3": ("email", "Email"),
-        "4": ("password", "Mot de passe"),
+        "1": ("employee_number", "Numéro d'employé"),
+        "2": ("first_name", "Prénom"),
+        "3": ("last_name", "Nom"),
+        "4": ("email", "Email"),
+        "5": ("role", "Role"),
     }
-
-    updates = {}
-
-    while True:
-        console.print("\nChoisissez le champ à modifier :", style="highlight")
-        for key, (_attr, label) in fields.items():
-            console.print(f"{key}. {label}")
-        console.print("q. Terminer la saisie")
-
-        choice = ask("Votre choix").strip()
-
-        if choice.lower() == "q":
-            break
-
-        if choice in fields:
-            attr, label = fields[choice]
-            value = ask(f"\nNouveau {label.lower()}")
-            if value:
-                updates[attr] = value
-        else:
-            console.print("Choix invalide", style="warning")
-
-    return updates
+    return _ask_update_menu(fields)
 
 
 def display_update_success(user_response: UserResponse):
@@ -101,18 +119,20 @@ def display_update_success(user_response: UserResponse):
     )
 
 
-def ask_user_new_role():
-    role_label = _ask_for_role()
-    return ROLE_MAPPING[role_label]
+# update_self
+######################
+def ask_user_self_data():
+    fields = {
+        "1": ("first_name", "Prénom"),
+        "2": ("last_name", "Nom"),
+        "3": ("email", "Email"),
+        "4": ("password", "Mot de passe"),
+    }
+    return _ask_update_menu(fields)
 
 
-def display_update_role_success(user_response: UserResponse):
+def display_update_self_success():
     console.print(
-        f"Le role de l'utilisateur (n°{user_response.employee_number}) "
-        "a été mis à jour.",
+        "Votre profil a été mis à jour.",
         style="success",
     )
-
-
-def display_employee_not_found_warning():
-    console.print("Cet employé n'existe pas. Veuillez réessayer.", style="warning")

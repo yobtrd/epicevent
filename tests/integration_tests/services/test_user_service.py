@@ -6,13 +6,14 @@ from epicevent.exception import (
     RolePermissionError,
     UserNotFoundError,
 )
-from epicevent.schemas.user_schema import UserUpdate
+from epicevent.schemas.user_schema import UserUpdateManagement, UserUpdateSelf
 from epicevent.security.roles import UserRole
+from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user, create_user, create_user_dto
 
 
 # create
-######################
+###########################
 def test_management_can_create_user(user_service):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     user_dto = create_user_dto()
@@ -68,73 +69,27 @@ def test_unauthorized_user_cannot_create_user(user_service, role):
         user_service.create_user(current_user, user_dto)
 
 
-# update_role
-######################
-def test_update_role_with_management_user_can_be_done(user_service, session):
-    current_user = create_user(role_id=UserRole.MANAGEMENT)
-    persisted_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
-
-    assert persisted_user.role.name == "support"
-    user_service.update_role(
-        current_user, persisted_user.employee_number, UserRole.SALES
-    )
-
-    session.refresh(persisted_user)
-    assert persisted_user.role_id == UserRole.SALES
-    assert persisted_user.role.name == "sales"
-
-
-def test_update_role_with_invalid_user_raises_error(user_service):
-    current_user = create_user(role_id=UserRole.MANAGEMENT)
-    bad_employee_number = "9999"
-
-    with pytest.raises(UserNotFoundError):
-        user_service.update_role(current_user, bad_employee_number, UserRole.SALES)
-
-
-@pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
-def test_update_role_with_unauthorized_user_raises_error(user_service, session, role):
-    current_user = create_user(role_id=role)
-    persisted_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
-
-    with pytest.raises(RolePermissionError):
-        user_service.update_role(
-            current_user, persisted_user.employee_number, UserRole.MANAGEMENT
-        )
-
-
-# update_profile
-######################
+# update_user_management
+###########################
 def test_management_can_update_profile(user_service, session):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
-    persisted_user = create_persisted_user(session, email="original@email.com")
+    persisted_user = create_persisted_user(session, role_id=UserRole.SALES)
 
-    new_data = UserUpdate(email="new@email.com")
-    user_service.update_profile(current_user, persisted_user.employee_number, new_data)
-
-    session.refresh(persisted_user)
-    assert persisted_user.email == "new@email.com"
-
-
-def test_current_user_can_update_his_profile(user_service, session):
-    persisted_user = create_persisted_user(session, last_name="Doe")
-    current_user = persisted_user
-
-    new_data = UserUpdate(last_name="Dae")
-    user_service.update_profile(current_user, persisted_user.employee_number, new_data)
+    new_data = UserUpdateManagement(role_id=UserRole.SUPPORT)
+    user_service.update_user(current_user, persisted_user.employee_number, new_data)
 
     session.refresh(persisted_user)
-    assert persisted_user.last_name == "Dae"
+    assert persisted_user.role_id == UserRole.SUPPORT
 
 
 def test_update_profile_with_invalid_user_returns_error(user_service):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     bad_employee_number = "9999"
 
-    new_data = UserUpdate(email="new@email.com")
+    new_data = UserUpdateManagement(email="new@email.com")
 
     with pytest.raises(UserNotFoundError):
-        user_service.update_profile(current_user, bad_employee_number, new_data)
+        user_service.update_user(current_user, bad_employee_number, new_data)
 
 
 @pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
@@ -144,16 +99,46 @@ def test_unauthorized_user_cannot_update_user(user_service, session, role):
         session, employee_number="002", email="original@email.com"
     )
 
-    new_data = UserUpdate(email="new@email.com")
+    new_data = UserUpdateManagement(email="new@email.com")
 
     with pytest.raises(RolePermissionError):
-        user_service.update_profile(
-            current_user, persisted_user.employee_number, new_data
-        )
+        user_service.update_user(current_user, persisted_user.employee_number, new_data)
+
+
+# update_self_profile
+###########################
+def test_current_user_can_update_his_profile(user_service, session):
+    password_service = PasswordService()
+    current_user = create_persisted_user(
+        session,
+        email="old@email.com",
+        password_hash=password_service.hash("defautpassword"),
+    )
+
+    new_data = UserUpdateSelf(email="new@email.com", password="newpassword")
+    user_service.update_self(current_user, new_data)
+
+    session.refresh(current_user)
+    assert current_user.email == "new@email.com"
+    assert password_service.verify(current_user.password_hash, "newpassword")
+
+
+def test_update_self_partial_data_preserves_other_fields(user_service, session):
+    current_user = create_persisted_user(
+        session, first_name="John", last_name="Doe", email="john@test.com"
+    )
+
+    new_data = UserUpdateSelf(email="john.new@test.com")
+    user_service.update_self(current_user, new_data)
+
+    session.refresh(current_user)
+    assert current_user.email == "john.new@test.com"
+    assert current_user.first_name == "John"
+    assert current_user.last_name == "Doe"
 
 
 # deactivate
-######################
+###########################
 def test_management_can_deactivate_user(user_service, session):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     persisted_user = create_persisted_user(session)

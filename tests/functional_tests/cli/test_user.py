@@ -2,6 +2,7 @@ from click.testing import CliRunner
 
 from epicevent.cli.main import cli
 from epicevent.security.roles import UserRole
+from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
@@ -82,49 +83,31 @@ def test_create_user_with_no_authorization(logged_user_factory):
     assert "Vous n'avez pas les droits pour cette action." in result.output
 
 
-# update_user
+# update
 ######################
 def test_update_user_by_management_success(logged_user_factory, session):
     runner = CliRunner()
     logged_user_factory(role_id=UserRole.MANAGEMENT)
 
     target_user_emp_number = "002"
-    create_persisted_user(
-        session, employee_number=target_user_emp_number, password_hash="password"
+    target_user = create_persisted_user(
+        session, employee_number=target_user_emp_number, role_id=UserRole.SALES
     )
 
     result = runner.invoke(
         cli,
         ["user", "update"],
-        input=(f"{target_user_emp_number}\n4\nnnewpassword\nq"),
+        input=(f"{target_user_emp_number}\n5\nsupport\nq"),
     )
 
     assert result.exit_code == 0
+    assert target_user.role_id == UserRole.SUPPORT
     assert (
         f"L'utilisateur (n°{target_user_emp_number}) a été mis à jour." in result.output
     )
 
 
-def test_update_user_by_owner_success(logged_user_factory, session):
-    runner = CliRunner()
-    owner_user_emp_number = "002"
-    logged_user_factory(employee_number=owner_user_emp_number, role_id=UserRole.SUPPORT)
-
-    result = runner.invoke(
-        cli,
-        ["user", "update"],
-        input=(f"{owner_user_emp_number}\n3\njohn@test.com\nq"),
-    )
-
-    assert result.exit_code == 0
-    assert (
-        f"L'utilisateur (n°{owner_user_emp_number}) a été mis à jour." in result.output
-    )
-
-
-def test_update_user_with_invalid_role_and_not_owner_displays_error(
-    logged_user_factory, session
-):
+def test_update_user_without_authorization_displays_error(logged_user_factory, session):
     runner = CliRunner()
     logged_user_factory(
         employee_number="001", email="sales@email.com", role_id=UserRole.SALES
@@ -145,6 +128,29 @@ def test_update_user_with_invalid_role_and_not_owner_displays_error(
     assert "Erreur: Vous n'avez pas les droits pour cette action."
 
 
+# update_self
+######################
+def test_update_self_by_current_user_success(logged_user_factory):
+    runner = CliRunner()
+    password_service = PasswordService()
+    current_user = logged_user_factory(
+        email="old@email.com",
+        password_hash=password_service.hash("oldpassword"),
+        role_id=UserRole.SUPPORT,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["user", "profile"],
+        input=("\n3\nnew@test.com\n\n4\nnewpassword\nq"),
+    )
+
+    assert result.exit_code == 0
+    assert current_user.email == "new@test.com"
+    assert "Votre profil a été mis à jour." in result.output
+    assert password_service.verify(current_user.password_hash, "newpassword")
+
+
 def test_update_user_duplicate_email_displays_error(session, logged_user_factory):
     runner = CliRunner()
     logged_user_factory(
@@ -155,8 +161,8 @@ def test_update_user_duplicate_email_displays_error(session, logged_user_factory
 
     result = runner.invoke(
         cli,
-        ["user", "update"],
-        input=("001\n3\nexists@email.com\nq"),
+        ["user", "profile"],
+        input=("3\nexists@email.com\nq"),
     )
 
     assert result.exit_code == 0

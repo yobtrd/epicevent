@@ -3,10 +3,14 @@ from epicevent.exception import (
 )
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.user import User
-from epicevent.schemas.user_schema import UserCreate, UserResponse, UserUpdate
+from epicevent.schemas.user_schema import (
+    UserCreate,
+    UserResponse,
+    UserUpdateManagement,
+    UserUpdateSelf,
+)
 from epicevent.security.decorators import require_permission
 from epicevent.security.permission import Permission
-from epicevent.services.authorization_service import AuthorizationService
 from epicevent.services.password_service import PasswordService
 
 
@@ -14,12 +18,10 @@ class UserService:
     def __init__(
         self,
         uow: UnitOfWork,
-        password: PasswordService,
-        authorization: AuthorizationService,
+        password_service: PasswordService,
     ):
         self.uow = uow
-        self.password_service = password
-        self.authorization = authorization
+        self.password_service = password_service
 
     def _normalize_employee_number(self, employee_number: str) -> str:
         return employee_number.strip().upper()
@@ -29,6 +31,14 @@ class UserService:
         if user is None:
             raise UserNotFoundError()
         return user
+
+    def _apply_user_updates(self, user: User, data: dict):
+        for field, value in data.items():
+            if field == "password":
+                user.password_hash = self.password_service.hash(value)
+            else:
+                setattr(user, field, value)
+        self.uow.users.save(user)
 
     @require_permission(Permission.CREATE_USER)
     def create_user(
@@ -45,35 +55,22 @@ class UserService:
             self.uow.users.save(user)
             return UserResponse.model_validate(user)
 
-    def update_profile(
-        self,
-        current_user: UserResponse,
-        employee_number: str,
-        user_data: UserUpdate,
-    ):
-        employee_number = self._normalize_employee_number(employee_number)
+    def update_self(self, current_user: UserResponse, user_data: UserUpdateSelf):
         with self.uow:
-            user = self.get_user_by_employee_number(employee_number)
-            self.authorization.ensure_can_update_user(current_user, employee_number)
-            data = user_data.model_dump(exclude_unset=True)
-            for field, value in data.items():
-                if field == "password":
-                    value = self.password_service.hash(value)
-                setattr(user, field, value)
-            self.uow.users.save(user)
+            user = self.get_user_by_employee_number(current_user.employee_number)
+            self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
             return UserResponse.model_validate(user)
 
-    @require_permission(Permission.UPDATE_USER_ROLE)
-    def update_role(
+    @require_permission(Permission.UPDATE_USER)
+    def update_user(
         self,
         current_user: UserResponse,
         employee_number: str,
-        role_id: int,
+        user_data: UserUpdateManagement,
     ):
-        employee_number = self._normalize_employee_number(employee_number)
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
-            user.role_id = role_id
+            self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
             return UserResponse.model_validate(user)
 
     @require_permission(Permission.DEACTIVATE_USER)

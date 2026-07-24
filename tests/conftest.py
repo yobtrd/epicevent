@@ -13,7 +13,6 @@ from epicevent.models.role import Role
 from epicevent.models.user import User
 from epicevent.schemas.user_schema import UserCreate
 from epicevent.security.roles import UserRole
-from epicevent.services.authorization_service import AuthorizationService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
 from epicevent.services.user_service import UserService
@@ -97,7 +96,6 @@ def user_service(uow):
     return UserService(
         uow,
         PasswordService(),
-        AuthorizationService(),
     )
 
 
