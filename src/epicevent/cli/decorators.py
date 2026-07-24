@@ -1,6 +1,7 @@
 from functools import wraps
 
 import epicevent.bootstrap as bootstrap
+from epicevent.cli.auth import get_authenticated_user
 from epicevent.cli.views.error_view import (
     display_application_error,
     display_invalid_input_error,
@@ -30,5 +31,14 @@ def handle_errors(func):
             display_application_error(error)
 
         return None
+
+    return wrapper
+
+
+def require_auth(func):
+    @wraps(func)
+    def wrapper(app: bootstrap.Application, *args, **kwargs):
+        auth_user = get_authenticated_user(app)
+        return func(app, auth_user, *args, **kwargs)
 
     return wrapper

@@ -28,3 +28,17 @@ class AuthResponse(BaseModel):
     refresh_token: str
 
     model_config = ConfigDict(extra="forbid")
+
+
+class TokenPairs(BaseModel):
+    access_token: str
+    refresh_token: str
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class SessionResult(BaseModel):
+    user: UserResponse
+    new_tokens: TokenPairs | None = None
+
+    model_config = ConfigDict(extra="forbid")

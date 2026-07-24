@@ -1,7 +1,20 @@
-from epicevent.exception import InvalidCredentialsError, UserNotFoundError
+from epicevent.exception import (
+    AuthenticationError,
+    ExpiredTokenError,
+    InvalidCredentialsError,
+    InvalidSessionError,
+    InvalidTokenError,
+    UserNotFoundError,
+)
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.user import User
-from epicevent.schemas.auth_schema import AuthRequest, AuthResponse, TokenPayload
+from epicevent.schemas.auth_schema import (
+    AuthRequest,
+    AuthResponse,
+    SessionResult,
+    TokenPairs,
+    TokenPayload,
+)
 from epicevent.schemas.user_schema import UserResponse
 
 from .password_service import PasswordService
@@ -20,15 +33,6 @@ class AuthService:
             raise UserNotFoundError()
         return user
 
-    def _issue_tokens(self, user: User) -> AuthResponse:
-        access_token = self.token_service.create_access_token(user)
-        refresh_token = self.token_service.create_refresh_token(user)
-        return AuthResponse(
-            user=user,
-            access_token=access_token,
-            refresh_token=refresh_token,
-        )
-
     def authenticate(self, login: AuthRequest) -> AuthResponse:
         with self.uow:
             user = self.uow.users.find_by_email(login.email)
@@ -40,8 +44,15 @@ class AuthService:
             if not password_check:
                 raise InvalidCredentialsError()
 
-            auth_response = self._issue_tokens(user)
-            return auth_response
+            access_token = self.token_service.create_access_token(user)
+            refresh_token = self.token_service.create_refresh_token(user)
+            user = UserResponse.model_validate(user)
+
+            return AuthResponse(
+                user=user,
+                access_token=access_token,
+                refresh_token=refresh_token,
+            )
 
     def get_current_user(self, token: str) -> UserResponse:
         payload = self.token_service.decode_token(token, "access")
@@ -49,9 +60,28 @@ class AuthService:
             user = self._get_user_by_payload(payload)
             return UserResponse.model_validate(user)
 
-    def refresh_session(self, refresh_token: str) -> AuthResponse:
+    def refresh_session(self, refresh_token: str) -> SessionResult:
         payload = self.token_service.decode_token(refresh_token, "refresh")
         with self.uow:
             user = self._get_user_by_payload(payload)
-            auth_response = self._issue_tokens(user)
-            return auth_response
+            access_token = self.token_service.create_access_token(user)
+            refresh_token = self.token_service.create_refresh_token(user)
+
+            user = UserResponse.model_validate(user)
+            new_tokens = TokenPairs(
+                access_token=access_token, refresh_token=refresh_token
+            )
+            return SessionResult(user=user, new_tokens=new_tokens)
+
+    def authenticate_session(
+        self, access_token: str, refresh_token: str
+    ) -> SessionResult:
+        try:
+            try:
+                user = self.get_current_user(access_token)
+                return SessionResult(user=user)
+            except ExpiredTokenError:
+                return self.refresh_session(refresh_token)
+
+        except (ExpiredTokenError, InvalidTokenError, InvalidSessionError) as exc:
+            raise AuthenticationError() from exc
