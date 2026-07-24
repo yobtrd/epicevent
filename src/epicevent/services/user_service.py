@@ -45,8 +45,26 @@ class UserService:
             self.uow.users.save(user)
             return UserResponse.model_validate(user)
 
+    def update_profile(
+        self,
+        current_user: UserResponse,
+        employee_number: str,
+        user_data: UserUpdate,
+    ):
+        employee_number = self._normalize_employee_number(employee_number)
+        with self.uow:
+            user = self.get_user_by_employee_number(employee_number)
+            self.authorization.ensure_can_update_user(current_user, employee_number)
+            data = user_data.model_dump(exclude_unset=True)
+            for field, value in data.items():
+                if field == "password":
+                    value = self.password_service.hash(value)
+                setattr(user, field, value)
+            self.uow.users.save(user)
+            return UserResponse.model_validate(user)
+
     @require_permission(Permission.UPDATE_USER_ROLE)
-    def change_role(
+    def update_role(
         self,
         current_user: UserResponse,
         employee_number: str,
@@ -68,22 +86,4 @@ class UserService:
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             user.is_active = False
-            return UserResponse.model_validate(user)
-
-    def update_profile(
-        self,
-        current_user: UserResponse,
-        employee_number: str,
-        user_data: UserUpdate,
-    ):
-        employee_number = self._normalize_employee_number(employee_number)
-        with self.uow:
-            user = self.get_user_by_employee_number(employee_number)
-            self.authorization.ensure_can_update_user(current_user, employee_number)
-            data = user_data.model_dump(exclude_unset=True)
-            for field, value in data.items():
-                if field == "password":
-                    value = self.password_service.hash(value)
-                setattr(user, field, value)
-            self.uow.users.save(user)
             return UserResponse.model_validate(user)

@@ -1,4 +1,4 @@
-from epicevent.cli.console import console
+from epicevent.cli.views.console import console
 from epicevent.exception import (
     ApplicationError,
     AuthenticationError,

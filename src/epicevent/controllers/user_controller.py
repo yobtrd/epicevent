@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 
-from epicevent.exception import InvalidInputError
+from epicevent.exception import InvalidInputError, UserNotFoundError
 from epicevent.schemas.user_schema import UserCreate, UserResponse, UserUpdate
 from epicevent.services.user_service import UserService
 
@@ -26,4 +26,11 @@ class UserController:
         return self.user_service.update_profile(current_user, employee_number, request)
 
     def verify_user_exists(self, employee_number):
-        return self.user_service.get_user_by_employee_number(employee_number)
+        try:
+            self.user_service.get_user_by_employee_number(employee_number)
+            return True
+        except UserNotFoundError:
+            return False
+
+    def update_role(self, current_user, employee_number, role_id):
+        return self.user_service.update_role(current_user, employee_number, role_id)

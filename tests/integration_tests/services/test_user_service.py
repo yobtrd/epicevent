@@ -68,14 +68,14 @@ def test_unauthorized_user_cannot_create_user(user_service, role):
         user_service.create_user(current_user, user_dto)
 
 
-# change_role
+# update_role
 ######################
-def test_management_can_modify_role(user_service, session):
+def test_update_role_with_management_user_can_be_done(user_service, session):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     persisted_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
 
     assert persisted_user.role.name == "support"
-    user_service.change_role(
+    user_service.update_role(
         current_user, persisted_user.employee_number, UserRole.SALES
     )
 
@@ -84,21 +84,21 @@ def test_management_can_modify_role(user_service, session):
     assert persisted_user.role.name == "sales"
 
 
-def test_change_role_with_invalid_user_returns_error(user_service):
+def test_update_role_with_invalid_user_raises_error(user_service):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     bad_employee_number = "9999"
 
     with pytest.raises(UserNotFoundError):
-        user_service.change_role(current_user, bad_employee_number, UserRole.SALES)
+        user_service.update_role(current_user, bad_employee_number, UserRole.SALES)
 
 
 @pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
-def test_unauthorized_user_cannot_modify_role(user_service, session, role):
+def test_update_role_with_unauthorized_user_raises_error(user_service, session, role):
     current_user = create_user(role_id=role)
     persisted_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
 
     with pytest.raises(RolePermissionError):
-        user_service.change_role(
+        user_service.update_role(
             current_user, persisted_user.employee_number, UserRole.MANAGEMENT
         )
 

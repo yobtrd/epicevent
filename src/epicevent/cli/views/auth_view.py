@@ -1,10 +1,10 @@
-from epicevent.cli.console import ask, console
+from epicevent.cli.views.console import ask_required, console
 from epicevent.schemas.user_schema import UserResponse
 
 
 def ask_user_credentials():
-    email = ask("email")
-    password = ask("password", hide_input=True)
+    email = ask_required("email")
+    password = ask_required("password", hide_input=True)
 
     return {"email": email, "password": password}
 

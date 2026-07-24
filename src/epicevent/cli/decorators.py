@@ -38,7 +38,7 @@ def handle_errors(func):
 def require_auth(func):
     @wraps(func)
     def wrapper(app: bootstrap.Application, *args, **kwargs):
-        auth_user = get_authenticated_user(app)
-        return func(app, auth_user, *args, **kwargs)
+        current_user = get_authenticated_user(app)
+        return func(app, current_user, *args, **kwargs)
 
     return wrapper

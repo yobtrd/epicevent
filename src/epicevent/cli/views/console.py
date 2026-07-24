@@ -5,7 +5,7 @@ from rich.theme import Theme
 theme = Theme(
     {
         "error": "bold red",
-        "warning": "yellow",
+        "warning": "bold yellow",
         "success": "bold green",
         "info": "blue",
         "highlight": "bold white",
@@ -24,3 +24,11 @@ def ask(label: str, **kwargs):
         click.style(label, fg="white", bold=True),
         **kwargs,
     )
+
+
+def ask_required(label: str, **kwargs):
+    while True:
+        value = ask(label, default="", show_default=False, **kwargs)
+        if value and value.strip():
+            return value
+        console.print("Ce champ est obligatoire.", style="warning")
