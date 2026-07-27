@@ -1,4 +1,4 @@
-from epicevent.cli.views.console import ask_required, console
+from epicevent.cli.views.console import ask_required, display_message
 from epicevent.schemas.user_schema import UserResponse
 
 
@@ -10,11 +10,11 @@ def ask_user_credentials():
 
 
 def display_login_success(user: UserResponse):
-    console.print(
+    display_message(
         f"Bienvenue, votre session est ouverte (Utilisateur N°{user.employee_number}).",
-        style="success",
+        "success",
     )
 
 
 def display_logout_success():
-    console.print("Votre session est fermée.", style="success")
+    display_message("Votre session est fermée.", "success")

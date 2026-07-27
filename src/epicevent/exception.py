@@ -52,6 +52,10 @@ class EmployeeNumberAlreadyExistsError(ApplicationError):
     pass
 
 
+class UserAlreadyDeactivatedError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

@@ -1,4 +1,6 @@
-from epicevent.cli.views.console import ask, ask_required, console
+import click
+
+from epicevent.cli.views.console import ask, ask_required, console, display_message
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.roles import UserRole
 
@@ -9,7 +11,7 @@ ROLE_MAPPING = {
 }
 
 
-# Helpers / generic
+# Helpers
 ######################
 def _ask_choice(label: str, choices: list[str]) -> str:
     while True:
@@ -65,13 +67,9 @@ def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
     return updates
 
 
-def display_employee_not_found_warning():
-    console.print("Cet employé n'existe pas. Veuillez réessayer.", style="warning")
-
-
 # create
 ######################
-def ask_user_creation_data():
+def ask_user_creation_data() -> dict:
     employee_number = ask_required("Numéro d'employé")
     first_name = ask_required("Prénom")
     last_name = ask_required("Nom")
@@ -89,19 +87,22 @@ def ask_user_creation_data():
 
 
 def display_creation_success(user_response: UserResponse):
-    console.print(
+    display_message(
         f"L'utilisateur (n°{user_response.employee_number}) a été enregistré.",
-        style="success",
+        "success",
     )
 
 
 # update
 ######################
-def ask_target_user_employee_number():
-    return ask_required("Numéro de l'employé à mettre à jour")
+def display_user_update_resume(target_user: UserResponse):
+    display_message(
+        f"Mis à jour de l'employée {target_user.first_name} {target_user.last_name}",
+        "info",
+    )
 
 
-def ask_user_update_data():
+def ask_user_update_data() -> dict:
     fields = {
         "1": ("employee_number", "Numéro d'employé"),
         "2": ("first_name", "Prénom"),
@@ -112,16 +113,20 @@ def ask_user_update_data():
     return _ask_update_menu(fields)
 
 
+def display_update_cancel():
+    display_message("L'utilisateur n'a pas été mis à jour.", "info")
+
+
 def display_update_success(user_response: UserResponse):
-    console.print(
+    display_message(
         f"L'utilisateur (n°{user_response.employee_number}) a été mis à jour.",
-        style="success",
+        "success",
     )
 
 
 # update_self
 ######################
-def ask_user_self_data():
+def ask_user_self_data() -> dict:
     fields = {
         "1": ("first_name", "Prénom"),
         "2": ("last_name", "Nom"),
@@ -131,8 +136,31 @@ def ask_user_self_data():
     return _ask_update_menu(fields)
 
 
+def display_update_self_cancel():
+    display_message("Votre profil n'a pas été modifié.", "info")
+
+
 def display_update_self_success():
-    console.print(
-        "Votre profil a été mis à jour.",
-        style="success",
+    display_message("Votre profil a été mis à jour.", "success")
+
+
+# deactivate
+######################
+def ask_user_deactivate_confirmation(target_user: UserResponse) -> bool:
+    display_message(
+        f"Êtes-vous sûr de vouloir désactiver l'utilisateur {target_user.first_name} "
+        f"{target_user.last_name} (n°{target_user.employee_number}) ?",
+        "error",
     )
+    return click.confirm('Entrer "y" pour confirmer, "n" pour annuler')
+
+
+def diplay_user_deactivate_success(target_user: UserResponse):
+    display_message(
+        f"L'utilisateur (n°{target_user.employee_number}) a bien été désactivé.",
+        "success",
+    )
+
+
+def display_user_deactivate_cancel():
+    display_message("L'opération de désactivation a été annulée.", "info")

@@ -1,6 +1,4 @@
-from epicevent.exception import (
-    UserNotFoundError,
-)
+from epicevent.exception import UserAlreadyDeactivatedError, UserNotFoundError
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.user import User
 from epicevent.schemas.user_schema import (
@@ -68,6 +66,7 @@ class UserService:
         employee_number: str,
         user_data: UserUpdateManagement,
     ):
+        employee_number = self._normalize_employee_number(employee_number)
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
@@ -82,5 +81,7 @@ class UserService:
         employee_number = self._normalize_employee_number(employee_number)
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
+            if not user.is_active:
+                raise UserAlreadyDeactivatedError()
             user.is_active = False
             return UserResponse.model_validate(user)

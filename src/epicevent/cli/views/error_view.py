@@ -7,6 +7,7 @@ from epicevent.exception import (
     InvalidCredentialsError,
     InvalidInputError,
     RolePermissionError,
+    UserAlreadyDeactivatedError,
     UserNotFoundError,
 )
 
@@ -16,6 +17,7 @@ ERROR_MESSAGES = {
     InvalidCredentialsError: "Email ou mot de passe incorrect, veuillez réessayer.",
     UserNotFoundError: "L'utilisateur n'a pas été trouvé.",
     EmailAlreadyExistsError: "Cet email existe déjà.",
+    UserAlreadyDeactivatedError: "Cet utilisateur est déjà désactivé",
     EmployeeNumberAlreadyExistsError: "Ce numéro d'employé existe déjà.",
 }
 

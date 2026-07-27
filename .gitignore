@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 *.pytest_cache
+.pytest_cache/
 
 # Environments
 .venv
@@ -15,3 +16,6 @@ env
 
 # App
 .epicevent
+
+# IDE
+.vscode/

@@ -14,12 +14,9 @@ def user():
     pass
 
 
-def _get_target_user_by_employee_number(app: Application):
-    while True:
-        employee_number = user_view.ask_target_user_employee_number()
-        if app.user_controller.verify_user_exists(employee_number):
-            return employee_number
-        user_view.display_employee_not_found_warning()
+def _verify_target_user_exists(app: Application, employee_number: str) -> UserResponse:
+    target_user = app.user_controller.verify_user_exists(employee_number)
+    return target_user
 
 
 @user.command()
@@ -29,7 +26,6 @@ def _get_target_user_by_employee_number(app: Application):
 def create(app: Application, current_user: UserResponse):
     authorization.ensure_permission(current_user, Permission.CREATE_USER)
     data = user_view.ask_user_creation_data()
-
     user = app.user_controller.create_user(current_user, data)
     user_view.display_creation_success(user)
 
@@ -43,24 +39,39 @@ def update_self(app: Application, current_user: UserResponse):
     if data:
         app.user_controller.update_self(current_user, data)
         user_view.display_update_self_success()
+    else:
+        user_view.display_update_self_cancel()
 
 
 @user.command()
+@click.argument("employee_number")
 @with_app
 @handle_errors
 @require_auth
-def update(app: Application, current_user: UserResponse):
+def update(app: Application, current_user: UserResponse, employee_number: str):
     authorization.ensure_permission(current_user, Permission.UPDATE_USER)
-    target_user = _get_target_user_by_employee_number(app)
+    target_user = _verify_target_user_exists(app, employee_number)
+    user_view.display_user_update_resume(target_user)
     data = user_view.ask_user_update_data()
     if data:
-        user = app.user_controller.update_user(current_user, target_user, data)
+        user = app.user_controller.update_user(
+            current_user, target_user.employee_number, data
+        )
         user_view.display_update_success(user)
+    else:
+        user_view.display_update_cancel()
 
 
 @user.command()
+@click.argument("employee_number")
 @with_app
 @handle_errors
 @require_auth
-def deactivate(app: Application, curren_user: UserResponse):
-    pass
+def deactivate(app: Application, current_user: UserResponse, employee_number: str):
+    authorization.ensure_permission(current_user, Permission.DEACTIVATE_USER)
+    target_user = _verify_target_user_exists(app, employee_number)
+    if user_view.ask_user_deactivate_confirmation(target_user):
+        app.user_controller.deactivate_user(current_user, target_user.employee_number)
+        user_view.diplay_user_deactivate_success(target_user)
+    else:
+        user_view.display_user_deactivate_cancel()

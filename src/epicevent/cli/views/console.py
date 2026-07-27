@@ -7,7 +7,7 @@ theme = Theme(
         "error": "bold red",
         "warning": "bold yellow",
         "success": "bold green",
-        "info": "blue",
+        "info": "bold blue",
         "highlight": "bold white",
     }
 )
@@ -32,3 +32,7 @@ def ask_required(label: str, **kwargs):
         if value.strip():
             return value.strip()
         console.print("Ce champ est obligatoire.", style="warning")
+
+
+def display_message(message: str, style: str = "info"):
+    console.print(f"\n{message}\n", style=style)

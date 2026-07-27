@@ -49,6 +49,7 @@ def session(engine, create_table_role):
     transaction = connection.begin()
 
     session = Session(bind=connection, expire_on_commit=False)
+    session.close = lambda: None
 
     try:
         session.begin_nested()
