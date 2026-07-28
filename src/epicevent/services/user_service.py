@@ -6,6 +6,7 @@ from epicevent.schemas.user_schema import (
     UserResponse,
     UserUpdateManagement,
     UserUpdateSelf,
+    normalize_employee_number,
 )
 from epicevent.security.decorators import require_permission
 from epicevent.security.permission import Permission
@@ -20,9 +21,6 @@ class UserService:
     ):
         self.uow = uow
         self.password_service = password_service
-
-    def _normalize_employee_number(self, employee_number: str) -> str:
-        return employee_number.strip().upper()
 
     def get_user_by_employee_number(self, employee_number: str) -> User:
         user = self.uow.users.find_by_employee_number(employee_number)
@@ -66,7 +64,7 @@ class UserService:
         employee_number: str,
         user_data: UserUpdateManagement,
     ):
-        employee_number = self._normalize_employee_number(employee_number)
+        employee_number = normalize_employee_number(employee_number)
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
@@ -78,7 +76,7 @@ class UserService:
         current_user: UserResponse,
         employee_number: str,
     ):
-        employee_number = self._normalize_employee_number(employee_number)
+        employee_number = normalize_employee_number(employee_number)
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             if not user.is_active:

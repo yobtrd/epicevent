@@ -82,7 +82,7 @@ def test_management_can_update_profile(user_service, session):
     assert persisted_user.role_id == UserRole.SUPPORT
 
 
-def test_update_profile_with_invalid_user_returns_error(user_service):
+def test_update_profile_with_invalid_user_raises_error(user_service):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     bad_employee_number = "9999"
 
@@ -93,12 +93,11 @@ def test_update_profile_with_invalid_user_returns_error(user_service):
 
 
 @pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
-def test_unauthorized_user_cannot_update_user(user_service, session, role):
+def test_update_user_unauthorized_user_raises_error(user_service, session, role):
     current_user = create_user(role_id=role, employee_number="001")
     persisted_user = create_persisted_user(
         session, employee_number="002", email="original@email.com"
     )
-
     new_data = UserUpdateManagement(email="new@email.com")
 
     with pytest.raises(RolePermissionError):

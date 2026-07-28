@@ -97,7 +97,7 @@ def display_creation_success(user_response: UserResponse):
 ######################
 def display_user_update_resume(target_user: UserResponse):
     display_message(
-        f"Mis à jour de l'employée {target_user.first_name} {target_user.last_name}",
+        f"Mis à jour de l'employée {target_user.last_name} {target_user.first_name}",
         "info",
     )
 
@@ -114,12 +114,12 @@ def ask_user_update_data() -> dict:
 
 
 def display_update_cancel():
-    display_message("L'utilisateur n'a pas été mis à jour.", "info")
+    display_message("La mise à jour de l'utilisateur a été annulée", "info")
 
 
-def display_update_success(user_response: UserResponse):
+def display_update_success(target_user: UserResponse):
     display_message(
-        f"L'utilisateur (n°{user_response.employee_number}) a été mis à jour.",
+        f"L'utilisateur (n°{target_user.employee_number}) a été mis à jour.",
         "success",
     )
 

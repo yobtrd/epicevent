@@ -1,10 +1,25 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from typing import Annotated
+
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+)
 
 from epicevent.security.roles import UserRole
 
 
+def normalize_employee_number(value: str) -> str:
+    return value.upper().strip()
+
+
+EmployeeNumber = Annotated[str, AfterValidator(normalize_employee_number)]
+
+
 class UserCreate(BaseModel):
-    employee_number: str = Field(min_length=1)
+    employee_number: EmployeeNumber = Field(min_length=1)
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     email: EmailStr
@@ -15,11 +30,6 @@ class UserCreate(BaseModel):
         extra="forbid",
         str_strip_whitespace=True,
     )
-
-    @field_validator("employee_number")
-    @classmethod
-    def normalize_employee_number(cls, value: str) -> str:
-        return value.upper()
 
 
 class UserResponse(BaseModel):
@@ -49,7 +59,7 @@ class UserUpdateSelf(BaseModel):
 
 
 class UserUpdateManagement(BaseModel):
-    employee_number: str | None = Field(default=None, min_length=1)
+    employee_number: EmployeeNumber | None = Field(default=None, min_length=1)
     first_name: str | None = Field(default=None, min_length=1)
     last_name: str | None = Field(default=None, min_length=1)
     email: EmailStr | None = Field(default=None)

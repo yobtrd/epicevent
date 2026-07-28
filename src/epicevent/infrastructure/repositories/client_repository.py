@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -26,3 +27,7 @@ class ClientRepository:
             return client
         except IntegrityError as exc:
             self._translate_integrity_error(exc)
+
+    def find_by_email(self, email: str) -> Client | None:
+        stmt = select(Client).where(Client.email == email)
+        return self.session.scalars(stmt).first()

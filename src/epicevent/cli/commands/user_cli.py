@@ -14,11 +14,6 @@ def user():
     pass
 
 
-def _verify_target_user_exists(app: Application, employee_number: str) -> UserResponse:
-    target_user = app.user_controller.verify_user_exists(employee_number)
-    return target_user
-
-
 @user.command()
 @with_app
 @handle_errors
@@ -50,14 +45,12 @@ def update_self(app: Application, current_user: UserResponse):
 @require_auth
 def update(app: Application, current_user: UserResponse, employee_number: str):
     authorization.ensure_permission(current_user, Permission.UPDATE_USER)
-    target_user = _verify_target_user_exists(app, employee_number)
+    target_user = app.user_controller.verify_user_exists(employee_number)
     user_view.display_user_update_resume(target_user)
     data = user_view.ask_user_update_data()
     if data:
-        user = app.user_controller.update_user(
-            current_user, target_user.employee_number, data
-        )
-        user_view.display_update_success(user)
+        app.user_controller.update_user(current_user, target_user.employee_number, data)
+        user_view.display_update_success(target_user)
     else:
         user_view.display_update_cancel()
 
@@ -69,7 +62,7 @@ def update(app: Application, current_user: UserResponse, employee_number: str):
 @require_auth
 def deactivate(app: Application, current_user: UserResponse, employee_number: str):
     authorization.ensure_permission(current_user, Permission.DEACTIVATE_USER)
-    target_user = _verify_target_user_exists(app, employee_number)
+    target_user = app.user_controller.verify_user_exists(employee_number)
     if user_view.ask_user_deactivate_confirmation(target_user):
         app.user_controller.deactivate_user(current_user, target_user.employee_number)
         user_view.diplay_user_deactivate_success(target_user)

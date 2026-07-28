@@ -56,6 +56,14 @@ class UserAlreadyDeactivatedError(ApplicationError):
     pass
 
 
+class ClientNotFoundError(ApplicationError):
+    pass
+
+
+class ClientOwnershipError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

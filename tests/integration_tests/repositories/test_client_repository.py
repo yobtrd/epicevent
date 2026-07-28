@@ -33,3 +33,24 @@ def test_save_client_with_existing_email_raises_error(session):
 
     with pytest.raises(EmailAlreadyExistsError):
         repository.save(client)
+
+
+# find_by_mail
+############################
+def test_find_by_email_returns_user(session):
+    repository = ClientRepository(session)
+    sales_representative = create_persisted_user(session, role_id=UserRole.SALES)
+    persisted_client = create_persisted_client(
+        session, sales_representative_id=sales_representative.id
+    )
+
+    found = repository.find_by_email(persisted_client.email)
+
+    assert found is not None
+    assert found.email == persisted_client.email
+
+
+def test_find_by_email_returns_none_when_email_does_not_exist(session):
+    repository = ClientRepository(session)
+
+    assert repository.find_by_email("invalid@test.com") is None

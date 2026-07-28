@@ -1,12 +1,26 @@
 from datetime import date
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+)
+
+
+def normalize_client_email(value: str) -> str:
+    return value.lower().strip()
+
+
+ClientEmail = Annotated[EmailStr, AfterValidator(normalize_client_email)]
 
 
 class ClientCreate(BaseModel):
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
-    email: EmailStr
+    email: ClientEmail
     phone: str = Field(min_length=1)
     business_name: str = Field(min_length=1)
     first_contact: date
@@ -33,3 +47,13 @@ class ClientResponse(BaseModel):
         extra="forbid",
         from_attributes=True,
     )
+
+
+class ClientUpdate(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1)
+    last_name: str | None = Field(default=None, min_length=1)
+    email: ClientEmail | None = Field(default=None)
+    phone: str | None = Field(default=None, min_length=1)
+    business_name: str | None = Field(default=None, min_length=1)
+    first_contact: date | None = Field(default=None)
+    last_contact: date | None = Field(default=None)

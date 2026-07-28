@@ -105,7 +105,7 @@ def test_update_user_by_management_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["user", "update", "002"],
-        input=("\n5\nsupport\nq"),
+        input=("5\nsupport\nq"),
     )
 
     assert result.exit_code == 0
@@ -129,7 +129,7 @@ def test_update_duplicate_emp_number_display_error(logged_user_factory, session)
     result = runner.invoke(
         cli,
         ["user", "update", "002"],
-        input=("\n1\n003\nq"),
+        input=("1\n003\nq"),
     )
 
     assert result.exit_code == 0
@@ -150,7 +150,7 @@ def test_update_user_without_authorization_displays_error(logged_user_factory, s
     result = runner.invoke(cli, ["user", "update", target_user_emp_number])
 
     assert result.exit_code == 0
-    assert "Erreur: Vous n'avez pas les droits pour cette action."
+    assert "Vous n'avez pas les droits pour cette action."
 
 
 # update_self
@@ -167,7 +167,7 @@ def test_update_self_by_current_user_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["user", "profile"],
-        input=("\n3\nnew@test.com\n\n4\nnewpassword\nq"),
+        input=("3\nnew@test.com\n\n4\nnewpassword\nq"),
     )
     assert result.exit_code == 0
     session.refresh(current_user)

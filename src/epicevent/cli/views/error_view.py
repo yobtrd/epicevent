@@ -2,6 +2,7 @@ from epicevent.cli.console import console
 from epicevent.exception import (
     ApplicationError,
     AuthenticationError,
+    ClientOwnershipError,
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
     InvalidCredentialsError,
@@ -19,6 +20,7 @@ ERROR_MESSAGES = {
     EmailAlreadyExistsError: "Cet email existe déjà.",
     UserAlreadyDeactivatedError: "Cet utilisateur est déjà désactivé",
     EmployeeNumberAlreadyExistsError: "Ce numéro d'employé existe déjà.",
+    ClientOwnershipError: "Vous n'avez pas la gestion de ce client.",
 }
 
 
