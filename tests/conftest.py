@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -7,12 +9,16 @@ from epicevent import bootstrap
 from epicevent.cli.token_storage import get_token_storage
 from epicevent.config import TEST_DATABASE_URL
 from epicevent.infrastructure.base import Base
+from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.user_repository import UserRepository
 from epicevent.infrastructure.unit_of_work import UnitOfWork
+from epicevent.models.client import Client
 from epicevent.models.role import Role
 from epicevent.models.user import User
+from epicevent.schemas.client_schema import ClientCreate
 from epicevent.schemas.user_schema import UserCreate
 from epicevent.security.roles import UserRole
+from epicevent.services.client_service import ClientService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
 from epicevent.services.user_service import UserService
@@ -65,6 +71,7 @@ def uow(session):
     return UnitOfWork(
         session,
         users=UserRepository(session),
+        clients=ClientRepository(session),
         use_nested_transaction=True,
     )
 
@@ -100,7 +107,12 @@ def user_service(uow):
     )
 
 
-# Factory
+@pytest.fixture
+def client_service(uow):
+    return ClientService(uow)
+
+
+# Factory - User
 #######################
 USER_DATA = {
     "employee_number": "002",
@@ -161,3 +173,39 @@ def logged_user_factory(session, app_factory, token_path):
         return user
 
     return _create_logged_user
+
+
+# Facory - Client
+#######################
+
+CLIENT_DATA = {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@entreprise.com",
+    "phone": "0123456789",
+    "business_name": "Doe&Co",
+    "first_contact": date(2020, 1, 15),
+    "last_contact": date(2023, 11, 20),
+}
+
+
+def create_client(**kwargs):
+    client_data = {**CLIENT_DATA}
+    client_data.update(kwargs)
+    return Client(**client_data)
+
+
+def create_persisted_client(session, **kwargs):
+    client_data = {**CLIENT_DATA}
+    client_data.update(kwargs)
+
+    persisted_client = Client(**client_data)
+    session.add(persisted_client)
+    session.flush()
+    return persisted_client
+
+
+def create_client_dto(**kwargs):
+    client_dto = {**CLIENT_DATA}
+    client_dto.update(kwargs)
+    return ClientCreate(**client_dto)

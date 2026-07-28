@@ -7,7 +7,7 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
-# create_user
+# create
 ######################
 def test_create_user_success(logged_user_factory, session):
     runner = CliRunner()
@@ -17,7 +17,7 @@ def test_create_user_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["user", "create"],
-        input=(f"{user_emp_number}\nJane\nDoe\njane@test.com\npassword\nSupport\n"),
+        input=(f"{user_emp_number}\nDoe\nJane\njane@test.com\npassword\nSupport\n"),
     )
 
     assert result.exit_code == 0
@@ -27,7 +27,7 @@ def test_create_user_success(logged_user_factory, session):
     )
     assert created_user is not None
     assert created_user.email == "jane@test.com"
-    assert created_user.first_name == "Jane"
+    assert created_user.last_name == "Doe"
     assert created_user.role_id == UserRole.SUPPORT
 
 
@@ -50,7 +50,6 @@ def test_create_user_duplicate_email_displays_error(session, logged_user_factory
 def test_create_user_duplicate_emp_number_displays_error(session, logged_user_factory):
     runner = CliRunner()
     logged_user_factory(role_id=UserRole.MANAGEMENT)
-
     create_persisted_user(session, employee_number="010", email="exist@email.com")
 
     result = runner.invoke(
@@ -80,7 +79,7 @@ def test_create_user_with_invalid_input_displays_error(logged_user_factory):
     assert "adresse email" in result.output
 
 
-def test_create_user_with_no_authorization(logged_user_factory):
+def test_create_user_with_no_authorization_displays_error(logged_user_factory):
     runner = CliRunner()
     logged_user_factory(role_id=UserRole.SALES)
 

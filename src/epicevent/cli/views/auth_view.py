@@ -1,4 +1,4 @@
-from epicevent.cli.views.console import ask_required, display_message
+from epicevent.cli.console import ask_required, display_message
 from epicevent.schemas.user_schema import UserResponse
 
 

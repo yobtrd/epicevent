@@ -1,6 +1,6 @@
 import click
 
-from epicevent.cli.views.console import ask, ask_required, console, display_message
+from epicevent.cli.console import ask, ask_required, console, display_message
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.roles import UserRole
 
@@ -71,15 +71,15 @@ def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
 ######################
 def ask_user_creation_data() -> dict:
     employee_number = ask_required("Numéro d'employé")
-    first_name = ask_required("Prénom")
     last_name = ask_required("Nom")
+    first_name = ask_required("Prénom")
     email = ask_required("Email")
     password = ask_required("Mot de passe", hide_input=True)
     role_label = _ask_for_role()
     return {
         "employee_number": employee_number,
-        "first_name": first_name,
         "last_name": last_name,
+        "first_name": first_name,
         "email": email,
         "password": password,
         "role_id": ROLE_MAPPING[role_label],

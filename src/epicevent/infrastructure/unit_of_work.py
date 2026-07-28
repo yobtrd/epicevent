@@ -2,6 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from epicevent.exception import DatabaseError
+from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.user_repository import UserRepository
 
 
@@ -21,10 +22,12 @@ class UnitOfWork:
         self,
         session: Session,
         users: UserRepository,
+        clients: ClientRepository,
         use_nested_transaction=False,
     ):
         self.session = session
         self.users = users
+        self.clients = clients
         self.use_nested_transaction = use_nested_transaction
 
     def commit(self):

@@ -2,10 +2,13 @@ from collections.abc import Callable
 from contextlib import contextmanager
 
 from epicevent.controllers.auth_controller import AuthController
+from epicevent.controllers.client_controller import ClientController
 from epicevent.controllers.user_controller import UserController
+from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.user_repository import UserRepository
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.services.auth_service import AuthService
+from epicevent.services.client_service import ClientService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.user_service import UserService
 
@@ -17,9 +20,11 @@ class Application:
         self,
         auth_controller: AuthController,
         user_controller: UserController,
+        client_controller: ClientController,
     ):
         self.auth_controller = auth_controller
         self.user_controller = user_controller
+        self.client_controller = client_controller
 
 
 class ApplicationFactory:
@@ -33,20 +38,24 @@ class ApplicationFactory:
 
         try:
             user_repo = UserRepository(session)
+            client_repo = ClientRepository(session)
 
             uow = UnitOfWork(
                 session,
                 users=user_repo,
+                clients=client_repo,
                 use_nested_transaction=self.use_nested_transaction,
             )
 
             password_service = PasswordService()
             auth_service = AuthService(uow)
             user_service = UserService(uow, password_service)
+            client_service = ClientService(uow)
 
             app = Application(
                 auth_controller=AuthController(auth_service),
                 user_controller=UserController(user_service),
+                client_controller=ClientController(client_service),
             )
 
             yield app

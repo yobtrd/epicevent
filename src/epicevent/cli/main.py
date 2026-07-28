@@ -1,12 +1,13 @@
 import click
 
+from epicevent.cli.views.error_view import display_application_error
 from epicevent.exception import (
     ApplicationError,
 )
 
 from .commands.auth_cli import auth
+from .commands.client_cli import client
 from .commands.user_cli import user
-from .views.error_view import display_application_error
 
 
 @click.group()
@@ -23,3 +24,4 @@ def main():
 
 cli.add_command(auth)
 cli.add_command(user)
+cli.add_command(client)

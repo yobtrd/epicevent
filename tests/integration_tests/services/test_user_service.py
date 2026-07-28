@@ -12,16 +12,16 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user, create_user, create_user_dto
 
 
-# create
+# create_user
 ###########################
-def test_management_can_create_user(user_service):
+def test_create_user_management_success(user_service):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     user_dto = create_user_dto()
 
     created = user_service.create_user(current_user, user_dto)
 
-    assert created.first_name == user_dto.first_name
     assert created.id is not None
+    assert created.first_name == user_dto.first_name
 
 
 def test_create_user_hashes_password(uow, user_service):

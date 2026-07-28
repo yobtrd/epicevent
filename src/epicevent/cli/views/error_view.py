@@ -1,4 +1,4 @@
-from epicevent.cli.views.console import console
+from epicevent.cli.console import console
 from epicevent.exception import (
     ApplicationError,
     AuthenticationError,
@@ -26,9 +26,9 @@ def display_application_error(error: ApplicationError):
     message = ERROR_MESSAGES.get(type(error))
 
     if message:
-        console.print(f"Erreur: {message}", style="error")
+        console.print(f"\nErreur: {message}\n", style="error")
     else:
-        console.print("Erreur: Une erreur inattendue est survenue.", style="error")
+        console.print("\nErreur: Une erreur inattendue est survenue.\n", style="error")
 
 
 def display_invalid_input_error(error: InvalidInputError):
@@ -49,4 +49,4 @@ def display_invalid_input_error(error: InvalidInputError):
         label = labels.get(raw_field, raw_field)
         message = messages.get(label, "Saisie invalide.")
 
-        console.print(f"{label}: {message}", style="warning")
+        console.print(f"\n{label}: {message}\n", style="warning")

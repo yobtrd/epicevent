@@ -8,7 +8,13 @@ ROLE_PERMISSIONS = {
         Permission.CREATE_USER,
         Permission.UPDATE_USER,
         Permission.DEACTIVATE_USER,
-    ]
+        Permission.LIST_CLIENT,
+    ],
+    UserRole.SALES: [
+        Permission.CREATE_CLIENT,
+        Permission.UPDATE_CLIENT,
+        Permission.LIST_CLIENT,
+    ],
 }
 
 

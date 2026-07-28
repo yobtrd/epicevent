@@ -9,9 +9,9 @@ from epicevent.security.roles import UserRole
 from tests.conftest import create_persisted_user, create_user
 
 
-# create_user
+# save
 ############################
-def test_create_user_success(session):
+def test_save_user_success(session):
     repository = UserRepository(session)
     user = create_user()
 
@@ -22,7 +22,7 @@ def test_create_user_success(session):
     assert created.role_id == UserRole.MANAGEMENT
 
 
-def test_create_user_with_existing_email_raises_error(session):
+def test_save_user_with_existing_email_raises_error(session):
     repository = UserRepository(session)
 
     create_persisted_user(session, employee_number="001", email="same@email.com")
@@ -32,7 +32,7 @@ def test_create_user_with_existing_email_raises_error(session):
         repository.save(user)
 
 
-def test_create_user_with_existing_emp_number_raises_error(session):
+def test_save_user_with_existing_emp_number_raises_error(session):
     repository = UserRepository(session)
 
     create_persisted_user(session, employee_number="001", email="mail1@email.com")
