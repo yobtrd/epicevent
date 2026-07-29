@@ -3,6 +3,7 @@ from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models import Client
 from epicevent.schemas.client_schema import (
     ClientCreate,
+    ClientFullResponse,
     ClientResponse,
     ClientUpdate,
     normalize_client_email,
@@ -17,10 +18,15 @@ class ClientService:
         self.uow = uow
 
     def get_client_by_mail(self, client_email: str) -> Client:
+        client_email = normalize_client_email(client_email)
         client = self.uow.clients.find_by_email(client_email)
         if client is None:
             raise ClientNotFoundError()
         return client
+
+    def verify_client_owner(self, current_user, client):
+        if current_user.id != client.sales_representative_id:
+            raise ClientOwnershipError()
 
     @require_permission(Permission.CREATE_CLIENT)
     def create_client(
@@ -41,12 +47,25 @@ class ClientService:
         client_email: str,
         client_data: ClientUpdate,
     ):
-        client_email = normalize_client_email(client_email)
         with self.uow:
             client = self.get_client_by_mail(client_email)
-            if current_user.id != client.sales_representative_id:
-                raise ClientOwnershipError()
+            self.verify_client_owner(current_user, client)
             data = client_data.model_dump(exclude_unset=True)
             for field, value in data.items():
                 setattr(client, field, value)
             self.uow.clients.save(client)
+
+    @require_permission(Permission.LIST_CLIENT)
+    def list_client(
+        self,
+        current_user,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[ClientFullResponse], int]:
+        with self.uow:
+            clients = self.uow.clients.list(limit=limit, offset=offset)
+            total_count = self.uow.clients.count()
+            return (
+                [ClientFullResponse.model_validate(client) for client in clients],
+                total_count,
+            )

@@ -134,10 +134,10 @@ def test_update_client_sales_not_owned_client_displays_error(
         sales_representative_id=owner_sales.id,
     )
 
-    result = runner.invoke(cli, ["user", "update", "test@email.com"])
+    result = runner.invoke(cli, ["client", "update", "test@email.com"])
 
     assert result.exit_code == 0
-    assert "Vous n'avez pas la gestion de ce client."
+    assert "Vous n'avez pas la gestion de ce client." in result.output
 
 
 def test_update_client_without_authorization_displays_error(
@@ -153,7 +153,59 @@ def test_update_client_without_authorization_displays_error(
         sales_representative_id=sales.id,
     )
 
-    result = runner.invoke(cli, ["user", "update", "test@email.com"])
+    result = runner.invoke(cli, ["client", "update", "test@email.com"])
 
     assert result.exit_code == 0
-    assert "Vous n'avez pas les droits pour cette action."
+    assert "Vous n'avez pas les droits pour cette action." in result.output
+
+
+# list
+######################
+def test_list_returns_client_table(logged_user_factory, session, force_console_width):
+    runner = CliRunner()
+    sales_user = logged_user_factory(
+        last_name="Doe", employee_number="002", role_id=UserRole.SALES
+    )
+    for i in range(3):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=sales_user.id,
+        )
+
+    result = runner.invoke(
+        cli,
+        ["client", "list"],
+        input=("q"),
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des clients (3 au total)" in result.output
+    assert "Doe (n°002)" in result.output
+    assert "client1@test.com" in result.output
+
+
+def test_list_with_no_client_display_warning(logged_user_factory):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.SALES)
+
+    result = runner.invoke(cli, ["client", "list"])
+    assert result.exit_code == 0
+    assert "Aucun client trouvé" in result.output
+
+
+def test_list_pagination(logged_user_factory, session, force_console_width):
+    runner = CliRunner()
+    sales_user = logged_user_factory(role_id=UserRole.SALES)
+    for i in range(15):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=sales_user.id,
+        )
+
+    result = runner.invoke(cli, ["client", "list"], input="n\nq")
+
+    assert result.exit_code == 0
+    print(result.output)
+    assert "client11@test.com" in result.output

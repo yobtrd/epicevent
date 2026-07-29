@@ -1,4 +1,7 @@
+import math
 from datetime import datetime
+
+from rich.table import Table
 
 from epicevent.cli.console import ask, ask_required, console, display_message
 from epicevent.schemas.client_schema import ClientResponse
@@ -94,3 +97,68 @@ def display_update_success(client: ClientResponse):
         f"Le client ({client.email}) a été mis à jour.",
         "success",
     )
+
+
+# list
+#################
+def display_clients_table(clients_list, total_count):
+    table = Table(title=f"\nListe des clients ({total_count} au total)")
+    table.add_column("Nom")
+    table.add_column("Prénom")
+    table.add_column("Email")
+    table.add_column("Téléphone")
+    table.add_column("Nom de l'entreprise")
+    table.add_column("Premier contact")
+    table.add_column("Dernier Contact")
+    table.add_column("Contact commercial")
+
+    for client in clients_list:
+        first_contact = (
+            client.first_contact.strftime("%d/%m/%Y") if client.first_contact else "-"
+        )
+        last_contact = (
+            client.last_contact.strftime("%d/%m/%Y") if client.last_contact else "-"
+        )
+        sales_representative_info = (
+            f"{client.sales_representative.first_name} "
+            f"{client.sales_representative.last_name} "
+            f"(n°{client.sales_representative.employee_number})"
+        )
+        table.add_row(
+            client.last_name,
+            client.first_name,
+            client.email,
+            client.phone,
+            client.business_name,
+            first_contact,
+            last_contact,
+            sales_representative_info,
+        )
+
+    console.print(table)
+
+
+def ask_pagination_choice(
+    offset: int,
+    limit: int,
+    received_count: int,
+    total_count: int,
+) -> str:
+    options = []
+
+    if offset > 0:
+        options.append("[P] Précédent")
+
+    if offset + received_count < total_count:
+        options.append("[N] Suivant")
+
+    options.append("[Q] Quitter")
+
+    menu = " | ".join(options)
+    prompt = f"Page {offset // limit + 1} / {math.ceil(total_count / limit)} | {menu}"
+
+    return ask(prompt, type=str).upper()
+
+
+def display_list_empty_message():
+    display_message("Aucun client trouvé", "warning")

@@ -8,7 +8,8 @@ from epicevent.exception import (
     EmailAlreadyExistsError,
     RolePermissionError,
 )
-from epicevent.schemas.client_schema import ClientUpdate
+from epicevent.schemas.client_schema import ClientFullResponse, ClientUpdate
+from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.roles import UserRole
 from tests.conftest import (
     create_client_dto,
@@ -113,3 +114,45 @@ def test_update_user_unauthorized_user_raises_error(client_service, session, rol
 
     with pytest.raises(RolePermissionError):
         client_service.update_client(current_user, persisted_client.email, new_data)
+
+
+# list_client
+###################
+def test_list_client_return_user_response_list(client_service, session):
+    current_user = create_persisted_user(session)
+    for i in range(3):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=current_user.id,
+        )
+
+    clients_list, total_count = client_service.list_client(current_user)
+
+    assert len(clients_list) == 3
+    assert total_count == 3
+    assert isinstance(clients_list[0], ClientFullResponse)
+    assert isinstance(clients_list[0].sales_representative, UserResponse)
+
+
+def test_list_client_pagination(client_service, session):
+    current_user = create_persisted_user(session)
+    for i in range(15):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=current_user.id,
+        )
+
+    clients_list_page1, total_count = client_service.list_client(
+        current_user, limit=10, offset=0
+    )
+    assert len(clients_list_page1) == 10
+    assert isinstance(clients_list_page1[0], ClientFullResponse)
+    assert total_count == 15
+
+    clients_list_page2, total_count = client_service.list_client(
+        current_user, limit=10, offset=10
+    )
+    assert len(clients_list_page2) == 5
+    assert total_count == 15

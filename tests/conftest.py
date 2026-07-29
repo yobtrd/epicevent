@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 import epicevent.models  # noqa: F401
 from epicevent import bootstrap
+from epicevent.cli.console import console
 from epicevent.cli.token_storage import get_token_storage
 from epicevent.config import TEST_DATABASE_URL
 from epicevent.infrastructure.base import Base
@@ -95,6 +96,16 @@ def token_path(monkeypatch, tmp_path):
     )
 
     return path
+
+
+@pytest.fixture
+def force_console_width():
+    original_width = console.width
+    console.width = 1000
+
+    yield
+
+    console.width = original_width
 
 
 # Services

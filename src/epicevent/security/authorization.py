@@ -15,6 +15,9 @@ ROLE_PERMISSIONS = {
         Permission.UPDATE_CLIENT,
         Permission.LIST_CLIENT,
     ],
+    UserRole.SUPPORT: [
+        Permission.LIST_CLIENT,
+    ],
 }
 
 

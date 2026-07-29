@@ -54,3 +54,54 @@ def test_find_by_email_returns_none_when_email_does_not_exist(session):
     repository = ClientRepository(session)
 
     assert repository.find_by_email("invalid@test.com") is None
+
+
+# list
+############################
+def test_list_client_returns_client_list(session):
+    repository = ClientRepository(session)
+    sales_representative = create_persisted_user(session, role_id=UserRole.SALES)
+    for i in range(3):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=sales_representative.id,
+        )
+
+    clients = repository.list()
+
+    assert len(clients) == 3
+
+
+def test_list_client_pagination(session):
+    repository = ClientRepository(session)
+    sales_rep = create_persisted_user(session, role_id=UserRole.SALES)
+
+    for i in range(15):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=sales_rep.id,
+        )
+
+    page1 = repository.list(limit=10, offset=0)
+    assert len(page1) == 10
+
+    page2 = repository.list(limit=10, offset=10)
+    assert len(page2) == 5
+
+
+# count
+############################
+def test_count_returns_corrent_length(session):
+    repository = ClientRepository(session)
+    sales_rep = create_persisted_user(session, role_id=UserRole.SALES)
+    for i in range(15):
+        create_persisted_client(
+            session,
+            email=f"client{i}@test.com",
+            sales_representative_id=sales_rep.id,
+        )
+
+    length = repository.count()
+    assert length == 15
