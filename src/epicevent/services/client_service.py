@@ -3,8 +3,6 @@ from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models import Client
 from epicevent.schemas.client_schema import (
     ClientCreate,
-    ClientFullResponse,
-    ClientResponse,
     ClientUpdate,
     normalize_client_email,
 )
@@ -17,7 +15,7 @@ class ClientService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def get_client_by_mail(self, client_email: str) -> Client:
+    def get_client_by_email(self, client_email: str) -> Client:
         client_email = normalize_client_email(client_email)
         client = self.uow.clients.find_by_email(client_email)
         if client is None:
@@ -33,12 +31,12 @@ class ClientService:
         self,
         current_user: UserResponse,
         client_dto: ClientCreate,
-    ) -> ClientResponse:
+    ) -> Client:
         with self.uow:
             data = client_dto.model_dump()
             client = Client(**data, sales_representative_id=current_user.id)
             self.uow.clients.save(client)
-            return ClientResponse.model_validate(client)
+            return client
 
     @require_permission(Permission.UPDATE_CLIENT)
     def update_client(
@@ -46,14 +44,15 @@ class ClientService:
         current_user: UserResponse,
         client_email: str,
         client_data: ClientUpdate,
-    ):
+    ) -> Client:
         with self.uow:
-            client = self.get_client_by_mail(client_email)
+            client = self.get_client_by_email(client_email)
             self.verify_client_owner(current_user, client)
             data = client_data.model_dump(exclude_unset=True)
             for field, value in data.items():
                 setattr(client, field, value)
             self.uow.clients.save(client)
+            return client
 
     @require_permission(Permission.LIST_CLIENT)
     def list_client(
@@ -61,11 +60,8 @@ class ClientService:
         current_user,
         limit: int = 10,
         offset: int = 0,
-    ) -> tuple[list[ClientFullResponse], int]:
+    ) -> tuple[list[Client], int]:
         with self.uow:
             clients = self.uow.clients.list(limit=limit, offset=offset)
             total_count = self.uow.clients.count()
-            return (
-                [ClientFullResponse.model_validate(client) for client in clients],
-                total_count,
-            )
+            return clients, total_count

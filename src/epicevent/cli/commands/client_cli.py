@@ -33,13 +33,13 @@ def create(app: Application, current_user: UserResponse):
 @require_auth
 def update(app: Application, current_user: UserResponse, client_email: str):
     authorization.ensure_permission(current_user, Permission.UPDATE_CLIENT)
-    target_client = app.client_controller.verify_client_exists(client_email)
+    target_client = app.client_controller.get_client_by_email(client_email)
     app.client_controller.verify_client_owner(current_user, target_client)
 
     client_view.display_user_update_resume(target_client)
     data = client_view.ask_client_update_data()
     if data:
-        app.client_controller.update_client(current_user, target_client.email, data)
+        app.client_controller.update_client(current_user, client_email, data)
         client_view.display_update_success(target_client)
     else:
         client_view.display_update_cancel()

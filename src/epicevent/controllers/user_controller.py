@@ -14,7 +14,7 @@ class UserController:
     def __init__(self, user_service: UserService):
         self.user_service = user_service
 
-    def verify_user_exists(self, employee_number) -> UserResponse:
+    def get_user_by_employee_number(self, employee_number: str) -> UserResponse:
         user = self.user_service.get_user_by_employee_number(employee_number)
         return UserResponse.model_validate(user)
 
@@ -23,8 +23,8 @@ class UserController:
             request = UserCreate(**data)
         except ValidationError as e:
             raise InvalidInputError(e.errors()) from e
-
-        return self.user_service.create_user(current_user, request)
+        user = self.user_service.create_user(current_user, request)
+        return UserResponse.model_validate(user)
 
     def update_self(self, current_user: UserResponse, data: dict) -> UserResponse:
         try:
@@ -32,7 +32,8 @@ class UserController:
         except ValidationError as e:
             raise InvalidInputError(e.errors()) from e
 
-        return self.user_service.update_self(current_user, request)
+        user = self.user_service.update_self(current_user, request)
+        return UserResponse.model_validate(user)
 
     def update_user(
         self, current_user: UserResponse, employee_number: str, data: dict
@@ -42,7 +43,9 @@ class UserController:
         except ValidationError as e:
             raise InvalidInputError(e.errors()) from e
 
-        return self.user_service.update_user(current_user, employee_number, request)
+        user = self.user_service.update_user(current_user, employee_number, request)
+        return UserResponse.model_validate(user)
 
     def deactivate_user(self, current_user: UserResponse, employee_number: str):
-        self.user_service.deactivate(current_user, employee_number)
+        user = self.user_service.deactivate(current_user, employee_number)
+        return UserResponse.model_validate(user)

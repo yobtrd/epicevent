@@ -7,6 +7,7 @@ from epicevent.exception import (
 
 from .commands.auth_cli import auth
 from .commands.client_cli import client
+from .commands.contract_cli import contract
 from .commands.user_cli import user
 
 
@@ -25,3 +26,4 @@ def main():
 cli.add_command(auth)
 cli.add_command(user)
 cli.add_command(client)
+cli.add_command(contract)

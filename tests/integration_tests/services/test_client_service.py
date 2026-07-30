@@ -8,8 +8,8 @@ from epicevent.exception import (
     EmailAlreadyExistsError,
     RolePermissionError,
 )
-from epicevent.schemas.client_schema import ClientFullResponse, ClientUpdate
-from epicevent.schemas.user_schema import UserResponse
+from epicevent.models.client import Client
+from epicevent.schemas.client_schema import ClientUpdate
 from epicevent.security.roles import UserRole
 from tests.conftest import (
     create_client_dto,
@@ -26,6 +26,7 @@ def test_create_client_by_sales_success(session, client_service):
 
     created = client_service.create_client(current_user, client_dto)
 
+    session.refresh(created)
     assert created.id is not None
     assert created.email == client_dto.email
     assert created.sales_representative_id == current_user.id
@@ -40,6 +41,7 @@ def test_create_client_with_same_email_raises_error(session, client_service):
 
     with pytest.raises(EmailAlreadyExistsError):
         client_service.create_client(current_user, client_dto)
+    assert session.query(Client).count() == 1
 
 
 @pytest.mark.parametrize("role", [UserRole.MANAGEMENT, UserRole.SUPPORT])
@@ -49,6 +51,7 @@ def test_unauthorized_user_cannot_create_client(session, client_service, role):
 
     with pytest.raises(RolePermissionError):
         client_service.create_client(current_user, client_dto)
+    assert session.query(Client).count() == 0
 
 
 # update_client
@@ -118,7 +121,7 @@ def test_update_user_unauthorized_user_raises_error(client_service, session, rol
 
 # list_client
 ###################
-def test_list_client_return_user_response_list(client_service, session):
+def test_list_client_return_user__list(client_service, session):
     current_user = create_persisted_user(session)
     for i in range(3):
         create_persisted_client(
@@ -131,8 +134,7 @@ def test_list_client_return_user_response_list(client_service, session):
 
     assert len(clients_list) == 3
     assert total_count == 3
-    assert isinstance(clients_list[0], ClientFullResponse)
-    assert isinstance(clients_list[0].sales_representative, UserResponse)
+    assert isinstance(clients_list[0], Client)
 
 
 def test_list_client_pagination(client_service, session):
@@ -148,7 +150,6 @@ def test_list_client_pagination(client_service, session):
         current_user, limit=10, offset=0
     )
     assert len(clients_list_page1) == 10
-    assert isinstance(clients_list_page1[0], ClientFullResponse)
     assert total_count == 15
 
     clients_list_page2, total_count = client_service.list_client(

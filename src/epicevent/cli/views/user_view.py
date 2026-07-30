@@ -152,7 +152,7 @@ def ask_user_deactivate_confirmation(target_user: UserResponse) -> bool:
         f"{target_user.last_name} (n°{target_user.employee_number}) ?",
         "error",
     )
-    return click.confirm('Entrer "y" pour confirmer, "n" pour annuler')
+    return click.confirm("Entrer [Y] pour confirmer, [N] pour annuler")
 
 
 def diplay_user_deactivate_success(target_user: UserResponse):

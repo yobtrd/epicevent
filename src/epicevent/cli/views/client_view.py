@@ -1,4 +1,3 @@
-import math
 from datetime import datetime
 
 from rich.table import Table
@@ -136,28 +135,6 @@ def display_clients_table(clients_list, total_count):
         )
 
     console.print(table)
-
-
-def ask_pagination_choice(
-    offset: int,
-    limit: int,
-    received_count: int,
-    total_count: int,
-) -> str:
-    options = []
-
-    if offset > 0:
-        options.append("[P] Précédent")
-
-    if offset + received_count < total_count:
-        options.append("[N] Suivant")
-
-    options.append("[Q] Quitter")
-
-    menu = " | ".join(options)
-    prompt = f"Page {offset // limit + 1} / {math.ceil(total_count / limit)} | {menu}"
-
-    return ask(prompt, type=str).upper()
 
 
 def display_list_empty_message():

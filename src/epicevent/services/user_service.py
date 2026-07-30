@@ -42,7 +42,7 @@ class UserService:
         self,
         current_user: UserResponse,
         user_dto: UserCreate,
-    ) -> UserResponse:
+    ) -> User:
         with self.uow:
             hashed_password = self.password_service.hash(user_dto.password)
             data = user_dto.model_dump(exclude={"password"})
@@ -50,13 +50,15 @@ class UserService:
 
             user = User(**data)
             self.uow.users.save(user)
-            return UserResponse.model_validate(user)
+            return user
 
-    def update_self(self, current_user: UserResponse, user_data: UserUpdateSelf):
+    def update_self(
+        self, current_user: UserResponse, user_data: UserUpdateSelf
+    ) -> User:
         with self.uow:
             user = self.get_user_by_employee_number(current_user.employee_number)
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
-            return UserResponse.model_validate(user)
+            return user
 
     @require_permission(Permission.UPDATE_USER)
     def update_user(
@@ -64,21 +66,21 @@ class UserService:
         current_user: UserResponse,
         employee_number: str,
         user_data: UserUpdateManagement,
-    ):
+    ) -> User:
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
-            return UserResponse.model_validate(user)
+            return user
 
     @require_permission(Permission.DEACTIVATE_USER)
     def deactivate(
         self,
         current_user: UserResponse,
         employee_number: str,
-    ):
+    ) -> User:
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             if not user.is_active:
                 raise UserAlreadyDeactivatedError()
             user.is_active = False
-            return UserResponse.model_validate(user)
+            return user

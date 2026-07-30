@@ -2,6 +2,7 @@ from epicevent.cli.console import console
 from epicevent.exception import (
     ApplicationError,
     AuthenticationError,
+    ClientNotFoundError,
     ClientOwnershipError,
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
@@ -20,6 +21,7 @@ ERROR_MESSAGES = {
     EmailAlreadyExistsError: "Cet email existe déjà.",
     UserAlreadyDeactivatedError: "Cet utilisateur est déjà désactivé",
     EmployeeNumberAlreadyExistsError: "Ce numéro d'employé existe déjà.",
+    ClientNotFoundError: "Le client n'a pas été trouvé.",
     ClientOwnershipError: "Vous n'avez pas la gestion de ce client.",
 }
 
@@ -38,12 +40,16 @@ def display_invalid_input_error(error: InvalidInputError):
         "email": "Email",
         "password": "Mot de passe",
         "employee_number": "Numéro d'employé",
+        "total_amount": "Montant total",
+        "remaining_amount": "Montant restant",
     }
 
     messages = {
         "Email": 'Format invalide, une adresse email doit contenir un "@".',
         "Mot de passe": "Format invalide, le mot de passe doit contenir "
         "au moins 8 caractères.",
+        "Montant total": "Le montant doit être un nombre entier.",
+        "Montant restant": "Le montant doit être un nombre entier.",
     }
 
     for err in error.errors:

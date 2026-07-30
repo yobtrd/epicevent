@@ -6,6 +6,7 @@ from epicevent.exception import (
     RolePermissionError,
     UserNotFoundError,
 )
+from epicevent.models.user import User
 from epicevent.schemas.user_schema import UserUpdateManagement, UserUpdateSelf
 from epicevent.security.roles import UserRole
 from epicevent.services.password_service import PasswordService
@@ -47,6 +48,7 @@ def test_create_user_with_same_email_raises_error(user_service, session):
 
     with pytest.raises(EmailAlreadyExistsError):
         user_service.create_user(current_user, user_dto)
+    assert session.query(User).count() == 1
 
 
 def test_create_user_with_same_employee_number_raises_error(user_service, session):
@@ -57,16 +59,18 @@ def test_create_user_with_same_employee_number_raises_error(user_service, sessio
 
     with pytest.raises(EmployeeNumberAlreadyExistsError):
         user_service.create_user(current_user, user_dto)
+    assert session.query(User).count() == 1
 
 
 @pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
-def test_unauthorized_user_cannot_create_user(user_service, role):
+def test_unauthorized_user_cannot_create_user(user_service, session, role):
     current_user = create_user(role_id=role)
 
     user_dto = create_user_dto()
 
     with pytest.raises(RolePermissionError):
         user_service.create_user(current_user, user_dto)
+    assert session.query(User).count() == 0
 
 
 # update_user_management

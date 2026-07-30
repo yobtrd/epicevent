@@ -64,15 +64,7 @@ class ClientUpdate(BaseModel):
     )
 
 
-class ClientFullResponse(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
-    email: EmailStr
-    phone: str
-    business_name: str
-    first_contact: date
-    last_contact: date
+class ClientFullResponse(ClientResponse):
     sales_representative: UserResponse | None = None
 
     model_config = ConfigDict(

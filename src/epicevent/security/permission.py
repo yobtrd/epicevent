@@ -8,3 +8,4 @@ class Permission(StrEnum):
     CREATE_CLIENT = "create.client"
     UPDATE_CLIENT = "clent.update"
     LIST_CLIENT = "client.list"
+    CREATE_CONTRACT = "contract.create"

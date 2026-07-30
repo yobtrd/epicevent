@@ -14,12 +14,12 @@ class ClientController:
     def __init__(self, client_service: ClientService):
         self.client_service = client_service
 
-    def verify_client_exists(self, client_email) -> ClientResponse:
-        client = self.client_service.get_client_by_mail(client_email)
+    def get_client_by_email(self, client_email: str) -> ClientResponse:
+        client = self.client_service.get_client_by_email(client_email)
         return ClientResponse.model_validate(client)
 
-    def verify_client_owner(self, current_user, client):
-        return self.client_service.verify_client_owner(current_user, client)
+    def verify_client_owner(self, current_user: UserResponse, client: ClientResponse):
+        self.client_service.verify_client_owner(current_user, client)
 
     def create_client(self, current_user: UserResponse, data: dict) -> ClientResponse:
         try:
@@ -27,7 +27,8 @@ class ClientController:
         except ValidationError as e:
             raise InvalidInputError(e.errors()) from e
 
-        return self.client_service.create_client(current_user, request)
+        client = self.client_service.create_client(current_user, request)
+        return ClientResponse.model_validate(client)
 
     def update_client(
         self, current_user: UserResponse, client_email: str, data: dict
@@ -36,8 +37,8 @@ class ClientController:
             request = ClientUpdate(**data)
         except ValidationError as e:
             raise InvalidInputError(e.errors()) from e
-
-        return self.client_service.update_client(current_user, client_email, request)
+        client = self.client_service.update_client(current_user, client_email, request)
+        return ClientResponse.model_validate(client)
 
     def list_client(
         self, current_user, limit: int = 10, offset: int = 0
@@ -47,4 +48,7 @@ class ClientController:
             limit=limit,
             offset=offset,
         )
-        return clients_list, total_count
+        return (
+            [ClientFullResponse.model_validate(client) for client in clients_list],
+            total_count,
+        )

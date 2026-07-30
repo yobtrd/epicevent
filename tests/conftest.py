@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import UTC, date, datetime
+from decimal import Decimal
 
 import pytest
 from sqlalchemy import create_engine
@@ -11,15 +12,19 @@ from epicevent.cli.token_storage import get_token_storage
 from epicevent.config import TEST_DATABASE_URL
 from epicevent.infrastructure.base import Base
 from epicevent.infrastructure.repositories.client_repository import ClientRepository
+from epicevent.infrastructure.repositories.contract_repository import ContractRepository
 from epicevent.infrastructure.repositories.user_repository import UserRepository
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
+from epicevent.models.contract import Contract
 from epicevent.models.role import Role
 from epicevent.models.user import User
 from epicevent.schemas.client_schema import ClientCreate
+from epicevent.schemas.contract_schema import ContractCreate
 from epicevent.schemas.user_schema import UserCreate
 from epicevent.security.roles import UserRole
 from epicevent.services.client_service import ClientService
+from epicevent.services.contract_service import ContractService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
 from epicevent.services.user_service import UserService
@@ -73,6 +78,7 @@ def uow(session):
         session,
         users=UserRepository(session),
         clients=ClientRepository(session),
+        contracts=ContractRepository(session),
         use_nested_transaction=True,
     )
 
@@ -121,6 +127,11 @@ def user_service(uow):
 @pytest.fixture
 def client_service(uow):
     return ClientService(uow)
+
+
+@pytest.fixture
+def contract_service(uow):
+    return ContractService(uow)
 
 
 # Factory - User
@@ -220,3 +231,55 @@ def create_client_dto(**kwargs):
     client_dto = {**CLIENT_DATA}
     client_dto.update(kwargs)
     return ClientCreate(**client_dto)
+
+
+def create_sales_client(
+    session,
+    email: str = "jon.doe@entreprise.com",
+):
+    sales_user = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+
+    return create_persisted_client(
+        session,
+        email=email,
+        sales_representative_id=sales_user.id,
+    )
+
+
+# Facory - Contract
+#######################
+CONTRACT_DATA = {
+    "total_amount": Decimal("1000.00"),
+    "remaining_amount": Decimal("500.00"),
+    "created_at": datetime.now(UTC),
+    "is_signed": True,
+}
+
+
+def create_contract(**kwargs):
+    contract_data = {**CONTRACT_DATA}
+    contract_data.update(kwargs)
+    return Contract(**contract_data)
+
+
+def create_persisted_contract(session, **kwargs):
+    contract_data = {**CONTRACT_DATA}
+    contract_data.update(kwargs)
+
+    persisted_contract = Contract(**contract_data)
+    session.add(persisted_contract)
+    session.flush()
+    return persisted_contract
+
+
+def create_contract_dto(**kwargs):
+    contract_data = {
+        "total_amount": Decimal("1000.00"),
+        "remaining_amount": Decimal("1000.00"),
+        "is_signed": True,
+    }
+    contract_data.update(kwargs)
+    return ContractCreate(**contract_data)
