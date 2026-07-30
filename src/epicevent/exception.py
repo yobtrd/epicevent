@@ -64,6 +64,10 @@ class ClientOwnershipError(ApplicationError):
     pass
 
 
+class ContractNotFoundError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

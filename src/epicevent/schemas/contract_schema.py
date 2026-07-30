@@ -3,6 +3,9 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from epicevent.schemas.client_schema import ClientResponse
+from epicevent.schemas.user_schema import UserResponse
+
 
 class ContractCreate(BaseModel):
     total_amount: Decimal = Field(max_digits=10, decimal_places=2)
@@ -21,8 +24,8 @@ class ContractResponse(BaseModel):
     remaining_amount: Decimal
     created_at: date
     is_signed: bool
-    client_id: int
-    sales_representative_id: int
+    client: ClientResponse
+    sales_representative: UserResponse
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -34,3 +37,9 @@ class ContractResponse(BaseModel):
         if isinstance(value, datetime):
             return value.date()
         return value
+
+
+class ContractUpdate(BaseModel):
+    total_amount: Decimal | None = Field(default=None)
+    remaining_amount: Decimal | None = Field(default=None)
+    is_signed: bool | None = Field(default=None)

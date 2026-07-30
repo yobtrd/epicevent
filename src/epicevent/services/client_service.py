@@ -22,7 +22,7 @@ class ClientService:
             raise ClientNotFoundError()
         return client
 
-    def verify_client_owner(self, current_user, client):
+    def ensure_client_owner(self, current_user, client):
         if current_user.id != client.sales_representative_id:
             raise ClientOwnershipError()
 
@@ -47,7 +47,7 @@ class ClientService:
     ) -> Client:
         with self.uow:
             client = self.get_client_by_email(client_email)
-            self.verify_client_owner(current_user, client)
+            self.ensure_client_owner(current_user, client)
             data = client_data.model_dump(exclude_unset=True)
             for field, value in data.items():
                 setattr(client, field, value)

@@ -178,7 +178,6 @@ def test_list_returns_client_table(logged_user_factory, session, force_console_w
         ["client", "list"],
         input=("q"),
     )
-
     assert result.exit_code == 0
     assert "Liste des clients (3 au total)" in result.output
     assert "Doe (n°002)" in result.output
@@ -207,5 +206,4 @@ def test_list_pagination(logged_user_factory, session, force_console_width):
     result = runner.invoke(cli, ["client", "list"], input="n\nq")
 
     assert result.exit_code == 0
-    print(result.output)
     assert "client11@test.com" in result.output

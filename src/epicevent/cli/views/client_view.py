@@ -2,7 +2,12 @@ from datetime import datetime
 
 from rich.table import Table
 
-from epicevent.cli.console import ask, ask_required, console, display_message
+from epicevent.cli.console import (
+    ask_required,
+    ask_update_fields,
+    console,
+    display_message,
+)
 from epicevent.schemas.client_schema import ClientResponse
 
 
@@ -65,26 +70,7 @@ def ask_client_update_data() -> dict:
         "7": ("address", "Adresse"),
     }
 
-    updates = {}
-    while True:
-        console.print("\nChoisissez le champ à modifier :", style="highlight")
-        for key, (_, label) in fields.items():
-            console.print(f"{key}. {label}")
-        console.print("q. Terminer la saisie")
-
-        choice = ask("Votre choix").strip()
-        if choice.lower() == "q":
-            break
-
-        if choice in fields:
-            attr, label = fields[choice]
-            value = ask(f"\nNouveau {label.lower()}")
-
-            if value:
-                updates[attr] = value
-        else:
-            console.print("Choix invalide", style="warning")
-    return updates
+    return ask_update_fields(fields)
 
 
 def display_update_cancel():

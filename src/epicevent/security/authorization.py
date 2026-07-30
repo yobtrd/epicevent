@@ -10,11 +10,13 @@ ROLE_PERMISSIONS = {
         Permission.DEACTIVATE_USER,
         Permission.LIST_CLIENT,
         Permission.CREATE_CONTRACT,
+        Permission.UPDATE_CONTRACT,
     ],
     UserRole.SALES: [
         Permission.CREATE_CLIENT,
         Permission.UPDATE_CLIENT,
         Permission.LIST_CLIENT,
+        Permission.UPDATE_CONTRACT,
     ],
     UserRole.SUPPORT: [
         Permission.LIST_CLIENT,

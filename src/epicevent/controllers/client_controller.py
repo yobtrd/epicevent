@@ -18,8 +18,8 @@ class ClientController:
         client = self.client_service.get_client_by_email(client_email)
         return ClientResponse.model_validate(client)
 
-    def verify_client_owner(self, current_user: UserResponse, client: ClientResponse):
-        self.client_service.verify_client_owner(current_user, client)
+    def ensure_client_owner(self, current_user: UserResponse, client: ClientResponse):
+        self.client_service.ensure_client_owner(current_user, client)
 
     def create_client(self, current_user: UserResponse, data: dict) -> ClientResponse:
         try:

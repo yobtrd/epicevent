@@ -3,7 +3,12 @@ from click.testing import CliRunner
 from epicevent.cli.main import cli
 from epicevent.models.contract import Contract
 from epicevent.security.roles import UserRole
-from tests.conftest import create_sales_client
+from tests.conftest import (
+    create_persisted_client,
+    create_persisted_contract,
+    create_persisted_user,
+    create_sales_client,
+)
 
 
 # create
@@ -65,7 +70,9 @@ def test_create_contract_with_invalid_input_displays_error(
     )
 
     assert result.exit_code == 0
-    assert "Le montant doit être un nombre entier." in result.output
+    assert (
+        "Le montant doit être un nombre valide (ex: 1000 ou 1000.50)." in result.output
+    )
     assert session.query(Contract).count() == 0
 
 
@@ -86,3 +93,146 @@ def test_create_contract_with_no_authorization_displays_error(
     assert result.exit_code == 0
     assert "Vous n'avez pas les droits pour cette action." in result.output
     assert session.query(Contract).count() == 0
+
+
+# update
+######################
+def test_update_contract_by_sales_success(logged_user_factory, session):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        email="client@test.com",
+        sales_representative_id=current_user.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        remaining_amount=500,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "update", str(contract.id)],
+        input=("2\n100\nq"),
+    )
+
+    assert result.exit_code == 0
+    session.refresh(contract)
+    assert contract.remaining_amount == 100
+    assert f"Le contrat n°{contract.id} a bien été mis à jour." in result.output
+
+
+def test_update_contract_not_found_display_error(logged_user_factory):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SALES)
+
+    result = runner.invoke(
+        cli,
+        ["contract", "update", "999"],
+    )
+
+    assert result.exit_code == 0
+    assert "Le contrat n'a pas été trouvé." in result.output
+
+
+def test_update_contract_sales_not_owned_contract_displays_error(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SALES)
+
+    other_sales = create_persisted_user(
+        session,
+        employee_number="002",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        email="client@test.com",
+        sales_representative_id=other_sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=other_sales.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "update", str(contract.id)],
+    )
+
+    assert result.exit_code == 0
+    assert "Vous n'avez pas la gestion de ce client." in result.output
+
+
+def test_update_contract_without_authorization_displays_error(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SUPPORT)
+
+    sales = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "update", str(contract.id)],
+    )
+
+    assert result.exit_code == 0
+    assert "Vous n'avez pas les droits pour cette action." in result.output
+
+
+def test_update_contract_by_management_success(logged_user_factory, session):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+    sales = create_persisted_user(session, role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        email="client@test.com",
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+        is_signed=False,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "update", str(contract.id)],
+        input=("3\ny\nq"),
+    )
+
+    assert result.exit_code == 0
+    session.refresh(contract)
+    assert contract.is_signed is True

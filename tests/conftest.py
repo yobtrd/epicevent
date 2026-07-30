@@ -199,7 +199,6 @@ def logged_user_factory(session, app_factory, token_path):
 
 # Facory - Client
 #######################
-
 CLIENT_DATA = {
     "first_name": "John",
     "last_name": "Doe",
