@@ -3,7 +3,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from epicevent.exception import (
-    DatabaseError,
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
 )
@@ -23,9 +22,6 @@ class UserRepository:
 
             case "user_employee_number_key":
                 raise EmployeeNumberAlreadyExistsError() from exc
-
-            case _:
-                raise DatabaseError() from exc
 
     def save(self, user: User) -> User:
         try:

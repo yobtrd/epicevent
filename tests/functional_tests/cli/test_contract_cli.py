@@ -72,8 +72,10 @@ def test_create_contract_with_invalid_input_displays_error(
     )
 
     assert result.exit_code == 0
+    print(result.output)
     assert (
-        "Le montant doit être un nombre valide (ex: 1000 ou 1000.50)." in result.output
+        "Format invalide, Le montant doit être un nombre entier ou décimal"
+        in result.output
     )
     assert session.query(Contract).count() == 0
 

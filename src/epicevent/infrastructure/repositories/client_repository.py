@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from epicevent.exception import DatabaseError, EmailAlreadyExistsError
+from epicevent.exception import EmailAlreadyExistsError
 from epicevent.models import Client
 
 
@@ -16,9 +16,6 @@ class ClientRepository:
         match constraint:
             case "client_email_key":
                 raise EmailAlreadyExistsError() from exc
-
-            case _:
-                raise DatabaseError() from exc
 
     def save(self, client: Client):
         try:

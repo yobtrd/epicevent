@@ -68,6 +68,10 @@ class ContractNotFoundError(ApplicationError):
     pass
 
 
+class ContractNotSignedError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

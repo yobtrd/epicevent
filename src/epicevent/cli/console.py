@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import click
 from rich.console import Console
 from rich.theme import Theme
@@ -64,3 +66,23 @@ def ask_update_fields(fields: dict[str, tuple[str, str]]) -> dict:
             console.print("Choix invalide", style="warning")
 
     return updates
+
+
+def ask_date(prompt: str) -> str:
+    while True:
+        value = ask_required(prompt)
+        try:
+            return datetime.strptime(value, "%d/%m/%Y").date()
+        except ValueError:
+            display_message("Format invalide. Veuillez utiliser JJ/MM/AAAA", "warning")
+
+
+def ask_datetime(prompt: str) -> datetime:
+    while True:
+        value = ask_required(prompt)
+        try:
+            return datetime.strptime(value, "%d/%m/%Y %H:%M")
+        except ValueError:
+            display_message(
+                "Format invalide. Veuillez utiliser JJ/MM/AAAA HH:MM", "warning"
+            )

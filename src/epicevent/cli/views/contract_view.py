@@ -31,7 +31,7 @@ def ask_contract_creation_data() -> dict:
     }
 
 
-def display_creation_success(contract_response: ContractResponse):
+def display_contract_creation_success(contract_response: ContractResponse):
     display_message(
         f"Le contrat (id: {contract_response.id}) a été enregistré.",
         "success",

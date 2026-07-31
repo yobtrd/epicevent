@@ -43,10 +43,10 @@ class Event(Base):
     )
     support_representative_id: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="RESTRICT"),
-        nullable=False,
+        nullable=True,
     )
 
     contract: Mapped["Contract"] = relationship(back_populates="events")
-    support_representative: Mapped["User"] = relationship(
+    support_representative: Mapped["User | None"] = relationship(
         back_populates="supported_events"
     )

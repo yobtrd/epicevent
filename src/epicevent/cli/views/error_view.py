@@ -5,6 +5,7 @@ from epicevent.exception import (
     ClientNotFoundError,
     ClientOwnershipError,
     ContractNotFoundError,
+    ContractNotSignedError,
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
     InvalidCredentialsError,
@@ -25,6 +26,7 @@ ERROR_MESSAGES = {
     ClientNotFoundError: "Le client n'a pas été trouvé.",
     ClientOwnershipError: "Vous n'avez pas la gestion de ce client.",
     ContractNotFoundError: "Le contrat n'a pas été trouvé.",
+    ContractNotSignedError: "Le contrat n'a pas encore été signé.",
 }
 
 
@@ -44,13 +46,17 @@ def display_invalid_input_error(error: InvalidInputError):
         "employee_number": "Numéro d'employé",
         "total_amount": "Montant",
         "remaining_amount": "Montant",
+        "attendees": "Nombre de participant",
     }
 
     messages = {
         "Email": 'Format invalide, une adresse email doit contenir un "@".',
         "Mot de passe": "Format invalide, le mot de passe doit contenir "
         "au moins 8 caractères.",
-        "Montant": "Le montant doit être un nombre valide (ex: 1000 ou 1000.50).",
+        "Montant": "Format invalide, Le montant doit être un nombre entier ou décimal "
+        "(ex: 1000 ou 1000.50).",
+        "Nombre de participant": " Format invalide, Le nombre doit être un nombre "
+        "entier sans espaces (ex: 500) et ne peut dépasser 1000000.",
     }
 
     for err in error.errors:

@@ -90,7 +90,7 @@ def upgrade() -> None:
         sa.Column("attendees", sa.Integer(), nullable=False),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("contract_id", sa.Integer(), nullable=False),
-        sa.Column("support_representative_id", sa.Integer(), nullable=False),
+        sa.Column("support_representative_id", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(["contract_id"], ["contract.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["support_representative_id"], ["user.id"], ondelete="RESTRICT"

@@ -13,18 +13,22 @@ from epicevent.config import TEST_DATABASE_URL
 from epicevent.infrastructure.base import Base
 from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.contract_repository import ContractRepository
+from epicevent.infrastructure.repositories.event_repository import EventRepository
 from epicevent.infrastructure.repositories.user_repository import UserRepository
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
 from epicevent.models.contract import Contract
+from epicevent.models.event import Event
 from epicevent.models.role import Role
 from epicevent.models.user import User
 from epicevent.schemas.client_schema import ClientCreate
 from epicevent.schemas.contract_schema import ContractCreate
+from epicevent.schemas.event_schema import EventCreate
 from epicevent.schemas.user_schema import UserCreate
 from epicevent.security.roles import UserRole
 from epicevent.services.client_service import ClientService
 from epicevent.services.contract_service import ContractService
+from epicevent.services.event_service import EventService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
 from epicevent.services.user_service import UserService
@@ -79,6 +83,7 @@ def uow(session):
         users=UserRepository(session),
         clients=ClientRepository(session),
         contracts=ContractRepository(session),
+        events=EventRepository(session),
         use_nested_transaction=True,
     )
 
@@ -132,6 +137,11 @@ def client_service(uow):
 @pytest.fixture
 def contract_service(uow):
     return ContractService(uow)
+
+
+@pytest.fixture
+def event_service(uow):
+    return EventService(uow)
 
 
 # Factory - User
@@ -282,3 +292,36 @@ def create_contract_dto(**kwargs):
     }
     contract_data.update(kwargs)
     return ContractCreate(**contract_data)
+
+
+# Factory - Event
+#######################
+EVENT_DATA = {
+    "start": datetime(2026, 8, 1, 10, 0),
+    "end": datetime(2026, 8, 1, 18, 0),
+    "location": "Paris",
+    "attendees": 150,
+    "notes": "Client VIP",
+}
+
+
+def create_event(**kwargs):
+    event_data = {**EVENT_DATA}
+    event_data.update(kwargs)
+    return Event(**event_data)
+
+
+def create_persisted_event(session, **kwargs):
+    event_data = {**EVENT_DATA}
+    event_data.update(kwargs)
+
+    persisted_event = Event(**event_data)
+    session.add(persisted_event)
+    session.flush()
+    return persisted_event
+
+
+def create_event_dto(**kwargs):
+    event_data = {**EVENT_DATA}
+    event_data.update(kwargs)
+    return EventCreate(**event_data)

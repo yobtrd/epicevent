@@ -14,17 +14,17 @@ class ContractController:
     def __init__(self, contract_service: ContractService):
         self.contract_service = contract_service
 
-    def get_contract_for_update(
-        self, current_user: UserResponse, contract_id: int
-    ) -> ContractResponse:
+    def get_contract_by_id(self, contract_id: int):
         contract = self.contract_service.get_contract_by_id(contract_id)
+        return ContractResponse.model_validate(contract)
 
+    def ensure_can_manage_contract(
+        self, current_user: UserResponse, contract: ContractResponse
+    ):
         self.contract_service.ensure_can_manage_contract(
             current_user,
             contract.client,
         )
-
-        return ContractResponse.model_validate(contract)
 
     def create_contract(
         self, current_user: UserResponse, client_email: str, data: dict

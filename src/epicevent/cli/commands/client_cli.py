@@ -23,7 +23,7 @@ def create(app: Application, current_user: UserResponse):
     authorization.ensure_permission(current_user, Permission.CREATE_CLIENT)
     data = client_view.ask_client_creation_data()
     client = app.client_controller.create_client(current_user, data)
-    client_view.display_creation_success(client)
+    client_view.display_client_creation_success(client)
 
 
 @client.command()

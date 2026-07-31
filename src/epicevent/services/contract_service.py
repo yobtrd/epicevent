@@ -6,7 +6,7 @@ from epicevent.exception import (
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
 from epicevent.models.contract import Contract
-from epicevent.schemas.client_schema import normalize_client_email
+from epicevent.schemas.client_schema import ClientResponse, normalize_client_email
 from epicevent.schemas.contract_schema import ContractCreate, ContractUpdate
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.decorators import require_permission
@@ -24,7 +24,11 @@ class ContractService:
             raise ContractNotFoundError()
         return contract
 
-    def ensure_can_manage_contract(self, current_user: UserResponse, client: Client):
+    def ensure_can_manage_contract(
+        self,
+        current_user: UserResponse,
+        client: Client | ClientResponse,
+    ):
         if current_user.role_id == UserRole.MANAGEMENT:
             return
         if current_user.id != client.sales_representative_id:

@@ -27,7 +27,7 @@ def create(app: Application, current_user: UserResponse, client_email: str):
     contract_view.display_contract_create_resume(target_client)
     data = contract_view.ask_contract_creation_data()
     contract = app.contract_controller.create_contract(current_user, client_email, data)
-    contract_view.display_creation_success(contract)
+    contract_view.display_contract_creation_success(contract)
 
 
 @contract.command()
@@ -37,9 +37,8 @@ def create(app: Application, current_user: UserResponse, client_email: str):
 @require_auth
 def update(app: Application, current_user: UserResponse, contract_id: str):
     authorization.ensure_permission(current_user, Permission.UPDATE_CONTRACT)
-    target_contract = app.contract_controller.get_contract_for_update(
-        current_user, contract_id
-    )
+    target_contract = app.contract_controller.get_contract_by_id(contract_id)
+    app.contract_controller.ensure_can_manage_contract(current_user, target_contract)
 
     contract_view.display_contract_update_resume(target_contract)
     data = contract_view.ask_contract_update_data()
