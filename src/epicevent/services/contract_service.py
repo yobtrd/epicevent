@@ -1,7 +1,12 @@
-from epicevent.exception import ClientOwnershipError, ContractNotFoundError
+from epicevent.exception import (
+    ClientNotFoundError,
+    ClientOwnershipError,
+    ContractNotFoundError,
+)
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
 from epicevent.models.contract import Contract
+from epicevent.schemas.client_schema import normalize_client_email
 from epicevent.schemas.contract_schema import ContractCreate, ContractUpdate
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.decorators import require_permission
@@ -27,9 +32,17 @@ class ContractService:
 
     @require_permission(Permission.CREATE_CONTRACT)
     def create_contract(
-        self, current_user: UserResponse, client: Client, contract_dto: ContractCreate
+        self,
+        current_user: UserResponse,
+        client_email: str,
+        contract_dto: ContractCreate,
     ):
         with self.uow:
+            client_email = normalize_client_email(client_email)
+            client = self.uow.clients.find_by_email(client_email)
+            if client is None:
+                raise ClientNotFoundError()
+
             data = contract_dto.model_dump()
             contract = Contract(
                 **data,

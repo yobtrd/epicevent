@@ -119,7 +119,7 @@ def test_update_user_unauthorized_user_raises_error(client_service, session, rol
         client_service.update_client(current_user, persisted_client.email, new_data)
 
 
-# list_client
+# list_clients
 ###################
 def test_list_client_return_cllient_list_for_management(client_service, session):
     current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)

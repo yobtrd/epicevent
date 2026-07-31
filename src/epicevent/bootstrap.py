@@ -64,9 +64,7 @@ class ApplicationFactory:
                 auth_controller=AuthController(auth_service),
                 user_controller=UserController(user_service),
                 client_controller=ClientController(client_service),
-                contract_controller=ContractController(
-                    contract_service, client_service
-                ),
+                contract_controller=ContractController(contract_service),
             )
 
             yield app

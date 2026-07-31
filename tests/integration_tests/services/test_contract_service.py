@@ -25,7 +25,7 @@ def test_create_contract_by_management_success(session, contract_service):
     client = create_persisted_client(session, sales_representative_id=current_user.id)
     contract_dto = create_contract_dto()
 
-    created = contract_service.create_contract(current_user, client, contract_dto)
+    created = contract_service.create_contract(current_user, client.email, contract_dto)
 
     session.refresh(created)
     assert created.id is not None
