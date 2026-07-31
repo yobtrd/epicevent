@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from click.testing import CliRunner
 
 from epicevent.cli.main import cli
@@ -236,3 +238,178 @@ def test_update_contract_by_management_success(logged_user_factory, session):
     assert result.exit_code == 0
     session.refresh(contract)
     assert contract.is_signed is True
+
+
+# list
+######################
+def test_list_returns_contract_table(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    sales_user = logged_user_factory(
+        last_name="Doe",
+        first_name="Jane",
+        employee_number="002",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        last_name="Martin",
+        first_name="Jean",
+        sales_representative_id=sales_user.id,
+    )
+
+    for _ in range(3):
+        create_persisted_contract(
+            session,
+            client_id=client.id,
+            sales_representative_id=sales_user.id,
+        )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "list"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    print(result.output)
+    assert "Liste des contrats (3 au total)" in result.output
+    assert "Martin Jean" in result.output
+    assert "Doe Jane (n°002)" in result.output
+    assert "1000.00" in result.output
+
+
+def test_list_with_no_contract_displays_warning(logged_user_factory):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SALES)
+
+    result = runner.invoke(
+        cli,
+        ["contract", "list"],
+    )
+
+    assert result.exit_code == 0
+    assert "Aucun contrat trouvé" in result.output
+
+
+def test_list_pagination(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    sales_user = logged_user_factory(role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_user.id,
+    )
+
+    for _ in range(15):
+        create_persisted_contract(
+            session,
+            client_id=client.id,
+            sales_representative_id=sales_user.id,
+        )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "list"],
+        input="n\nq",
+    )
+
+    assert result.exit_code == 0
+    assert "11" in result.output
+
+
+def test_list_filters_signed(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    sales_user = logged_user_factory(
+        role_id=UserRole.SALES,
+        last_name="Doe",
+        employee_number="002",
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_user.id,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_user.id,
+        is_signed=True,
+    )
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_user.id,
+        is_signed=False,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "list", "--signed"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des contrats (1 au total)" in result.output
+    assert "Signé" in result.output
+    assert "Non signé" not in result.output
+
+
+def test_list_filters_paid(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    sales_user = logged_user_factory(
+        role_id=UserRole.SALES,
+        last_name="Doe",
+        employee_number="002",
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_user.id,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_user.id,
+        remaining_amount=Decimal("0.00"),
+    )
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_user.id,
+        remaining_amount=Decimal("500.00"),
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "list", "--paid"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des contrats (1 au total)" in result.output
+    assert "0.00" in result.output
+    assert "500.00" not in result.output

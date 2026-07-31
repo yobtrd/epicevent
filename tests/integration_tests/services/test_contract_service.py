@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 
 from epicevent.exception import (
@@ -5,6 +7,7 @@ from epicevent.exception import (
     ContractNotFoundError,
     RolePermissionError,
 )
+from epicevent.models.contract import Contract
 from epicevent.schemas.contract_schema import ContractUpdate
 from epicevent.security.roles import UserRole
 from tests.conftest import (
@@ -186,3 +189,123 @@ def test_management_can_update_any_contract(contract_service, session):
     session.refresh(persisted_contract)
 
     assert persisted_contract.is_signed is True
+
+
+# list_contracts
+###################
+def test_list_contracts_returns_contracts_for_sales_user(contract_service, session):
+    current_user = create_persisted_user(session)
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+
+    for _ in range(3):
+        create_persisted_contract(
+            session,
+            client_id=client.id,
+            sales_representative_id=current_user.id,
+        )
+
+    contracts_list, total_count = contract_service.list_contracts(current_user)
+
+    assert len(contracts_list) == 3
+    assert total_count == 3
+    assert isinstance(contracts_list[0], Contract)
+
+
+def test_list_contracts_pagination(contract_service, session):
+    current_user = create_persisted_user(session)
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+
+    for _ in range(15):
+        create_persisted_contract(
+            session,
+            client_id=client.id,
+            sales_representative_id=current_user.id,
+        )
+
+    contracts_page1, total_count = contract_service.list_contracts(
+        current_user,
+        limit=10,
+        offset=0,
+    )
+
+    assert len(contracts_page1) == 10
+    assert total_count == 15
+
+    contracts_page2, total_count = contract_service.list_contracts(
+        current_user,
+        limit=10,
+        offset=10,
+    )
+
+    assert len(contracts_page2) == 5
+    assert total_count == 15
+
+
+def test_list_contracts_filters_signed(contract_service, session):
+    current_user = create_persisted_user(session)
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        is_signed=True,
+    )
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        is_signed=False,
+    )
+
+    contracts_list, total_count = contract_service.list_contracts(
+        current_user,
+        is_signed=True,
+    )
+
+    assert len(contracts_list) == 1
+    assert total_count == 1
+    assert contracts_list[0].is_signed is True
+
+
+def test_list_contracts_filters_paid(contract_service, session):
+    current_user = create_persisted_user(session)
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        remaining_amount=Decimal("0"),
+    )
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        remaining_amount=Decimal("250"),
+    )
+
+    contracts_list, total_count = contract_service.list_contracts(
+        current_user,
+        is_paid=True,
+    )
+
+    assert len(contracts_list) == 1
+    assert total_count == 1
+    assert contracts_list[0].remaining_amount == 0

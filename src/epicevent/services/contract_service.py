@@ -54,3 +54,29 @@ class ContractService:
                 setattr(contract, field, value)
             self.uow.contracts.save(contract)
             return contract
+
+    @require_permission(Permission.LIST_CONTRACT)
+    def list_contracts(
+        self,
+        current_user: UserResponse,
+        is_signed: bool | None = None,
+        is_paid: bool | None = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[Contract], int]:
+        with self.uow:
+            contracts = self.uow.contracts.list(
+                user_id=current_user.id,
+                user_role=current_user.role_id,
+                is_signed=is_signed,
+                is_paid=is_paid,
+                limit=limit,
+                offset=offset,
+            )
+            query_count = self.uow.contracts.count(
+                user_id=current_user.id,
+                user_role=current_user.role_id,
+                is_signed=is_signed,
+                is_paid=is_paid,
+            )
+            return contracts, query_count

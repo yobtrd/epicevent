@@ -197,7 +197,7 @@ def logged_user_factory(session, app_factory, token_path):
     return _create_logged_user
 
 
-# Facory - Client
+# Factory - Client
 #######################
 CLIENT_DATA = {
     "first_name": "John",
@@ -248,7 +248,7 @@ def create_sales_client(
     )
 
 
-# Facory - Contract
+# Factory - Contract
 #######################
 CONTRACT_DATA = {
     "total_amount": Decimal("1000.00"),

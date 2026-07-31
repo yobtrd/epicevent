@@ -11,12 +11,14 @@ ROLE_PERMISSIONS = {
         Permission.LIST_CLIENT,
         Permission.CREATE_CONTRACT,
         Permission.UPDATE_CONTRACT,
+        Permission.LIST_CONTRACT,
     ],
     UserRole.SALES: [
         Permission.CREATE_CLIENT,
         Permission.UPDATE_CLIENT,
         Permission.LIST_CLIENT,
         Permission.UPDATE_CONTRACT,
+        Permission.LIST_CONTRACT,
     ],
     UserRole.SUPPORT: [
         Permission.LIST_CLIENT,

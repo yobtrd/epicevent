@@ -43,7 +43,7 @@ class ClientController:
     def list_client(
         self, current_user, limit: int = 10, offset: int = 0
     ) -> tuple[list[ClientFullResponse], int]:
-        clients_list, total_count = self.client_service.list_client(
+        clients_list, total_count = self.client_service.list_clients(
             current_user,
             limit=limit,
             offset=offset,

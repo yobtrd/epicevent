@@ -86,7 +86,7 @@ def display_update_success(client: ClientResponse):
 
 # list
 #################
-def display_clients_table(clients_list, total_count):
+def display_clients_table(clients_list: list[ClientResponse], total_count: int):
     table = Table(title=f"\nListe des clients ({total_count} au total)")
     table.add_column("Nom")
     table.add_column("Prénom")
@@ -123,5 +123,5 @@ def display_clients_table(clients_list, total_count):
     console.print(table)
 
 
-def display_list_empty_message():
+def display_clients_list_empty_message():
     display_message("Aucun client trouvé", "warning")

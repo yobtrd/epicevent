@@ -53,3 +53,23 @@ class ContractController:
             current_user, contract_id, request
         )
         return ContractResponse.model_validate(contract)
+
+    def list_contracts(
+        self,
+        current_user: UserResponse,
+        is_signed: bool | None = None,
+        is_paid: bool | None = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[ContractResponse], int]:
+        contracts_list, query_count = self.contract_service.list_contracts(
+            current_user,
+            is_signed=is_signed,
+            is_paid=is_paid,
+            limit=limit,
+            offset=offset,
+        )
+        return (
+            [ContractResponse.model_validate(contract) for contract in contracts_list],
+            query_count,
+        )

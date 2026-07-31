@@ -93,7 +93,7 @@ def test_list_client_pagination(session):
 
 # count
 ############################
-def test_count_returns_corrent_length(session):
+def test_count_returns_correct_length(session):
     repository = ClientRepository(session)
     sales_rep = create_persisted_user(session, role_id=UserRole.SALES)
     for i in range(15):

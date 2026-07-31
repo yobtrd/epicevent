@@ -61,7 +61,7 @@ def list(app: Application, current_user: UserResponse):
             limit=limit,
         )
         if not clients_list and offset == 0:
-            client_view.display_list_empty_message()
+            client_view.display_clients_list_empty_message()
             return
 
         client_view.display_clients_table(clients_list, total_count)

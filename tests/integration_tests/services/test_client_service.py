@@ -121,8 +121,8 @@ def test_update_user_unauthorized_user_raises_error(client_service, session, rol
 
 # list_client
 ###################
-def test_list_client_return_user__list(client_service, session):
-    current_user = create_persisted_user(session)
+def test_list_client_return_cllient_list_for_management(client_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)
     for i in range(3):
         create_persisted_client(
             session,
@@ -130,7 +130,7 @@ def test_list_client_return_user__list(client_service, session):
             sales_representative_id=current_user.id,
         )
 
-    clients_list, total_count = client_service.list_client(current_user)
+    clients_list, total_count = client_service.list_clients(current_user)
 
     assert len(clients_list) == 3
     assert total_count == 3
@@ -146,13 +146,13 @@ def test_list_client_pagination(client_service, session):
             sales_representative_id=current_user.id,
         )
 
-    clients_list_page1, total_count = client_service.list_client(
+    clients_list_page1, total_count = client_service.list_clients(
         current_user, limit=10, offset=0
     )
     assert len(clients_list_page1) == 10
     assert total_count == 15
 
-    clients_list_page2, total_count = client_service.list_client(
+    clients_list_page2, total_count = client_service.list_clients(
         current_user, limit=10, offset=10
     )
     assert len(clients_list_page2) == 5

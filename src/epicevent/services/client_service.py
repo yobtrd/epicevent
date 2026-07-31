@@ -55,7 +55,7 @@ class ClientService:
             return client
 
     @require_permission(Permission.LIST_CLIENT)
-    def list_client(
+    def list_clients(
         self,
         current_user,
         limit: int = 10,
