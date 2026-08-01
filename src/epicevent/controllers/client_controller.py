@@ -2,7 +2,7 @@ from pydantic import ValidationError
 
 from epicevent.exception import InvalidInputError
 from epicevent.schemas.client_schema import (
-    ClientFullResponse,
+    ClientDetailResponse,
     ClientResponse,
     ClientUpdate,
 )
@@ -42,13 +42,13 @@ class ClientController:
 
     def list_client(
         self, current_user, limit: int = 10, offset: int = 0
-    ) -> tuple[list[ClientFullResponse], int]:
+    ) -> tuple[list[ClientDetailResponse], int]:
         clients_list, total_count = self.client_service.list_clients(
             current_user,
             limit=limit,
             offset=offset,
         )
         return (
-            [ClientFullResponse.model_validate(client) for client in clients_list],
+            [ClientDetailResponse.model_validate(client) for client in clients_list],
             total_count,
         )

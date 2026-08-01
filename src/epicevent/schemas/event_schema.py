@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from epicevent.schemas.contract_schema import ContractResponse
+from epicevent.schemas.contract_schema import ContractDetailResponse
 from epicevent.schemas.user_schema import UserResponse
 
 
@@ -21,7 +21,16 @@ class EventResponse(BaseModel):
     location: str
     attendees: int
     notes: str | None
-    contract: ContractResponse
+    contract_id: int
+    support_representative_id: int | None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class EventDetailResponse(EventResponse):
+    contract: ContractDetailResponse
     support_representative: UserResponse | None
 
     model_config = ConfigDict(

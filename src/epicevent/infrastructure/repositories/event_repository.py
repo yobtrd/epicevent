@@ -1,6 +1,7 @@
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
+from epicevent.models.contract import Contract
 from epicevent.models.event import Event
 from epicevent.security.roles import UserRole
 
@@ -14,22 +15,21 @@ class EventRepository:
         self.session.flush()
         return event
 
-    def _build_query(
+    def _apply_filters(
         self,
+        query,
         user_id: int,
         user_role: int,
         is_assigned: bool | None = None,
     ):
-        query = select(Event)
-
         if user_role != UserRole.MANAGEMENT:
             query = query.where(Event.support_representative_id == user_id)
 
-        if is_assigned is not None:
-            if is_assigned:
-                query = query.where(Event.support_representative_id.is_not(None))
-            else:
-                query = query.where(Event.support_representative_id.is_(None))
+        if is_assigned is True:
+            query = query.where(Event.support_representative_id.is_not(None))
+
+        elif is_assigned is False:
+            query = query.where(Event.support_representative_id.is_(None))
 
         return query
 
@@ -38,15 +38,24 @@ class EventRepository:
         user_id: int,
         user_role: int,
         is_assigned: bool | None = None,
-        limit=10,
-        offset=0,
+        limit: int = 10,
+        offset: int = 0,
     ):
-        query = self._build_query(
+        query = select(Event).options(
+            joinedload(Event.contract).joinedload(Contract.client),
+            joinedload(Event.contract).joinedload(Contract.sales_representative),
+            joinedload(Event.support_representative),
+        )
+
+        query = self._apply_filters(
+            query,
             user_id=user_id,
             user_role=user_role,
             is_assigned=is_assigned,
         )
+
         query = query.limit(limit).offset(offset)
+
         return self.session.execute(query).scalars().all()
 
     def count(
@@ -55,11 +64,15 @@ class EventRepository:
         user_role: int,
         is_assigned: bool | None = None,
     ) -> int:
-        query = self._build_query(
+        query = select(Event)
+
+        query = self._apply_filters(
+            query,
             user_id=user_id,
             user_role=user_role,
             is_assigned=is_assigned,
         )
 
         count_query = select(func.count()).select_from(query.subquery())
+
         return self.session.execute(count_query).scalar_one()

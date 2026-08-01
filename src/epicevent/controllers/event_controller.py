@@ -2,7 +2,7 @@ from pydantic import ValidationError
 
 from epicevent.exception import InvalidInputError
 from epicevent.schemas.contract_schema import ContractResponse
-from epicevent.schemas.event_schema import EventResponse
+from epicevent.schemas.event_schema import EventDetailResponse, EventResponse
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.services.event_service import EventCreate, EventService
 
@@ -36,7 +36,7 @@ class EventController:
         is_assigned: bool | None = None,
         limit: int = 10,
         offset: int = 0,
-    ) -> tuple[list[EventResponse], int]:
+    ) -> tuple[list[EventDetailResponse], int]:
         events_list, total_count = self.event_service.list_events(
             current_user,
             is_assigned=is_assigned,
@@ -44,6 +44,6 @@ class EventController:
             offset=offset,
         )
         return (
-            [EventResponse.model_validate(event) for event in events_list],
+            [EventDetailResponse.model_validate(event) for event in events_list],
             total_count,
         )

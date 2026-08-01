@@ -1,7 +1,7 @@
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from epicevent.schemas.client_schema import ClientResponse
 from epicevent.schemas.user_schema import UserResponse
@@ -18,28 +18,29 @@ class ContractCreate(BaseModel):
     )
 
 
+class ContractUpdate(BaseModel):
+    total_amount: Decimal | None = Field(default=None)
+    remaining_amount: Decimal | None = Field(default=None)
+    is_signed: bool | None = Field(default=None)
+
+
 class ContractResponse(BaseModel):
     id: int
     total_amount: Decimal
     remaining_amount: Decimal
-    created_at: date
+    created_at: datetime
     is_signed: bool
     client: ClientResponse
-    sales_representative: UserResponse
+    sales_representative_id: int
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
-    @field_validator("created_at", mode="before")
-    @classmethod
-    def ensure_date_only(cls, value):
-        if isinstance(value, datetime):
-            return value.date()
-        return value
 
+class ContractDetailResponse(ContractResponse):
+    sales_representative: UserResponse
 
-class ContractUpdate(BaseModel):
-    total_amount: Decimal | None = Field(default=None)
-    remaining_amount: Decimal | None = Field(default=None)
-    is_signed: bool | None = Field(default=None)
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

@@ -34,6 +34,20 @@ class ClientCreate(BaseModel):
     )
 
 
+class ClientUpdate(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1)
+    last_name: str | None = Field(default=None, min_length=1)
+    email: ClientEmail | None = Field(default=None)
+    phone: str | None = Field(default=None, min_length=1)
+    business_name: str | None = Field(default=None, min_length=1)
+    first_contact: date | None = Field(default=None)
+    last_contact: date | None = Field(default=None)
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+
 class ClientResponse(BaseModel):
     id: int
     first_name: str
@@ -50,21 +64,7 @@ class ClientResponse(BaseModel):
     )
 
 
-class ClientUpdate(BaseModel):
-    first_name: str | None = Field(default=None, min_length=1)
-    last_name: str | None = Field(default=None, min_length=1)
-    email: ClientEmail | None = Field(default=None)
-    phone: str | None = Field(default=None, min_length=1)
-    business_name: str | None = Field(default=None, min_length=1)
-    first_contact: date | None = Field(default=None)
-    last_contact: date | None = Field(default=None)
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-
-
-class ClientFullResponse(ClientResponse):
+class ClientDetailResponse(ClientResponse):
     sales_representative: UserResponse | None = None
 
     model_config = ConfigDict(

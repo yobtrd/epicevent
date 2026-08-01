@@ -1,5 +1,5 @@
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from epicevent.models.contract import Contract
 from epicevent.security.roles import UserRole
@@ -17,15 +17,14 @@ class ContractRepository:
     def find_by_id(self, contract_id: int) -> Contract | None:
         return self.session.query(Contract).filter_by(id=contract_id).first()
 
-    def _build_query(
+    def _apply_filters(
         self,
+        query,
         user_id: int,
         user_role: int,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
     ):
-        query = select(Contract)
-
         if user_role != UserRole.MANAGEMENT:
             query = query.where(Contract.sales_representative_id == user_id)
 
@@ -34,6 +33,7 @@ class ContractRepository:
 
         if is_paid is True:
             query = query.where(Contract.remaining_amount == 0)
+
         elif is_paid is False:
             query = query.where(Contract.remaining_amount > 0)
 
@@ -45,10 +45,16 @@ class ContractRepository:
         user_role: int,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
-        limit=10,
-        offset=0,
+        limit: int = 10,
+        offset: int = 0,
     ):
-        query = self._build_query(
+        query = select(Contract).options(
+            joinedload(Contract.client),
+            joinedload(Contract.sales_representative),
+        )
+
+        query = self._apply_filters(
+            query,
             user_id=user_id,
             user_role=user_role,
             is_signed=is_signed,
@@ -56,6 +62,7 @@ class ContractRepository:
         )
 
         query = query.limit(limit).offset(offset)
+
         return self.session.execute(query).scalars().all()
 
     def count(
@@ -65,7 +72,10 @@ class ContractRepository:
         is_signed: bool | None = None,
         is_paid: bool | None = None,
     ) -> int:
-        query = self._build_query(
+        query = select(Contract)
+
+        query = self._apply_filters(
+            query,
             user_id=user_id,
             user_role=user_role,
             is_signed=is_signed,
@@ -73,4 +83,5 @@ class ContractRepository:
         )
 
         count_query = select(func.count()).select_from(query.subquery())
+
         return self.session.execute(count_query).scalar_one()

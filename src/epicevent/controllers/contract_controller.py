@@ -3,6 +3,7 @@ from pydantic import ValidationError
 from epicevent.exception import InvalidInputError
 from epicevent.schemas.contract_schema import (
     ContractCreate,
+    ContractDetailResponse,
     ContractResponse,
     ContractUpdate,
 )
@@ -58,7 +59,7 @@ class ContractController:
         is_paid: bool | None = None,
         limit: int = 10,
         offset: int = 0,
-    ) -> tuple[list[ContractResponse], int]:
+    ) -> tuple[list[ContractDetailResponse], int]:
         contracts_list, toal_count = self.contract_service.list_contracts(
             current_user,
             is_signed=is_signed,
@@ -67,6 +68,9 @@ class ContractController:
             offset=offset,
         )
         return (
-            [ContractResponse.model_validate(contract) for contract in contracts_list],
+            [
+                ContractDetailResponse.model_validate(contract)
+                for contract in contracts_list
+            ],
             toal_count,
         )

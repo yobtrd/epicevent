@@ -7,7 +7,7 @@ from epicevent.cli.console import (
     console,
     display_message,
 )
-from epicevent.schemas.contract_schema import ContractResponse
+from epicevent.schemas.contract_schema import ContractDetailResponse, ContractResponse
 
 
 # create
@@ -63,7 +63,10 @@ def dispaly_update_success(target_contract):
 
 # list
 #################
-def display_contracts_table(contracts_list: list[ContractResponse], total_count: int):
+def display_contracts_table(
+    contracts_list: list[ContractDetailResponse],
+    total_count: int,
+):
     table = Table(title=f"\nListe des contrats ({total_count} au total)")
     table.add_column("Id du contrat")
     table.add_column("Client")

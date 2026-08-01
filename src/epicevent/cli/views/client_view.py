@@ -7,7 +7,7 @@ from epicevent.cli.console import (
     console,
     display_message,
 )
-from epicevent.schemas.client_schema import ClientResponse
+from epicevent.schemas.client_schema import ClientDetailResponse, ClientResponse
 
 
 # create
@@ -74,7 +74,7 @@ def display_update_success(client: ClientResponse):
 
 # list
 #################
-def display_clients_table(clients_list: list[ClientResponse], total_count: int):
+def display_clients_table(clients_list: list[ClientDetailResponse], total_count: int):
     table = Table(title=f"\nListe des clients ({total_count} au total)")
     table.add_column("Nom")
     table.add_column("Prénom")

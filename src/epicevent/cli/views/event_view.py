@@ -10,7 +10,7 @@ from epicevent.cli.console import (
     display_message,
 )
 from epicevent.schemas.contract_schema import ContractResponse
-from epicevent.schemas.event_schema import EventResponse
+from epicevent.schemas.event_schema import EventDetailResponse, EventResponse
 
 
 # helpers
@@ -54,7 +54,7 @@ def display_event_creation_success(event: EventResponse):
 
 # list
 #################
-def display_events_table(events_list: list[EventResponse], total_count: int):
+def display_events_table(events_list: list[EventDetailResponse], total_count: int):
     table = Table(title=f"\nListe des évènements ({total_count} au total)")
     table.add_column("Id de l'évènement")
     table.add_column("Id du contrat")
