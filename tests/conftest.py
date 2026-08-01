@@ -294,6 +294,38 @@ def create_contract_dto(**kwargs):
     return ContractCreate(**contract_data)
 
 
+def create_contract_graph(
+    session,
+    sales_kwargs=None,
+    client_kwargs=None,
+    contract_kwargs=None,
+):
+    sales_kwargs = sales_kwargs or {}
+    client_kwargs = client_kwargs or {}
+    contract_kwargs = contract_kwargs or {}
+
+    sales = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+        **sales_kwargs,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+        **client_kwargs,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+        **contract_kwargs,
+    )
+
+    return contract
+
+
 # Factory - Event
 #######################
 EVENT_DATA = {

@@ -45,3 +45,26 @@ class EventService:
             event = Event(**data, contract=contract)
             self.uow.events.save(event)
             return event
+
+    @require_permission(Permission.LIST_EVENT)
+    def list_events(
+        self,
+        current_user: UserResponse,
+        is_assigned: bool | None = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[Event], int]:
+        with self.uow:
+            events = self.uow.events.list(
+                user_id=current_user.id,
+                user_role=current_user.role_id,
+                is_assigned=is_assigned,
+                limit=limit,
+                offset=offset,
+            )
+            total_count = self.uow.events.count(
+                user_id=current_user.id,
+                user_role=current_user.role_id,
+                is_assigned=is_assigned,
+            )
+            return events, total_count

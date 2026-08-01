@@ -12,3 +12,5 @@ class Permission(StrEnum):
     UPDATE_CONTRACT = "contract.update"
     LIST_CONTRACT = "contract.list"
     CREATE_EVENT = "event.create"
+    UPDATE_EVENT = "event.update"
+    LIST_EVENT = "event.list"

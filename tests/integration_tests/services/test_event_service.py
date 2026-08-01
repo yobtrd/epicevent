@@ -5,11 +5,14 @@ from epicevent.exception import (
     ContractNotFoundError,
     ContractNotSignedError,
 )
+from epicevent.models.event import Event
 from epicevent.security.roles import UserRole
 from tests.conftest import (
+    create_contract_graph,
     create_event_dto,
     create_persisted_client,
     create_persisted_contract,
+    create_persisted_event,
     create_persisted_user,
 )
 
@@ -96,3 +99,141 @@ def test_create_event_with_unsigned_contract_raise_error(session, event_service)
 
     with pytest.raises(ContractNotSignedError):
         event_service.create_event(current_user, contract.id, event_dto)
+
+
+# list_events
+###################
+def test_list_events_returns_events_for_support_user(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="400",
+        email="support@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    for _ in range(3):
+        create_persisted_event(
+            session,
+            contract_id=contract.id,
+            support_representative_id=current_user.id,
+        )
+
+    events_list, total_count = event_service.list_events(current_user)
+
+    assert len(events_list) == 3
+    assert total_count == 3
+    assert isinstance(events_list[0], Event)
+
+
+def test_list_events_pagination(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="400",
+        email="support@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    for _ in range(15):
+        create_persisted_event(
+            session,
+            contract_id=contract.id,
+            support_representative_id=current_user.id,
+        )
+
+    events_page1, total_count = event_service.list_events(
+        current_user,
+        limit=10,
+        offset=0,
+    )
+
+    assert len(events_page1) == 10
+    assert total_count == 15
+
+    events_page2, total_count = event_service.list_events(
+        current_user,
+        limit=10,
+        offset=10,
+    )
+
+    assert len(events_page2) == 5
+    assert total_count == 15
+
+
+def test_list_events_filters_assigned(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="300",
+        email="managemet@email.com",
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    support_rep = create_persisted_user(
+        session,
+        employee_number="400",
+        email="support@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_rep.id,
+    )
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=None,
+    )
+
+    events_list, total_count = event_service.list_events(
+        current_user,
+        is_assigned=True,
+    )
+
+    assert len(events_list) == 1
+    assert total_count == 1
+    assert events_list[0].support_representative_id == support_rep.id
+
+
+def test_list_events_filters_unassigned(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="300",
+        email="managemet@email.com",
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    support_rep = create_persisted_user(
+        session,
+        employee_number="400",
+        email="support@test.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_rep.id,
+    )
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=None,
+    )
+
+    events_list, total_count = event_service.list_events(
+        current_user,
+        is_assigned=False,
+    )
+
+    assert len(events_list) == 1
+    assert total_count == 1
+    assert events_list[0].support_representative_id is None

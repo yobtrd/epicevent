@@ -59,7 +59,7 @@ class ContractController:
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[ContractResponse], int]:
-        contracts_list, query_count = self.contract_service.list_contracts(
+        contracts_list, toal_count = self.contract_service.list_contracts(
             current_user,
             is_signed=is_signed,
             is_paid=is_paid,
@@ -68,5 +68,5 @@ class ContractController:
         )
         return (
             [ContractResponse.model_validate(contract) for contract in contracts_list],
-            query_count,
+            toal_count,
         )

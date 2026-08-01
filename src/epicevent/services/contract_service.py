@@ -90,10 +90,10 @@ class ContractService:
                 limit=limit,
                 offset=offset,
             )
-            query_count = self.uow.contracts.count(
+            total_count = self.uow.contracts.count(
                 user_id=current_user.id,
                 user_role=current_user.role_id,
                 is_signed=is_signed,
                 is_paid=is_paid,
             )
-            return contracts, query_count
+            return contracts, total_count

@@ -29,3 +29,21 @@ class EventController:
 
         event = self.event_service.create_event(current_user, contract_id, request)
         return EventResponse.model_validate(event)
+
+    def list_events(
+        self,
+        current_user: UserResponse,
+        is_assigned: bool | None = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[EventResponse], int]:
+        events_list, total_count = self.event_service.list_events(
+            current_user,
+            is_assigned=is_assigned,
+            limit=limit,
+            offset=offset,
+        )
+        return (
+            [EventResponse.model_validate(event) for event in events_list],
+            total_count,
+        )
