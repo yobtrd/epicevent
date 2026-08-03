@@ -18,18 +18,25 @@ def normalize_employee_number(value: str) -> str:
 EmployeeNumber = Annotated[str, AfterValidator(normalize_employee_number)]
 
 
-class UserCreate(BaseModel):
+class UserCreateBase(BaseModel):
     employee_number: EmployeeNumber = Field(min_length=1)
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     email: EmailStr
     password: str = Field(min_length=1)
-    role_id: UserRole
 
     model_config = ConfigDict(
         extra="forbid",
         str_strip_whitespace=True,
     )
+
+
+class UserCreate(UserCreateBase):
+    role_id: UserRole
+
+
+class SuperuserCreate(UserCreateBase):
+    pass
 
 
 class UserUpdateSelf(BaseModel):
@@ -72,7 +79,3 @@ class UserResponse(BaseModel):
 
 class UserDetailResponse(UserResponse):
     is_active: bool
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )

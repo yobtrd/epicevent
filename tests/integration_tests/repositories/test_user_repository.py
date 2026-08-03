@@ -148,3 +148,27 @@ def test_list_user_pagination(session):
     page2 = repository.list(limit=10, offset=10)
 
     assert len(page2) == 5
+
+
+# superuser_exists
+############################
+def test_superuser_exists_returns_true_when_management_user_exists(session):
+    repository = UserRepository(session)
+
+    create_persisted_user(
+        session,
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    assert repository.superuser_exists() is True
+
+
+def test_superuser_exists_returns_false_without_management_user(session):
+    repository = UserRepository(session)
+
+    create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+
+    assert repository.superuser_exists() is False

@@ -74,23 +74,37 @@ def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
     return updates
 
 
+# create-superuser
+######################
+def display_superuser_creation_success(superuser: UserResponse):
+    display_message(
+        f"Le superutilisateur ({superuser.email}) a bien été créé.",
+        "success",
+    )
+
+
 # create
 ######################
-def ask_user_creation_data() -> dict:
+def ask_user_creation_data(include_role: bool = True) -> dict:
     employee_number = ask_required("Numéro d'employé")
     last_name = ask_required("Nom")
     first_name = ask_required("Prénom")
     email = ask_required("Email")
     password = ask_required("Mot de passe", hide_input=True)
-    role_label = _ask_for_role()
-    return {
+
+    data = {
         "employee_number": employee_number,
         "last_name": last_name,
         "first_name": first_name,
         "email": email,
         "password": password,
-        "role_id": ROLE_MAPPING[role_label],
     }
+
+    if include_role:
+        role_label = _ask_for_role()
+        data["role_id"] = ROLE_MAPPING[role_label]
+
+    return data
 
 
 def display_creation_success(user_response: UserResponse):

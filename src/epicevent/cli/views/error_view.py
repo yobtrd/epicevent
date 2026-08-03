@@ -13,12 +13,14 @@ from epicevent.exception import (
     InvalidCredentialsError,
     InvalidInputError,
     RolePermissionError,
+    SuperuserAlreadyExistsError,
     SupportAssignmentError,
     UserAlreadyDeactivatedError,
     UserNotFoundError,
 )
 
 ERROR_MESSAGES = {
+    SuperuserAlreadyExistsError: "Un superuser a déjà été créé.",
     AuthenticationError: "Vous n'êtes pas connecté à une session.",
     RolePermissionError: "Vous n'avez pas les droits pour cette action.",
     InvalidCredentialsError: "Email ou mot de passe incorrect, veuillez réessayer.",

@@ -4,13 +4,64 @@ from epicevent.exception import (
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
     RolePermissionError,
+    SuperuserAlreadyExistsError,
     UserNotFoundError,
 )
 from epicevent.models.user import User
-from epicevent.schemas.user_schema import UserUpdateManagement, UserUpdateSelf
+from epicevent.schemas.user_schema import (
+    SuperuserCreate,
+    UserUpdateManagement,
+    UserUpdateSelf,
+)
 from epicevent.security.roles import UserRole
 from epicevent.services.password_service import PasswordService
-from tests.conftest import create_persisted_user, create_user, create_user_dto
+from tests.conftest import (
+    create_persisted_user,
+    create_user,
+    create_user_dto,
+)
+
+
+# create_superuser
+############################
+def test_create_superuser_creates_management_user(
+    user_service,
+    session,
+):
+    superuser_dto = SuperuserCreate(
+        employee_number="999",
+        first_name="Admin",
+        last_name="User",
+        email="admin@test.com",
+        password="password",
+    )
+
+    user = user_service.create_superuser(superuser_dto)
+
+    assert user.role_id == UserRole.MANAGEMENT
+    assert user.email == "admin@test.com"
+    assert user.password_hash != "password"
+
+
+def test_create_superuser_fails_if_management_exists(
+    user_service,
+    session,
+):
+    create_persisted_user(
+        session,
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    superuser_dto = SuperuserCreate(
+        employee_number="999",
+        first_name="Admin",
+        last_name="User",
+        email="admin@test.com",
+        password="password",
+    )
+
+    with pytest.raises(SuperuserAlreadyExistsError):
+        user_service.create_superuser(superuser_dto)
 
 
 # create_user

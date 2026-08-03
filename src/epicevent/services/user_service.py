@@ -1,7 +1,12 @@
-from epicevent.exception import UserAlreadyDeactivatedError, UserNotFoundError
+from epicevent.exception import (
+    SuperuserAlreadyExistsError,
+    UserAlreadyDeactivatedError,
+    UserNotFoundError,
+)
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.user import User
 from epicevent.schemas.user_schema import (
+    SuperuserCreate,
     UserCreate,
     UserResponse,
     UserUpdateManagement,
@@ -10,6 +15,7 @@ from epicevent.schemas.user_schema import (
 )
 from epicevent.security.decorators import require_permission
 from epicevent.security.permission import Permission
+from epicevent.security.roles import UserRole
 from epicevent.services.password_service import PasswordService
 
 
@@ -29,13 +35,24 @@ class UserService:
             raise UserNotFoundError()
         return user
 
-    def _apply_user_updates(self, user: User, data: dict):
-        for field, value in data.items():
-            if field == "password":
-                user.password_hash = self.password_service.hash(value)
-            else:
-                setattr(user, field, value)
-        self.uow.users.save(user)
+    def ensure_can_create_superuser(self):
+        if self.uow.users.superuser_exists():
+            raise SuperuserAlreadyExistsError()
+
+    def create_superuser(self, user_dto: SuperuserCreate) -> User:
+        self.ensure_can_create_superuser()
+
+        with self.uow:
+            hashed_password = self.password_service.hash(user_dto.password)
+
+            data = user_dto.model_dump(exclude={"password"})
+            data["password_hash"] = hashed_password
+            data["role_id"] = UserRole.MANAGEMENT
+
+            user = User(**data)
+            self.uow.users.save(user)
+
+            return user
 
     @require_permission(Permission.CREATE_USER)
     def create_user(
@@ -45,12 +62,22 @@ class UserService:
     ) -> User:
         with self.uow:
             hashed_password = self.password_service.hash(user_dto.password)
+
             data = user_dto.model_dump(exclude={"password"})
             data["password_hash"] = hashed_password
 
             user = User(**data)
             self.uow.users.save(user)
+
             return user
+
+    def _apply_user_updates(self, user: User, data: dict):
+        for field, value in data.items():
+            if field == "password":
+                user.password_hash = self.password_service.hash(value)
+            else:
+                setattr(user, field, value)
+        self.uow.users.save(user)
 
     def update_self(
         self, current_user: UserResponse, user_data: UserUpdateSelf

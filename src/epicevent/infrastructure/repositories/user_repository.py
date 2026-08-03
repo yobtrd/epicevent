@@ -7,6 +7,7 @@ from epicevent.exception import (
     EmployeeNumberAlreadyExistsError,
 )
 from epicevent.models.user import User
+from epicevent.security.roles import UserRole
 
 
 class UserRepository:
@@ -66,3 +67,10 @@ class UserRepository:
 
         count_query = select(func.count()).select_from(query.subquery())
         return self.session.execute(count_query).scalar_one()
+
+    def superuser_exists(self) -> bool:
+        query = select(User.id).where(
+            User.role_id == UserRole.MANAGEMENT,
+            User.is_active.is_(True),
+        )
+        return self.session.execute(query).first() is not None

@@ -84,6 +84,10 @@ class SupportAssignmentError(ApplicationError):
     pass
 
 
+class SuperuserAlreadyExistsError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

@@ -15,6 +15,16 @@ def user():
     pass
 
 
+@user.command("create-superuser")
+@with_app
+@handle_errors
+def create_superuser(app: Application):
+    app.user_controller.ensure_can_create_superuser()
+    data = user_view.ask_user_creation_data(include_role=False)
+    superuser = app.user_controller.create_superuser(data)
+    user_view.display_superuser_creation_success(superuser)
+
+
 @user.command()
 @with_app
 @handle_errors

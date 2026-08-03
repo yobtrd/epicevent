@@ -7,6 +7,49 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
+# create-superuser
+######################
+def test_create_superuser_creates_management_user(session, app_factory):
+    runner = CliRunner()
+
+    result = runner.invoke(
+        cli,
+        [
+            "user",
+            "create-superuser",
+        ],
+        input=("001\nDoe\nJohn\nadmin@test.com\npassword\n"),
+    )
+
+    assert result.exit_code == 0
+    assert "Le superutilisateur (admin@test.com) a bien été créé." in result.output
+
+    user = session.query(User).filter_by(email="admin@test.com").one()
+
+    assert user.role_id == UserRole.MANAGEMENT
+
+
+def test_create_superuser_fails_when_management_exists(session, app_factory):
+    runner = CliRunner()
+
+    create_persisted_user(
+        session,
+        email="existing-admin@test.com",
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    result = runner.invoke(
+        cli,
+        [
+            "user",
+            "create-superuser",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Un superuser a déjà été créé." in result.output
+
+
 # create
 ######################
 def test_create_user_success(logged_user_factory, session):

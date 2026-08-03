@@ -2,6 +2,7 @@ from pydantic import ValidationError
 
 from epicevent.exception import InvalidInputError
 from epicevent.schemas.user_schema import (
+    SuperuserCreate,
     UserCreate,
     UserDetailResponse,
     UserResponse,
@@ -18,6 +19,17 @@ class UserController:
     def get_user_by_employee_number(self, employee_number: str) -> UserResponse:
         user = self.user_service.get_user_by_employee_number(employee_number)
         return UserResponse.model_validate(user)
+
+    def ensure_can_create_superuser(self):
+        self.user_service.ensure_can_create_superuser()
+
+    def create_superuser(self, data: dict) -> UserResponse:
+        try:
+            request = SuperuserCreate(**data)
+        except ValidationError as e:
+            raise InvalidInputError(e.errors()) from e
+        superuser = self.user_service.create_superuser(request)
+        return UserResponse.model_validate(superuser)
 
     def create_user(self, current_user: UserResponse, data: dict) -> UserResponse:
         try:
