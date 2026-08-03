@@ -32,6 +32,7 @@ def display_event_create_resume(target_contract: ContractResponse):
 
 
 def ask_event_creation_data() -> dict:
+    name = ask_required("Nom de l'évènement")
     start = ask_datetime("Date et heure de début (JJ/MM/AAAA HH:MM)")
     end = ask_datetime("Date et heure de fin (JJ/MM/AAAA HH:MM)")
     location = ask_required("Lieu de l'événement")
@@ -40,6 +41,7 @@ def ask_event_creation_data() -> dict:
 
     notes = None if notes == "" else notes
     return {
+        "name": name,
         "start": start,
         "end": end,
         "location": location,
@@ -50,7 +52,7 @@ def ask_event_creation_data() -> dict:
 
 def display_event_creation_success(event: EventResponse):
     display_message(
-        f"L'évenement (id: {event.id}) a été enregistré.",
+        f"L'évenement {event.name} (n°{event.id}) a été enregistré.",
         "success",
     )
 
@@ -59,25 +61,29 @@ def display_event_creation_success(event: EventResponse):
 #################
 def display_event_update_resume(target_event: EventResponse):
     display_message(
-        f"Modification de l'évènement n°{target_event.id} du contrat  "
+        f"Modification de l'évènement {target_event.name} "
+        f"(n°{target_event.id} du contrat "
         f"n°{target_event.contract_id}."
     )
 
 
 def ask_event_update_data() -> dict:
     fields = {
-        "1": ("start", "Date et heure de début"),
-        "2": ("end", "Date et heure de fin"),
-        "3": ("location", "Lieu de l'événement"),
-        "4": ("attendees", "Nombre de participants"),
-        "5": ("notes", "Notes additionnelles"),
+        "1": ("name", "Nom de l'évènement"),
+        "2": ("start", "Date et heure de début"),
+        "3": ("end", "Date et heure de fin"),
+        "4": ("location", "Lieu de l'événement"),
+        "5": ("attendees", "Nombre de participants"),
+        "6": ("notes", "Notes additionnelles"),
     }
 
     return ask_update_fields(fields)
 
 
 def dispaly_update_success(target_event: EventResponse):
-    display_message(f"L'évènement n°{target_event.id} a bien été mis à jour.")
+    display_message(
+        f"L'évènement {target_event.name} (n°{target_event.id}) a bien été mis à jour."
+    )
 
 
 def display_event_update_cancel():
@@ -88,6 +94,7 @@ def display_event_update_cancel():
 #################
 def display_events_table(events_list: list[EventDetailResponse], total_count: int):
     table = Table(title=f"\nListe des évènements ({total_count} au total)")
+    table.add_column("Nom")
     table.add_column("Id de l'évènement")
     table.add_column("Id du contrat")
     table.add_column("Nom du client")
@@ -116,6 +123,7 @@ def display_events_table(events_list: list[EventDetailResponse], total_count: in
             support_representative = "Aucun support associé pour le moment."
 
         table.add_row(
+            event.name,
             str(event.id),
             str(event.contract.id),
             client,
@@ -143,7 +151,7 @@ def ask_assign_support_confirmation(
     display_message(
         f"Vous aller assigner {target_support.last_name} "
         f"{target_support.first_name} (n°{target_support.employee_number}) "
-        f"à l'évènement n°{target_event.id}",
+        f"à l'évènement {target_event.name} (n°{target_event.id})",
         "info",
     )
     return click.confirm("Confirmer ? ([Y] pour confirmer, [N] pour annuler)")
@@ -155,9 +163,9 @@ def display_assign_support_success(
     display_message(
         f"Le collaborateur {assigned_support.last_name} "
         f"{assigned_support.first_name} "
-        f"(n° {assigned_support.employee_number}) "
+        f"(n°{assigned_support.employee_number}) "
         "a bien été assigné comme support à l'évènement "
-        f"n° {updated_event.id}",
+        f"n°{updated_event.id}",
         "success",
     )
 

@@ -84,6 +84,7 @@ def upgrade() -> None:
     op.create_table(
         "event",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("start", sa.DateTime(), nullable=False),
         sa.Column("end", sa.DateTime(), nullable=False),
         sa.Column("location", sa.String(length=100), nullable=False),

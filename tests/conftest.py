@@ -329,6 +329,7 @@ def create_contract_graph(
 # Factory - Event
 #######################
 EVENT_DATA = {
+    "name": "Super évènement",
     "start": datetime(2026, 8, 1, 10, 0),
     "end": datetime(2026, 8, 1, 18, 0),
     "location": "Paris",

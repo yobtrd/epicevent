@@ -13,6 +13,7 @@ from epicevent.exception import (
     InvalidCredentialsError,
     InvalidInputError,
     RolePermissionError,
+    SupportAssignmentError,
     UserAlreadyDeactivatedError,
     UserNotFoundError,
 )
@@ -31,6 +32,7 @@ ERROR_MESSAGES = {
     ContractNotSignedError: "Le contrat n'a pas encore été signé.",
     EventNotFoundError: "L'évènement n'a pas été trouvé.",
     EventOwnershipError: "Vous n'avez pas la gestion de cet évènement.",
+    SupportAssignmentError: "L'utilisateur assigné n'est pas du département support.",
 }
 
 

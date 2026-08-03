@@ -6,6 +6,9 @@ from epicevent.exception import (
     ContractNotSignedError,
     EventNotFoundError,
     EventOwnershipError,
+    RolePermissionError,
+    SupportAssignmentError,
+    UserNotFoundError,
 )
 from epicevent.models.event import Event
 from epicevent.schemas.event_schema import EventUpdate
@@ -435,3 +438,79 @@ def test_list_events_filters_unassigned(event_service, session):
 
 # assign_support
 ###################
+def test_assign_support_success(session, uow, event_service, logged_user_factory):
+    manager = logged_user_factory(role_id=UserRole.MANAGEMENT)
+    support_user = create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+        employee_number="333",
+        email="support@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, name="Test Event", contract_id=contract.id)
+
+    event_service.assign_support(
+        current_user=manager, event_id=event.id, employee_number="333"
+    )
+
+    session.refresh(event)
+    assert event.support_representative_id == support_user.id
+    assert event.support_representative.employee_number == "333"
+
+
+def test_assign_support_permission_denied(
+    session, uow, event_service, logged_user_factory
+):
+    sales_user = logged_user_factory(
+        role_id=UserRole.SALES,
+        employee_number="010",
+        email="sales@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+        employee_number="333",
+        email="support@email.com",
+    )
+
+    with pytest.raises(RolePermissionError):
+        event_service.assign_support(
+            current_user=sales_user, event_id=event.id, employee_number="333"
+        )
+
+
+def test_assign_support_user_not_found(
+    session, uow, event_service, logged_user_factory
+):
+    manager = logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    with pytest.raises(UserNotFoundError):
+        event_service.assign_support(
+            current_user=manager, event_id=event.id, employee_number="9999"
+        )
+
+
+def test_assign_support_invalid_role(session, uow, event_service, logged_user_factory):
+    manager = logged_user_factory(role_id=UserRole.MANAGEMENT)
+    create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+        employee_number="444",
+        email="support@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    with pytest.raises(SupportAssignmentError):
+        event_service.assign_support(
+            current_user=manager, event_id=event.id, employee_number="444"
+        )

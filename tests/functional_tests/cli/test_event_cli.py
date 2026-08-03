@@ -34,17 +34,21 @@ def test_create_event_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["event", "create", str(contract.id)],
-        input=("01/08/2026 10:00\n01/08/2026 18:00\nParis\n150\nClient VIP\n"),
+        input=("évènement\n01/08/2026 10:00\n01/08/2026 18:00\nParis\n150\nNote\n"),
     )
 
     assert result.exit_code == 0
-
+    print(result.output)
     created_event = session.query(Event).filter_by(contract_id=contract.id).one()
 
-    assert f"L'évenement (id: {created_event.id}) a été enregistré." in result.output
+    assert (
+        f"L'évenement {created_event.name} (n°{created_event.id}) a été enregistré."
+        in result.output
+    )
+    assert created_event.name == "évènement"
     assert created_event.location == "Paris"
     assert created_event.attendees == 150
-    assert created_event.notes == "Client VIP"
+    assert created_event.notes == "Note"
     assert created_event.contract_id == contract.id
 
 
@@ -117,7 +121,7 @@ def test_create_event_with_invalid_input_displays_error(
     result = runner.invoke(
         cli,
         ["event", "create", str(contract.id)],
-        input=("01/08/2026 10:00\n01/08/2026 18:00\nParis\nabc\nClient VIP\n"),
+        input=("évènement\n01/08/2026 10:00\n01/08/2026 18:00\nParis\nabc\nnotes\n"),
     )
 
     assert result.exit_code == 0
@@ -186,7 +190,7 @@ def test_update_event_by_support_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["event", "update", str(event.id)],
-        input=("4\n100\nq"),
+        input=("5\n100\nq"),
     )
 
     assert result.exit_code == 0
@@ -194,7 +198,10 @@ def test_update_event_by_support_success(logged_user_factory, session):
     session.refresh(event)
 
     assert event.attendees == 100
-    assert f"L'évènement n°{event.id} a bien été mis à jour." in result.output
+    assert (
+        f"L'évènement {event.name} (n°{event.id}) a bien été mis à jour."
+        in result.output
+    )
 
 
 def test_update_event_not_found_display_error(logged_user_factory):
@@ -339,7 +346,7 @@ def test_update_event_by_management_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["event", "update", str(event.id)],
-        input=("5\nNouvelles notes\nq"),
+        input=("6\nNouvelles notes\nq"),
     )
 
     assert result.exit_code == 0
@@ -567,3 +574,99 @@ def test_list_filters_unassigned(
     assert result.exit_code == 0
     assert "Liste des évènements (1 au total)" in result.output
     assert "Aucun support associé pour le moment." in result.output
+
+
+# assign
+######################
+def test_assign_support_success(logged_user_factory, session, force_console_width):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+    support_user = create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+        employee_number="111",
+        email="support@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    result = runner.invoke(
+        cli,
+        ["event", "assign", str(event.id), "--support", "111"],
+        input="y",
+    )
+
+    print(result.output)
+    assert result.exit_code == 0
+
+    assert (
+        f"Le collaborateur {support_user.last_name} {support_user.first_name} "
+        f"(n°{support_user.employee_number}) a bien été assigné comme support "
+        f"à l'évènement n°{event.id}" in result.output
+    )
+
+    session.refresh(event)
+    assert event.support_representative_id == support_user.id
+
+
+def test_assign_support_user_not_found_displays_error(logged_user_factory, session):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    result = runner.invoke(
+        cli,
+        ["event", "assign", str(event.id), "--support", "9999"],
+    )
+
+    assert result.exit_code == 0
+    assert "L'utilisateur n'a pas été trouvé." in result.output
+
+
+def test_assign_support_invalid_role_displays_error(logged_user_factory, session):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+        employee_number="444",
+        email="sales@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    result = runner.invoke(
+        cli,
+        ["event", "assign", str(event.id), "--support", "444"],
+        input="y",
+    )
+
+    print(result.output)
+    assert result.exit_code == 0
+    assert "L'utilisateur assigné n'est pas du département support." in result.output
+
+
+def test_assign_support_no_authorization_displays_error(logged_user_factory, session):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SALES)
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+    create_persisted_user(
+        session, role_id=UserRole.SUPPORT, employee_number="111", email="s@e.com"
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "assign", str(event.id), "--support", "111"],
+    )
+
+    assert result.exit_code == 0
+    assert "Vous n'avez pas les droits pour cette action." in result.output

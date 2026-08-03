@@ -7,6 +7,7 @@ from epicevent.schemas.user_schema import UserResponse
 
 
 class EventCreate(BaseModel):
+    name: str = Field(min_length=1)
     start: datetime
     end: datetime
     location: str = Field(min_length=1)
@@ -15,6 +16,7 @@ class EventCreate(BaseModel):
 
 
 class EventUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1)
     start: datetime | None = None
     end: datetime | None = None
     location: str | None = Field(default=None, min_length=1)
@@ -29,6 +31,7 @@ class EventUpdate(BaseModel):
 
 class EventResponse(BaseModel):
     id: int
+    name: str
     start: datetime
     end: datetime
     location: str
