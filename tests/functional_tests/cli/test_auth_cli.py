@@ -27,7 +27,7 @@ def test_login_with_correct_credentials(session, token_path, app_factory):
 
     assert result.exit_code == 0
     assert (
-        f"Bienvenue, votre session est ouverte (Utilisateur N°{user.employee_number})."
+        f"Bienvenue {user.first_name} {user.last_name}, votre session est ouverte."
         in result.output
     )
     assert token_path.exists()

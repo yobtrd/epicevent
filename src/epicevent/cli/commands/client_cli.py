@@ -21,6 +21,7 @@ def client():
 @require_auth
 def create(app: Application, current_user: UserResponse):
     authorization.ensure_permission(current_user, Permission.CREATE_CLIENT)
+
     data = client_view.ask_client_creation_data()
     client = app.client_controller.create_client(current_user, data)
     client_view.display_client_creation_success(client)
@@ -36,13 +37,17 @@ def update(app: Application, current_user: UserResponse, client_email: str):
     target_client = app.client_controller.get_client_by_email(client_email)
     app.client_controller.ensure_client_owner(current_user, target_client)
 
-    client_view.display_user_update_resume(target_client)
+    client_view.display_client_update_resume(target_client)
     data = client_view.ask_client_update_data()
     if data:
-        app.client_controller.update_client(current_user, client_email, data)
-        client_view.display_update_success(target_client)
+        updated_client = app.client_controller.update_client(
+            current_user,
+            client_email,
+            data,
+        )
+        client_view.display_client_update_success(updated_client)
     else:
-        client_view.display_update_cancel()
+        client_view.display_client_update_cancel()
 
 
 @client.command()

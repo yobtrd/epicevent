@@ -20,6 +20,7 @@ def user():
 @handle_errors
 def create_superuser(app: Application):
     app.user_controller.ensure_can_create_superuser()
+
     data = user_view.ask_user_creation_data(include_role=False)
     superuser = app.user_controller.create_superuser(data)
     user_view.display_superuser_creation_success(superuser)
@@ -31,9 +32,10 @@ def create_superuser(app: Application):
 @require_auth
 def create(app: Application, current_user: UserResponse):
     authorization.ensure_permission(current_user, Permission.CREATE_USER)
+
     data = user_view.ask_user_creation_data()
     user = app.user_controller.create_user(current_user, data)
-    user_view.display_creation_success(user)
+    user_view.display_user_creation_success(user)
 
 
 @user.command("profile")
@@ -57,14 +59,18 @@ def update_self(app: Application, current_user: UserResponse):
 def update(app: Application, current_user: UserResponse, employee_number: str):
     authorization.ensure_permission(current_user, Permission.UPDATE_USER)
     target_user = app.user_controller.get_user_by_employee_number(employee_number)
-    user_view.display_user_update_resume(target_user)
 
+    user_view.display_user_update_resume(target_user)
     data = user_view.ask_user_update_data()
     if data:
-        app.user_controller.update_user(current_user, employee_number, data)
-        user_view.display_update_success(target_user)
+        updated_user = app.user_controller.update_user(
+            current_user,
+            employee_number,
+            data,
+        )
+        user_view.display_user_update_success(updated_user)
     else:
-        user_view.display_update_cancel()
+        user_view.display_user_update_cancel()
 
 
 @user.command()
@@ -72,11 +78,7 @@ def update(app: Application, current_user: UserResponse, employee_number: str):
 @with_app
 @handle_errors
 @require_auth
-def list(
-    app: Application,
-    current_user: UserResponse,
-    include_inactive: bool,
-):
+def list(app: Application, current_user: UserResponse, include_inactive: bool):
     authorization.ensure_permission(current_user, Permission.LIST_USER)
 
     offset = 0
@@ -113,8 +115,12 @@ def list(
 def deactivate(app: Application, current_user: UserResponse, employee_number: str):
     authorization.ensure_permission(current_user, Permission.DEACTIVATE_USER)
     target_user = app.user_controller.get_user_by_employee_number(employee_number)
+
     if user_view.ask_user_deactivate_confirmation(target_user):
-        app.user_controller.deactivate_user(current_user, employee_number)
-        user_view.diplay_user_deactivate_success(target_user)
+        deactivated_user = app.user_controller.deactivate_user(
+            current_user,
+            employee_number,
+        )
+        user_view.diplay_user_deactivate_success(deactivated_user)
     else:
         user_view.display_user_deactivate_cancel()

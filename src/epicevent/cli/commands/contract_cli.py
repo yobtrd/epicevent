@@ -43,8 +43,12 @@ def update(app: Application, current_user: UserResponse, contract_id: str):
     contract_view.display_contract_update_resume(target_contract)
     data = contract_view.ask_contract_update_data()
     if data:
-        app.contract_controller.update_contract(current_user, contract_id, data)
-        contract_view.display_contract_update_success(target_contract)
+        updated_contract = app.contract_controller.update_contract(
+            current_user,
+            contract_id,
+            data,
+        )
+        contract_view.display_contract_update_success(updated_contract)
     else:
         contract_view.display_contract_update_cancel()
 

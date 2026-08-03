@@ -48,7 +48,3 @@ class EventResponse(BaseModel):
 class EventDetailResponse(EventResponse):
     contract: ContractDetailResponse
     support_representative: UserResponse | None
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )

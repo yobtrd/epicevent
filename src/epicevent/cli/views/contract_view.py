@@ -31,9 +31,9 @@ def ask_contract_creation_data() -> dict:
     }
 
 
-def display_contract_creation_success(contract_response: ContractResponse):
+def display_contract_creation_success(contract: ContractResponse):
     display_message(
-        f"Le contrat (id: {contract_response.id}) a été enregistré.",
+        f"Le contrat n°{contract.id} a été enregistré.",
         "success",
     )
 
@@ -57,8 +57,8 @@ def ask_contract_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def display_contract_update_success(target_contract: ContractResponse):
-    display_message(f"Le contrat n°{target_contract.id} a bien été mis à jour.")
+def display_contract_update_success(contract: ContractResponse):
+    display_message(f"Le contrat n°{contract.id} a été mis à jour.")
 
 
 def display_contract_update_cancel():
@@ -74,26 +74,33 @@ def display_contracts_table(
     table = Table(title=f"\nListe des contrats ({total_count} au total)")
     table.add_column("Id du contrat")
     table.add_column("Client")
+    table.add_column("Contact commercial du client")
     table.add_column("Montant total")
     table.add_column("Montant restant")
+    table.add_column("Créé le")
     table.add_column("Statut")
-    table.add_column("Contact commercial")
 
     for contract in contracts_list:
-        statut = "Signé" if contract.is_signed is True else "Non signé"
-        client = f"{contract.client.last_name} {contract.client.first_name}"
+        client = (
+            f"{contract.client.last_name} {contract.client.first_name} "
+            f"({contract.client.email})"
+        )
         sales_representative = (
             f"{contract.sales_representative.last_name} "
             f"{contract.sales_representative.first_name} "
             f"(n°{contract.sales_representative.employee_number})"
         )
+        created_at = contract.created_at.strftime("%d/%m/%Y %H:%M")
+        statut = "Signé" if contract.is_signed is True else "Non signé"
+
         table.add_row(
             str(contract.id),
             client,
+            sales_representative,
             str(contract.total_amount),
             str(contract.remaining_amount),
+            created_at,
             statut,
-            sales_representative,
         )
 
     console.print(table)

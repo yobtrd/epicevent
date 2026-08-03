@@ -13,7 +13,7 @@ from epicevent.schemas.client_schema import ClientDetailResponse, ClientResponse
 # create
 #################
 def ask_client_creation_data() -> dict:
-    last_name = ask_required("Nom")
+    last_name = ask_required("Nom de famille")
     first_name = ask_required("Prénom")
     email = ask_required("Email")
     phone = ask_required("Numéro de téléphone")
@@ -31,16 +31,16 @@ def ask_client_creation_data() -> dict:
     }
 
 
-def display_client_creation_success(client_response: ClientResponse):
+def display_client_creation_success(client: ClientResponse):
     display_message(
-        f"Le client (email: {client_response.email}) a été enregistré.",
+        f"Le client ({client.email}) a été enregistré.",
         "success",
     )
 
 
 # update_client
 #################
-def display_user_update_resume(target_client: ClientResponse):
+def display_client_update_resume(target_client: ClientResponse):
     display_message(
         f"Mis à jour du client {target_client.last_name} {target_client.first_name}",
         "info",
@@ -61,14 +61,14 @@ def ask_client_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def display_update_success(client: ClientResponse):
+def display_client_update_success(client: ClientResponse):
     display_message(
         f"Le client ({client.email}) a été mis à jour.",
         "success",
     )
 
 
-def display_update_cancel():
+def display_client_update_cancel():
     display_message("La mise à jour du client a été annulée.", "info")
 
 
@@ -86,12 +86,8 @@ def display_clients_table(clients_list: list[ClientDetailResponse], total_count:
     table.add_column("Contact commercial")
 
     for client in clients_list:
-        first_contact = (
-            client.first_contact.strftime("%d/%m/%Y") if client.first_contact else "-"
-        )
-        last_contact = (
-            client.last_contact.strftime("%d/%m/%Y") if client.last_contact else "-"
-        )
+        first_contact = client.first_contact.strftime("%d/%m/%Y")
+        last_contact = client.last_contact.strftime("%d/%m/%Y")
         sales_representative_info = (
             f"{client.sales_representative.first_name} "
             f"{client.sales_representative.last_name} "

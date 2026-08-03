@@ -11,7 +11,7 @@ def ask_user_credentials():
 
 def display_login_success(user: UserResponse):
     display_message(
-        f"Bienvenue, votre session est ouverte (Utilisateur N°{user.employee_number}).",
+        f"Bienvenue {user.first_name} {user.last_name}, votre session est ouverte.",
         "success",
     )
 

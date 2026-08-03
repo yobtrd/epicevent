@@ -44,8 +44,8 @@ def update(app: Application, current_user: UserResponse, event_id: str):
     event_view.display_event_update_resume(target_event)
     data = event_view.ask_event_update_data()
     if data:
-        app.event_controller.update_event(current_user, event_id, data)
-        event_view.dispaly_update_success(target_event)
+        updated_event = app.event_controller.update_event(current_user, event_id, data)
+        event_view.dispaly_update_success(updated_event)
     else:
         event_view.display_event_update_cancel()
 
@@ -105,9 +105,12 @@ def assign(
     target_support = app.user_controller.get_user_by_employee_number(
         employee_number=support
     )
+
     if event_view.ask_assign_support_confirmation(target_event, target_support):
         assigned_support, updated_event = app.event_controller.assign_support(
-            current_user, event_id=event_id, employee_number=support
+            current_user,
+            event_id=event_id,
+            employee_number=support,
         )
         event_view.display_assign_support_success(assigned_support, updated_event)
     else:

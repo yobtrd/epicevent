@@ -107,9 +107,10 @@ def ask_user_creation_data(include_role: bool = True) -> dict:
     return data
 
 
-def display_creation_success(user_response: UserResponse):
+def display_user_creation_success(user: UserResponse):
     display_message(
-        f"L'utilisateur (n°{user_response.employee_number}) a été enregistré.",
+        f"L'utilisateur {user.last_name} {user.first_name} "
+        f"(n°{user.employee_number}) a été enregistré.",
         "success",
     )
 
@@ -134,14 +135,14 @@ def ask_user_update_data() -> dict:
     return _ask_update_menu(fields)
 
 
-def display_update_success(target_user: UserResponse):
+def display_user_update_success(user: UserResponse):
     display_message(
-        f"L'utilisateur (n°{target_user.employee_number}) a été mis à jour.",
+        f"L'utilisateur (n°{user.employee_number}) a été mis à jour.",
         "success",
     )
 
 
-def display_update_cancel():
+def display_user_update_cancel():
     display_message("La mise à jour de l'utilisateur a été annulée.", "info")
 
 
@@ -170,7 +171,7 @@ def display_update_self_cancel():
 def display_users_table(users_list: list[UserDetailResponse], total_count: int):
     table = Table(title=f"\nListe des collaborateurs ({total_count} au total)")
     table.add_column("Numéro d'employé")
-    table.add_column("Nom")
+    table.add_column("Nom de famille")
     table.add_column("Prénom")
     table.add_column("Email")
     table.add_column("Role")
@@ -181,8 +182,8 @@ def display_users_table(users_list: list[UserDetailResponse], total_count: int):
         active = "Activé" if user.is_active else "Désactivé"
         table.add_row(
             user.employee_number,
-            user.first_name,
             user.last_name,
+            user.first_name,
             user.email,
             role_label,
             active,
@@ -206,9 +207,9 @@ def ask_user_deactivate_confirmation(target_user: UserResponse) -> bool:
     return click.confirm("Entrer [Y] pour confirmer, [N] pour annuler")
 
 
-def diplay_user_deactivate_success(target_user: UserResponse):
+def diplay_user_deactivate_success(user: UserResponse):
     display_message(
-        f"L'utilisateur (n°{target_user.employee_number}) a bien été désactivé.",
+        f"L'utilisateur (n°{user.employee_number}) a bien été désactivé.",
         "success",
     )
 

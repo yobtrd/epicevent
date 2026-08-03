@@ -26,8 +26,8 @@ def format_datetime(dt: datetime) -> str:
 #################
 def display_event_create_resume(target_contract: ContractResponse):
     display_message(
-        f"Création d'un évenement pour le contrat n° {target_contract.id} du client "
-        f" {target_contract.client.last_name} {target_contract.client.first_name}"
+        f"Création d'un évenement pour le contrat n°{target_contract.id} du client "
+        f"{target_contract.client.last_name} {target_contract.client.first_name}"
     )
 
 
@@ -52,7 +52,7 @@ def ask_event_creation_data() -> dict:
 
 def display_event_creation_success(event: EventResponse):
     display_message(
-        f"L'évenement {event.name} (n°{event.id}) a été enregistré.",
+        f'L\'évenement "{event.name}" (n°{event.id}) a été enregistré.',
         "success",
     )
 
@@ -61,8 +61,8 @@ def display_event_creation_success(event: EventResponse):
 #################
 def display_event_update_resume(target_event: EventResponse):
     display_message(
-        f"Modification de l'évènement {target_event.name} "
-        f"(n°{target_event.id} du contrat "
+        f'Modification de l\'évènement "{target_event.name}" '
+        f"(n°{target_event.id}) du contrat "
         f"n°{target_event.contract_id}."
     )
 
@@ -80,9 +80,9 @@ def ask_event_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def dispaly_update_success(target_event: EventResponse):
+def dispaly_update_success(event: EventResponse):
     display_message(
-        f"L'évènement {target_event.name} (n°{target_event.id}) a bien été mis à jour."
+        f'L\'évènement "{event.name}" (n°{event.id}) a bien été mis à jour.'
     )
 
 

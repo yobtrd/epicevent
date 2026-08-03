@@ -66,7 +66,3 @@ class ClientResponse(BaseModel):
 
 class ClientDetailResponse(ClientResponse):
     sales_representative: UserResponse | None = None
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )

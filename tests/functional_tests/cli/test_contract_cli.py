@@ -32,7 +32,7 @@ def test_create_contract_success(logged_user_factory, session):
 
     created_contract = session.query(Contract).filter_by(client_id=client.id).one()
 
-    assert f"Le contrat (id: {created_contract.id}) a été enregistré." in result.output
+    assert f"Le contrat n°{created_contract.id} a été enregistré." in result.output
     assert created_contract.total_amount == 1000
     assert created_contract.remaining_amount == 1000
     assert created_contract.is_signed is False
@@ -128,7 +128,7 @@ def test_update_contract_by_sales_success(logged_user_factory, session):
     assert result.exit_code == 0
     session.refresh(contract)
     assert contract.remaining_amount == 100
-    assert f"Le contrat n°{contract.id} a bien été mis à jour." in result.output
+    assert f"Le contrat n°{contract.id} a été mis à jour." in result.output
 
 
 def test_update_contract_not_found_display_error(logged_user_factory):

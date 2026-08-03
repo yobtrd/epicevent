@@ -42,7 +42,7 @@ def test_create_event_success(logged_user_factory, session):
     created_event = session.query(Event).filter_by(contract_id=contract.id).one()
 
     assert (
-        f"L'évenement {created_event.name} (n°{created_event.id}) a été enregistré."
+        f'L\'évenement "{created_event.name}" (n°{created_event.id}) a été enregistré.'
         in result.output
     )
     assert created_event.name == "évènement"
@@ -199,7 +199,7 @@ def test_update_event_by_support_success(logged_user_factory, session):
 
     assert event.attendees == 100
     assert (
-        f"L'évènement {event.name} (n°{event.id}) a bien été mis à jour."
+        f'L\'évènement "{event.name}" (n°{event.id}) a bien été mis à jour.'
         in result.output
     )
 

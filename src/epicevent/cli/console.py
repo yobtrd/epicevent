@@ -58,7 +58,7 @@ def ask_update_fields(fields: dict[str, tuple[str, str]]) -> dict:
 
         if choice in fields:
             attr, label = fields[choice]
-            value = ask(f"\nNouveau {label.lower()}")
+            value = ask(f"\nNouveau/velle {label.lower()}")
 
             if value:
                 updates[attr] = value

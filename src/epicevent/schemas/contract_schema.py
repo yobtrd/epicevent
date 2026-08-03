@@ -40,7 +40,3 @@ class ContractResponse(BaseModel):
 
 class ContractDetailResponse(ContractResponse):
     sales_representative: UserResponse
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )

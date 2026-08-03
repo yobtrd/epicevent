@@ -20,7 +20,7 @@ def test_create_client_success(logged_user_factory, session):
     )
 
     assert result.exit_code == 0
-    assert f"Le client (email: {client_mail}) a été enregistré." in result.output
+    assert f"Le client ({client_mail}) a été enregistré." in result.output
     created_client = session.query(Client).filter_by(email=client_mail).first()
     assert created_client is not None
     assert created_client.last_name == "Doe"

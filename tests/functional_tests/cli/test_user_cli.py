@@ -64,7 +64,10 @@ def test_create_user_success(logged_user_factory, session):
     )
 
     assert result.exit_code == 0
-    assert f"L'utilisateur (n°{user_emp_number}) a été enregistré." in result.output
+    assert (
+        f"L'utilisateur Doe Jane (n°{user_emp_number}) a été enregistré."
+        in result.output
+    )
     created_user = (
         session.query(User).filter_by(employee_number=user_emp_number).first()
     )
