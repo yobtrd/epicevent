@@ -18,6 +18,6 @@ class AuthController:
         return self.auth_service.authenticate(request)
 
     def authenticate_session(
-        self, access_token: str, refresh_token: str
+        self, access_token: str | None, refresh_token: str | None
     ) -> SessionResult:
         return self.auth_service.authenticate_session(access_token, refresh_token)

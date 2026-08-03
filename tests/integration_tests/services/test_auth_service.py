@@ -186,3 +186,43 @@ def test_authenticate_session_with_invalid_access_token_returns_error(uow):
             "this-is-not-a-valid-token",
             "this-is-not-a-valid-refresh-token",
         )
+
+
+def test_authenticate_session_without_tokens_returns_error(uow):
+    auth_service = AuthService(uow)
+
+    with pytest.raises(AuthenticationError):
+        auth_service.authenticate_session(
+            None,
+            None,
+        )
+
+
+def test_authenticate_session_without_refresh_token_returns_error(uow, session):
+    auth_service = AuthService(uow)
+    token_service = TokenService()
+
+    user = create_persisted_user(session)
+    access_token = token_service.create_access_token(user)
+
+    with pytest.raises(AuthenticationError):
+        auth_service.authenticate_session(
+            access_token,
+            None,
+        )
+
+
+def test_authenticate_session_with_unknown_user_returns_authentication_error(uow):
+    auth_service = AuthService(uow)
+    token_service = TokenService()
+
+    user = create_user(id=999)
+
+    access_token = token_service.create_access_token(user)
+    refresh_token = token_service.create_refresh_token(user)
+
+    with pytest.raises(AuthenticationError):
+        auth_service.authenticate_session(
+            access_token,
+            refresh_token,
+        )

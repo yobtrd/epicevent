@@ -2,7 +2,6 @@ from epicevent.exception import (
     AuthenticationError,
     ExpiredTokenError,
     InvalidCredentialsError,
-    InvalidSessionError,
     InvalidTokenError,
     UserNotFoundError,
 )
@@ -74,8 +73,10 @@ class AuthService:
             return SessionResult(user=user, new_tokens=new_tokens)
 
     def authenticate_session(
-        self, access_token: str, refresh_token: str
+        self, access_token: str | None, refresh_token: str | None
     ) -> SessionResult:
+        if not access_token or not refresh_token:
+            raise AuthenticationError()
         try:
             try:
                 user = self.get_current_user(access_token)
@@ -83,5 +84,5 @@ class AuthService:
             except ExpiredTokenError:
                 return self.refresh_session(refresh_token)
 
-        except (ExpiredTokenError, InvalidTokenError, InvalidSessionError) as exc:
+        except (ExpiredTokenError, InvalidTokenError, UserNotFoundError) as exc:
             raise AuthenticationError() from exc

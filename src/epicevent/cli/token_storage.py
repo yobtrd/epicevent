@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from epicevent import config
-from epicevent.exception import InvalidSessionError
 
 
 class TokenStorage:
@@ -24,19 +23,19 @@ class TokenStorage:
             )
         )
 
-    def get_access_token(self) -> str:
+    def get_access_token(self) -> str | None:
         try:
             data = json.loads(self.path.read_text())
             return data["access_token"]
-        except (FileNotFoundError, json.JSONDecodeError, KeyError) as exc:
-            raise InvalidSessionError() from exc
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+            return None
 
-    def get_refresh_token(self) -> str:
+    def get_refresh_token(self) -> str | None:
         try:
             data = json.loads(self.path.read_text())
             return data["refresh_token"]
-        except (FileNotFoundError, json.JSONDecodeError, KeyError) as exc:
-            raise InvalidSessionError() from exc
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+            return None
 
     def clear(self):
         self.path.unlink(missing_ok=True)

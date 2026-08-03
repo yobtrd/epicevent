@@ -24,10 +24,6 @@ class ExpiredTokenError(AuthenticationError):
     pass
 
 
-class InvalidSessionError(AuthenticationError):
-    pass
-
-
 class AuthorizationError(ApplicationError):
     """Base exception for authorization-related errors."""
 
