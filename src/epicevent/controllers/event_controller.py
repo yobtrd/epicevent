@@ -78,3 +78,16 @@ class EventController:
             [EventDetailResponse.model_validate(event) for event in events_list],
             total_count,
         )
+
+    def assign_support(
+        self, current_user: UserResponse, event_id: int, employee_number: str
+    ) -> tuple[UserResponse, EventResponse]:
+        event_support, event_updated = self.event_service.assign_support(
+            current_user,
+            event_id=event_id,
+            employee_number=employee_number,
+        )
+        return (
+            UserResponse.model_validate(event_support),
+            EventResponse.model_validate(event_updated),
+        )

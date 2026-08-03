@@ -14,3 +14,4 @@ class Permission(StrEnum):
     CREATE_EVENT = "event.create"
     UPDATE_EVENT = "event.update"
     LIST_EVENT = "event.list"
+    ASSIGN_SUPPORT = "support.assign"

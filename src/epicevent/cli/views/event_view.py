@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import click
 from rich.table import Table
 
 from epicevent.cli.console import (
@@ -12,6 +13,7 @@ from epicevent.cli.console import (
 )
 from epicevent.schemas.contract_schema import ContractResponse
 from epicevent.schemas.event_schema import EventDetailResponse, EventResponse
+from epicevent.schemas.user_schema import UserResponse
 
 
 # helpers
@@ -131,3 +133,34 @@ def display_events_table(events_list: list[EventDetailResponse], total_count: in
 
 def display_events_list_empty_message():
     display_message("Aucun événement trouvé", "warning")
+
+
+# assign
+#################
+def ask_assign_support_confirmation(
+    target_event: EventResponse, target_support: UserResponse
+):
+    display_message(
+        f"Vous aller assigner {target_support.last_name} "
+        f"{target_support.first_name} (n°{target_support.employee_number}) "
+        f"à l'évènement n°{target_event.id}",
+        "info",
+    )
+    return click.confirm("Confirmer ? ([Y] pour confirmer, [N] pour annuler)")
+
+
+def display_assign_support_success(
+    assigned_support: UserResponse, updated_event: EventResponse
+):
+    display_message(
+        f"Le collaborateur {assigned_support.last_name} "
+        f"{assigned_support.first_name} "
+        f"(n° {assigned_support.employee_number}) "
+        "a bien été assigné comme support à l'évènement "
+        f"n° {updated_event.id}",
+        "success",
+    )
+
+
+def display_assign_support_cancel():
+    display_message("L'ajout du collaborateur support a été annulée.", "info")

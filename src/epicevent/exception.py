@@ -80,6 +80,10 @@ class EventOwnershipError(ApplicationError):
     pass
 
 
+class SupportAssignmentError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

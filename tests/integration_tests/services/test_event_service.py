@@ -431,3 +431,7 @@ def test_list_events_filters_unassigned(event_service, session):
     assert len(events_list) == 1
     assert total_count == 1
     assert events_list[0].support_representative_id is None
+
+
+# assign_support
+###################

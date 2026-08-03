@@ -4,10 +4,13 @@ from epicevent.exception import (
     ContractNotSignedError,
     EventNotFoundError,
     EventOwnershipError,
+    SupportAssignmentError,
+    UserNotFoundError,
 )
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.contract import Contract
 from epicevent.models.event import Event
+from epicevent.models.user import User
 from epicevent.schemas.contract_schema import ContractResponse
 from epicevent.schemas.event_schema import (
     EventCreate,
@@ -108,3 +111,22 @@ class EventService:
                 is_assigned=is_assigned,
             )
             return events, total_count
+
+    @require_permission(Permission.ASSIGN_SUPPORT)
+    def assign_support(
+        self,
+        current_user: UserResponse,
+        event_id: int,
+        employee_number: str,
+    ) -> tuple[User, Event]:
+        with self.uow:
+            event = self.get_event_by_id(event_id)
+            support = self.uow.users.find_by_employee_number(employee_number)
+
+            if support is None:
+                raise UserNotFoundError()
+            if support.role_id != UserRole.SUPPORT:
+                raise SupportAssignmentError()
+
+            event.support_representative = support
+            return support, event

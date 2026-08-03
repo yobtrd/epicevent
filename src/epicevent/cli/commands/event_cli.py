@@ -86,3 +86,29 @@ def list(
         if new_offset is None:
             break
         offset = new_offset
+
+
+@event.command()
+@click.argument("event_id")
+@click.option("--support", help="Matricule du collaborateur support")
+@with_app
+@handle_errors
+@require_auth
+def assign(
+    app: Application,
+    current_user: UserResponse,
+    event_id: int,
+    support: str,
+):
+    authorization.ensure_permission(current_user, Permission.ASSIGN_SUPPORT)
+    target_event = app.event_controller.get_event_by_id(event_id)
+    target_support = app.user_controller.get_user_by_employee_number(
+        employee_number=support
+    )
+    if event_view.ask_assign_support_confirmation(target_event, target_support):
+        assigned_support, updated_event = app.event_controller.assign_support(
+            current_user, event_id=event_id, employee_number=support
+        )
+        event_view.display_assign_support_success(assigned_support, updated_event)
+    else:
+        event_view.display_assign_support_cancel()
