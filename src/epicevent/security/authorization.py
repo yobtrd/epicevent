@@ -7,6 +7,7 @@ ROLE_PERMISSIONS = {
     UserRole.MANAGEMENT: [
         Permission.CREATE_USER,
         Permission.UPDATE_USER,
+        Permission.LIST_USER,
         Permission.DEACTIVATE_USER,
         Permission.LIST_CLIENT,
         Permission.CREATE_CONTRACT,

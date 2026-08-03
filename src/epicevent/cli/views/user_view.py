@@ -1,13 +1,20 @@
 import click
+from rich.table import Table
 
 from epicevent.cli.console import ask, ask_required, console, display_message
-from epicevent.schemas.user_schema import UserResponse
+from epicevent.schemas.user_schema import UserDetailResponse, UserResponse
 from epicevent.security.roles import UserRole
 
 ROLE_MAPPING = {
     "Gestion": UserRole.MANAGEMENT,
     "Commercial": UserRole.SALES,
     "Support": UserRole.SUPPORT,
+}
+
+ROLE_LABELS = {
+    UserRole.MANAGEMENT: "Gestion",
+    UserRole.SALES: "Commercial",
+    UserRole.SUPPORT: "Support",
 }
 
 
@@ -142,6 +149,36 @@ def display_update_self_success():
 
 def display_update_self_cancel():
     display_message("Votre profil n'a pas été modifié.", "info")
+
+
+# list
+#################
+def display_users_table(users_list: list[UserDetailResponse], total_count: int):
+    table = Table(title=f"\nListe des collaborateurs ({total_count} au total)")
+    table.add_column("Numéro d'employé")
+    table.add_column("Nom")
+    table.add_column("Prénom")
+    table.add_column("Email")
+    table.add_column("Role")
+    table.add_column("Actif")
+
+    for user in users_list:
+        role_label = ROLE_LABELS.get(user.role_id, "Inconnu")
+        active = "Activé" if user.is_active else "Désactivé"
+        table.add_row(
+            user.employee_number,
+            user.first_name,
+            user.last_name,
+            user.email,
+            role_label,
+            active,
+        )
+
+    console.print(table)
+
+
+def display_users_list_empty_message():
+    display_message("Aucun collaborateur trouvé", "warning")
 
 
 # deactivate

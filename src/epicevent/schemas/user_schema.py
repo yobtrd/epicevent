@@ -32,19 +32,6 @@ class UserCreate(BaseModel):
     )
 
 
-class UserResponse(BaseModel):
-    id: int
-    employee_number: str
-    first_name: str
-    last_name: str
-    email: str
-    role_id: int
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
 class UserUpdateSelf(BaseModel):
     first_name: str | None = Field(default=None, min_length=1)
     last_name: str | None = Field(default=None, min_length=1)
@@ -67,4 +54,25 @@ class UserUpdateManagement(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
         str_strip_whitespace=True,
+    )
+
+
+class UserResponse(BaseModel):
+    id: int
+    employee_number: str
+    first_name: str
+    last_name: str
+    email: str
+    role_id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserDetailResponse(UserResponse):
+    is_active: bool
+
+    model_config = ConfigDict(
+        from_attributes=True,
     )

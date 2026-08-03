@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -41,3 +41,28 @@ class UserRepository:
     def find_by_employee_number(self, employee_number: str) -> User | None:
         stmt = select(User).where(User.employee_number == employee_number)
         return self.session.scalars(stmt).first()
+
+    def _apply_filters(self, query, include_inactive: bool = False):
+        if not include_inactive:
+            query = query.where(User.is_active.is_(True))
+
+        return query
+
+    def list(
+        self,
+        include_inactive: bool = False,
+        limit: int = 10,
+        offset: int = 0,
+    ):
+        query = select(User)
+        query = self._apply_filters(query, include_inactive)
+        query = query.offset(offset).limit(limit)
+
+        return self.session.execute(query).scalars().all()
+
+    def count(self, include_inactive: bool = False) -> int:
+        query = select(User)
+        query = self._apply_filters(query, include_inactive)
+
+        count_query = select(func.count()).select_from(query.subquery())
+        return self.session.execute(count_query).scalar_one()

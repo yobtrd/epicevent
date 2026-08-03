@@ -72,6 +72,23 @@ class UserService:
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
             return user
 
+    @require_permission(Permission.LIST_USER)
+    def list_users(
+        self,
+        current_user: UserResponse,
+        include_inactive: bool = False,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[User], int]:
+        with self.uow:
+            users = self.uow.users.list(
+                include_inactive=include_inactive,
+                limit=limit,
+                offset=offset,
+            )
+            total_count = self.uow.users.count(include_inactive=include_inactive)
+            return users, total_count
+
     @require_permission(Permission.DEACTIVATE_USER)
     def deactivate(
         self,

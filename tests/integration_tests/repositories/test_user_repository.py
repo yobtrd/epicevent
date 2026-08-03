@@ -94,3 +94,57 @@ def test_find_by_employee_number_returns_none_when_user_does_not_exist(session):
     repository = UserRepository(session)
 
     assert repository.find_by_employee_number("99999") is None
+
+
+# list
+############################
+def test_list_user_returns_active_users(session):
+    repository = UserRepository(session)
+
+    create_persisted_user(session, is_active=True)
+    create_persisted_user(
+        session,
+        employee_number="002",
+        email="inactive@test.com",
+        is_active=False,
+    )
+
+    users = repository.list()
+
+    assert len(users) == 1
+    assert users[0].is_active is True
+
+
+def test_list_user_includes_inactive_users(session):
+    repository = UserRepository(session)
+
+    create_persisted_user(session, is_active=True)
+    create_persisted_user(
+        session,
+        employee_number="002",
+        email="inactive@test.com",
+        is_active=False,
+    )
+
+    users = repository.list(include_inactive=True)
+
+    assert len(users) == 2
+
+
+def test_list_user_pagination(session):
+    repository = UserRepository(session)
+
+    for index in range(15):
+        create_persisted_user(
+            session,
+            employee_number=f"{index:03}",
+            email=f"user{index}@test.com",
+        )
+
+    page1 = repository.list(limit=10, offset=0)
+
+    assert len(page1) == 10
+
+    page2 = repository.list(limit=10, offset=10)
+
+    assert len(page2) == 5

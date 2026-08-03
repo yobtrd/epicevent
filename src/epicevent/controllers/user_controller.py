@@ -3,6 +3,7 @@ from pydantic import ValidationError
 from epicevent.exception import InvalidInputError
 from epicevent.schemas.user_schema import (
     UserCreate,
+    UserDetailResponse,
     UserResponse,
     UserUpdateManagement,
     UserUpdateSelf,
@@ -45,6 +46,24 @@ class UserController:
 
         user = self.user_service.update_user(current_user, employee_number, request)
         return UserResponse.model_validate(user)
+
+    def list_users(
+        self,
+        current_user: UserResponse,
+        include_inactive: bool = False,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[UserDetailResponse], int]:
+        users_list, total_count = self.user_service.list_users(
+            current_user,
+            include_inactive=include_inactive,
+            limit=limit,
+            offset=offset,
+        )
+        return (
+            [UserDetailResponse.model_validate(user) for user in users_list],
+            total_count,
+        )
 
     def deactivate_user(self, current_user: UserResponse, employee_number: str):
         user = self.user_service.deactivate(current_user, employee_number)

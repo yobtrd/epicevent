@@ -2,6 +2,7 @@ import click
 
 from epicevent.bootstrap import Application
 from epicevent.cli.decorators import handle_errors, require_auth, with_app
+from epicevent.cli.pagination import handle_pagination
 from epicevent.cli.views import user_view
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security import authorization
@@ -54,6 +55,44 @@ def update(app: Application, current_user: UserResponse, employee_number: str):
         user_view.display_update_success(target_user)
     else:
         user_view.display_update_cancel()
+
+
+@user.command()
+@click.option("--include-inactive", is_flag=True)
+@with_app
+@handle_errors
+@require_auth
+def list(
+    app: Application,
+    current_user: UserResponse,
+    include_inactive: bool,
+):
+    authorization.ensure_permission(current_user, Permission.LIST_USER)
+
+    offset = 0
+    limit = 10
+    while True:
+        users_list, total_count = app.user_controller.list_users(
+            current_user,
+            include_inactive=include_inactive,
+            limit=limit,
+            offset=offset,
+        )
+        if not users_list and offset == 0:
+            user_view.display_users_list_empty_message()
+            return
+
+        user_view.display_users_table(users_list, total_count)
+
+        new_offset = handle_pagination(
+            offset=offset,
+            limit=limit,
+            received_count=len(users_list),
+            total_count=total_count,
+        )
+        if new_offset is None:
+            break
+        offset = new_offset
 
 
 @user.command()

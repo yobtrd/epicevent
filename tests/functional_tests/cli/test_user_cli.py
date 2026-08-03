@@ -239,6 +239,130 @@ def test_update_self_cancel_deiplays_cancel_message(logged_user_factory, session
     assert "Votre profil n'a pas été modifié." in result.output
 
 
+# list
+######################
+def test_list_returns_users_table(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    create_persisted_user(
+        session,
+        employee_number="002",
+        first_name="Jane",
+        last_name="Doe",
+        email="jane@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    create_persisted_user(
+        session,
+        employee_number="003",
+        first_name="John",
+        last_name="Martin",
+        email="john@test.com",
+        role_id=UserRole.SUPPORT,
+        is_active=False,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["user", "list"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des collaborateurs (2 au total)" in result.output
+    assert "002" in result.output
+    assert "Jane" in result.output
+    assert "Doe" in result.output
+    assert "jane@test.com" in result.output
+    assert "Commercial" in result.output
+    assert "Activé" in result.output
+
+    assert "003" not in result.output
+
+
+def test_list_with_no_user_displays_warning(logged_user_factory):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT, is_active=False)
+
+    result = runner.invoke(
+        cli,
+        ["user", "list"],
+    )
+
+    assert result.exit_code == 0
+    assert "Aucun collaborateur trouvé" in result.output
+
+
+def test_list_pagination(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    for index in range(15):
+        create_persisted_user(
+            session,
+            employee_number=f"{index + 2:03}",
+            email=f"user{index}@test.com",
+        )
+
+    result = runner.invoke(
+        cli,
+        ["user", "list"],
+        input="n\nq",
+    )
+
+    assert result.exit_code == 0
+    assert "011" in result.output
+
+
+def test_list_include_inactive(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    create_persisted_user(
+        session,
+        employee_number="002",
+        email="active@test.com",
+        is_active=True,
+    )
+
+    create_persisted_user(
+        session,
+        employee_number="003",
+        email="inactive@test.com",
+        is_active=False,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["user", "list", "--include-inactive"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des collaborateurs (3 au total)" in result.output
+    assert "active@test.com" in result.output
+    assert "inactive@test.com" in result.output
+    assert "Désactivé" in result.output
+
+
 # deactivate
 ######################
 def test_deactivate_user_success(logged_user_factory, session):

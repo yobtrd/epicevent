@@ -140,6 +140,104 @@ def test_update_self_partial_data_preserves_other_fields(user_service, session):
     assert current_user.last_name == "Doe"
 
 
+# list_users
+###################
+def test_list_users_returns_active_users(user_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="400",
+        email="management@email.com",
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    create_persisted_user(
+        session,
+        employee_number="401",
+        email="active@test.com",
+        is_active=True,
+    )
+
+    create_persisted_user(
+        session,
+        employee_number="402",
+        email="inactive@test.com",
+        is_active=False,
+    )
+
+    users_list, total_count = user_service.list_users(current_user)
+
+    assert len(users_list) == 2
+    assert total_count == 2
+    assert all(user.is_active for user in users_list)
+    assert isinstance(users_list[0], User)
+
+
+def test_list_users_pagination(user_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="400",
+        email="management@email.com",
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    for index in range(15):
+        create_persisted_user(
+            session,
+            employee_number=f"{500 + index}",
+            email=f"user{index}@test.com",
+        )
+
+    users_page1, total_count = user_service.list_users(
+        current_user,
+        limit=10,
+        offset=0,
+    )
+
+    assert len(users_page1) == 10
+    assert total_count == 16
+
+    users_page2, total_count = user_service.list_users(
+        current_user,
+        limit=10,
+        offset=10,
+    )
+
+    assert len(users_page2) == 6
+    assert total_count == 16
+
+
+def test_list_users_includes_inactive_users(user_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="400",
+        email="management@email.com",
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    create_persisted_user(
+        session,
+        employee_number="401",
+        email="active@test.com",
+        is_active=True,
+    )
+
+    inactive_user = create_persisted_user(
+        session,
+        employee_number="402",
+        email="inactive@test.com",
+        is_active=False,
+    )
+
+    users_list, total_count = user_service.list_users(
+        current_user,
+        include_inactive=True,
+    )
+
+    assert len(users_list) == 3
+    assert total_count == 3
+    assert inactive_user in users_list
+
+
 # deactivate
 ###########################
 def test_management_can_deactivate_user(user_service, session):
