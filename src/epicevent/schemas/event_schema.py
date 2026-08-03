@@ -14,6 +14,19 @@ class EventCreate(BaseModel):
     notes: str | None = None
 
 
+class EventUpdate(BaseModel):
+    start: datetime | None = None
+    end: datetime | None = None
+    location: str | None = Field(default=None, min_length=1)
+    attendees: int | None = Field(default=None, ge=1, le=1_000_000)
+    notes: str | None = None
+
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+
 class EventResponse(BaseModel):
     id: int
     start: datetime

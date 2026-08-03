@@ -242,6 +242,41 @@ def test_update_contract_by_management_success(logged_user_factory, session):
     assert contract.is_signed is True
 
 
+def test_update_contract_cancel_displays_cancel_message(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        email="client@test.com",
+        sales_representative_id=current_user.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        remaining_amount=500,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "update", str(contract.id)],
+        input="q\n",
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(contract)
+
+    assert contract.remaining_amount == 500
+    assert "La mise à jour du contract a été annulée." in result.output
+
+
 # list
 ######################
 def test_list_returns_contract_table(

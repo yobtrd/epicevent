@@ -6,6 +6,7 @@ from epicevent.cli.console import (
     ask,
     ask_datetime,
     ask_required,
+    ask_update_fields,
     console,
     display_message,
 )
@@ -50,6 +51,35 @@ def display_event_creation_success(event: EventResponse):
         f"L'évenement (id: {event.id}) a été enregistré.",
         "success",
     )
+
+
+# update
+#################
+def display_event_update_resume(target_event: EventResponse):
+    display_message(
+        f"Modification de l'évènement n°{target_event.id} du contrat  "
+        f"n°{target_event.contract_id}."
+    )
+
+
+def ask_event_update_data() -> dict:
+    fields = {
+        "1": ("start", "Date et heure de début"),
+        "2": ("end", "Date et heure de fin"),
+        "3": ("location", "Lieu de l'événement"),
+        "4": ("attendees", "Nombre de participants"),
+        "5": ("notes", "Notes additionnelles"),
+    }
+
+    return ask_update_fields(fields)
+
+
+def dispaly_update_success(target_event: EventResponse):
+    display_message(f"L'évènement n°{target_event.id} a bien été mis à jour.")
+
+
+def display_event_update_cancel():
+    display_message("La mise à jour de l'évènement a été annulée.", "info")
 
 
 # list

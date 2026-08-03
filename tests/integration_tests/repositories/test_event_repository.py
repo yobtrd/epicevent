@@ -38,6 +38,52 @@ def test_save_event_success(session):
     assert created.contract_id == contract.id
 
 
+# find_by_id
+################
+def test_find_by_id_success(session):
+    repository = EventRepository(session)
+
+    sales_rep = create_persisted_user(session, role_id=UserRole.SALES)
+    support_rep = create_persisted_user(
+        session,
+        employee_number="003",
+        email="support@test.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_rep.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_rep.id,
+    )
+
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_rep.id,
+    )
+
+    found = repository.find_by_id(event.id)
+
+    assert found is not None
+    assert found.id == event.id
+    assert found.contract_id == contract.id
+    assert found.support_representative_id == support_rep.id
+
+
+def test_find_by_id_not_found(session):
+    repository = EventRepository(session)
+
+    found = repository.find_by_id(999)
+
+    assert found is None
+
+
 # list
 ############################
 def test_list_event_returns_event_list(session):

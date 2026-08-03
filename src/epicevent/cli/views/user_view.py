@@ -113,15 +113,15 @@ def ask_user_update_data() -> dict:
     return _ask_update_menu(fields)
 
 
-def display_update_cancel():
-    display_message("La mise à jour de l'utilisateur a été annulée", "info")
-
-
 def display_update_success(target_user: UserResponse):
     display_message(
         f"L'utilisateur (n°{target_user.employee_number}) a été mis à jour.",
         "success",
     )
+
+
+def display_update_cancel():
+    display_message("La mise à jour de l'utilisateur a été annulée.", "info")
 
 
 # update_self
@@ -136,12 +136,12 @@ def ask_user_self_data() -> dict:
     return _ask_update_menu(fields)
 
 
-def display_update_self_cancel():
-    display_message("Votre profil n'a pas été modifié.", "info")
-
-
 def display_update_self_success():
     display_message("Votre profil a été mis à jour.", "success")
+
+
+def display_update_self_cancel():
+    display_message("Votre profil n'a pas été modifié.", "info")
 
 
 # deactivate

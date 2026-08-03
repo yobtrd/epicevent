@@ -2,22 +2,35 @@ from epicevent.exception import (
     ClientOwnershipError,
     ContractNotFoundError,
     ContractNotSignedError,
+    EventNotFoundError,
+    EventOwnershipError,
 )
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.contract import Contract
 from epicevent.models.event import Event
 from epicevent.schemas.contract_schema import ContractResponse
-from epicevent.schemas.event_schema import EventCreate
+from epicevent.schemas.event_schema import (
+    EventCreate,
+    EventResponse,
+    EventUpdate,
+)
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.decorators import require_permission
 from epicevent.security.permission import Permission
+from epicevent.security.roles import UserRole
 
 
 class EventService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def ensure_can_manage_event(
+    def get_event_by_id(self, event_id: int) -> Event:
+        event = self.uow.events.find_by_id(event_id)
+        if event is None:
+            raise EventNotFoundError()
+        return event
+
+    def ensure_can_create_event(
         self,
         current_user: UserResponse,
         contract: Contract | ContractResponse,
@@ -26,6 +39,17 @@ class EventService:
             raise ClientOwnershipError()
         if not contract.is_signed:
             raise ContractNotSignedError()
+
+    def ensure_can_update_event(
+        self,
+        current_user: UserResponse,
+        event: Event | EventResponse,
+    ):
+        if current_user.role_id == UserRole.MANAGEMENT:
+            return
+
+        if current_user.id != event.support_representative_id:
+            raise EventOwnershipError()
 
     @require_permission(Permission.CREATE_EVENT)
     def create_event(
@@ -39,10 +63,26 @@ class EventService:
             if contract is None:
                 raise ContractNotFoundError()
 
-            self.ensure_can_manage_event(current_user, contract)
+            self.ensure_can_create_event(current_user, contract)
 
             data = event_dto.model_dump()
             event = Event(**data, contract=contract)
+            self.uow.events.save(event)
+            return event
+
+    @require_permission(Permission.UPDATE_EVENT)
+    def update_event(
+        self,
+        current_user: UserResponse,
+        event_id: int,
+        event_data: EventUpdate,
+    ):
+        with self.uow:
+            event = self.get_event_by_id(event_id)
+            self.ensure_can_update_event(current_user, event)
+            data = event_data.model_dump(exclude_unset=True)
+            for field, value in data.items():
+                setattr(event, field, value)
             self.uow.events.save(event)
             return event
 

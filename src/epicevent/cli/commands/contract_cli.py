@@ -38,13 +38,15 @@ def create(app: Application, current_user: UserResponse, client_email: str):
 def update(app: Application, current_user: UserResponse, contract_id: str):
     authorization.ensure_permission(current_user, Permission.UPDATE_CONTRACT)
     target_contract = app.contract_controller.get_contract_by_id(contract_id)
-    app.contract_controller.ensure_can_manage_contract(current_user, target_contract)
+    app.contract_controller.ensure_can_update_contract(current_user, target_contract)
 
     contract_view.display_contract_update_resume(target_contract)
     data = contract_view.ask_contract_update_data()
     if data:
         app.contract_controller.update_contract(current_user, contract_id, data)
-        contract_view.dispaly_update_success(target_contract)
+        contract_view.display_contract_update_success(target_contract)
+    else:
+        contract_view.display_contract_update_cancel()
 
 
 @contract.command()

@@ -151,6 +151,251 @@ def test_create_event_with_no_authorization_displays_error(
     assert session.query(Event).count() == 0
 
 
+# update
+######################
+def test_update_event_by_support_success(logged_user_factory, session):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(role_id=UserRole.SUPPORT)
+
+    sales = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+    )
+
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_user.id,
+        attendees=150,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "update", str(event.id)],
+        input=("4\n100\nq"),
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(event)
+
+    assert event.attendees == 100
+    assert f"L'évènement n°{event.id} a bien été mis à jour." in result.output
+
+
+def test_update_event_not_found_display_error(logged_user_factory):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SUPPORT)
+
+    result = runner.invoke(
+        cli,
+        ["event", "update", "999"],
+    )
+
+    assert result.exit_code == 0
+    assert "L'évènement n'a pas été trouvé." in result.output
+
+
+def test_update_event_support_not_owned_event_displays_error(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SUPPORT)
+
+    other_support = create_persisted_user(
+        session,
+        employee_number="002",
+        email="support@test.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    sales = create_persisted_user(
+        session,
+        employee_number="003",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+    )
+
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=other_support.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "update", str(event.id)],
+    )
+
+    assert result.exit_code == 0
+    assert "Vous n'avez pas la gestion de cet évènement." in result.output
+
+
+def test_update_event_without_authorization_displays_error(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SALES)
+
+    sales = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+    )
+
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "update", str(event.id)],
+    )
+
+    assert result.exit_code == 0
+    assert "Vous n'avez pas les droits pour cette action." in result.output
+
+
+def test_update_event_by_management_success(logged_user_factory, session):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    sales = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    support = create_persisted_user(
+        session,
+        employee_number="003",
+        email="support@test.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+    )
+
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support.id,
+        notes="Anciennes notes",
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "update", str(event.id)],
+        input=("5\nNouvelles notes\nq"),
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(event)
+
+    assert event.notes == "Nouvelles notes"
+
+
+def test_update_event_cancel_displays_cancel_message(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(role_id=UserRole.SUPPORT)
+
+    sales = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales.id,
+    )
+
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_user.id,
+        notes="Notes initiales",
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "update", str(event.id)],
+        input="q\n",
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(event)
+
+    assert event.notes == "Notes initiales"
+    assert "La mise à jour de l'évènement a été annulée." in result.output
+
+
 # list
 ######################
 def test_list_returns_event_table(

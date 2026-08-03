@@ -23,12 +23,31 @@ def event():
 def create(app: Application, current_user: UserResponse, contract_id=int):
     authorization.ensure_permission(current_user, Permission.CREATE_EVENT)
     target_contract = app.contract_controller.get_contract_by_id(contract_id)
-    app.event_controller.ensure_can_manage_event(current_user, target_contract)
+    app.event_controller.ensure_can_create_event(current_user, target_contract)
 
     event_view.display_event_create_resume(target_contract)
     data = event_view.ask_event_creation_data()
     event = app.event_controller.create_event(current_user, contract_id, data)
     event_view.display_event_creation_success(event)
+
+
+@event.command()
+@click.argument("event_id")
+@with_app
+@handle_errors
+@require_auth
+def update(app: Application, current_user: UserResponse, event_id: str):
+    authorization.ensure_permission(current_user, Permission.UPDATE_EVENT)
+    target_event = app.event_controller.get_event_by_id(event_id)
+    app.event_controller.ensure_can_update_event(current_user, target_event)
+
+    event_view.display_event_update_resume(target_event)
+    data = event_view.ask_event_update_data()
+    if data:
+        app.event_controller.update_event(current_user, event_id, data)
+        event_view.dispaly_update_success(target_event)
+    else:
+        event_view.display_event_update_cancel()
 
 
 @event.command()

@@ -15,6 +15,9 @@ class EventRepository:
         self.session.flush()
         return event
 
+    def find_by_id(self, event_id: int) -> Event | None:
+        return self.session.query(Event).filter_by(id=event_id).first()
+
     def _apply_filters(
         self,
         query,

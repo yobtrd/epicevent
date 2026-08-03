@@ -72,6 +72,14 @@ class ContractNotSignedError(ApplicationError):
     pass
 
 
+class EventNotFoundError(ApplicationError):
+    pass
+
+
+class EventOwnershipError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

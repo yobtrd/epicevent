@@ -24,7 +24,7 @@ class ContractService:
             raise ContractNotFoundError()
         return contract
 
-    def ensure_can_manage_contract(
+    def ensure_can_update_contract(
         self,
         current_user: UserResponse,
         client: Client | ClientResponse,
@@ -65,7 +65,7 @@ class ContractService:
     ):
         with self.uow:
             contract = self.get_contract_by_id(contract_id)
-            self.ensure_can_manage_contract(current_user, contract.client)
+            self.ensure_can_update_contract(current_user, contract.client)
             data = contract_data.model_dump(exclude_unset=True)
             for field, value in data.items():
                 setattr(contract, field, value)

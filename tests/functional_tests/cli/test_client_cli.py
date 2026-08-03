@@ -159,6 +159,35 @@ def test_update_client_without_authorization_displays_error(
     assert "Vous n'avez pas les droits pour cette action." in result.output
 
 
+def test_update_client_cancel_displays_cancel_message(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        email="client@test.com",
+        sales_representative_id=current_user.id,
+        first_name="John",
+    )
+
+    result = runner.invoke(
+        cli,
+        ["client", "update", client.email],
+        input="q\n",
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(client)
+
+    assert client.first_name == "John"
+    assert "La mise à jour du client a été annulée." in result.output
+
+
 # list
 ######################
 def test_list_returns_client_table(logged_user_factory, session, force_console_width):

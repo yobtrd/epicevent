@@ -8,6 +8,8 @@ from epicevent.exception import (
     ContractNotSignedError,
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
+    EventNotFoundError,
+    EventOwnershipError,
     InvalidCredentialsError,
     InvalidInputError,
     RolePermissionError,
@@ -27,6 +29,8 @@ ERROR_MESSAGES = {
     ClientOwnershipError: "Vous n'avez pas la gestion de ce client.",
     ContractNotFoundError: "Le contrat n'a pas été trouvé.",
     ContractNotSignedError: "Le contrat n'a pas encore été signé.",
+    EventNotFoundError: "L'évènement n'a pas été trouvé.",
+    EventOwnershipError: "Vous n'avez pas la gestion de cet évènement.",
 }
 
 

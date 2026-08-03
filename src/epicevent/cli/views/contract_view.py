@@ -40,7 +40,7 @@ def display_contract_creation_success(contract_response: ContractResponse):
 
 # update
 #################
-def display_contract_update_resume(target_contract):
+def display_contract_update_resume(target_contract: ContractResponse):
     display_message(
         f"Modification du contrat n°{target_contract.id} du client "
         f"{target_contract.client.last_name} {target_contract.client.first_name}."
@@ -57,8 +57,12 @@ def ask_contract_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def dispaly_update_success(target_contract):
+def display_contract_update_success(target_contract: ContractResponse):
     display_message(f"Le contrat n°{target_contract.id} a bien été mis à jour.")
+
+
+def display_contract_update_cancel():
+    display_message("La mise à jour du contract a été annulée.", "info")
 
 
 # list

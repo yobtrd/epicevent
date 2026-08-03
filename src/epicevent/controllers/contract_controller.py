@@ -19,10 +19,10 @@ class ContractController:
         contract = self.contract_service.get_contract_by_id(contract_id)
         return ContractResponse.model_validate(contract)
 
-    def ensure_can_manage_contract(
+    def ensure_can_update_contract(
         self, current_user: UserResponse, contract: ContractResponse
     ):
-        self.contract_service.ensure_can_manage_contract(
+        self.contract_service.ensure_can_update_contract(
             current_user,
             contract.client,
         )

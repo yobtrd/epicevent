@@ -4,8 +4,11 @@ from epicevent.exception import (
     ClientOwnershipError,
     ContractNotFoundError,
     ContractNotSignedError,
+    EventNotFoundError,
+    EventOwnershipError,
 )
 from epicevent.models.event import Event
+from epicevent.schemas.event_schema import EventUpdate
 from epicevent.security.roles import UserRole
 from tests.conftest import (
     create_contract_graph,
@@ -99,6 +102,197 @@ def test_create_event_with_unsigned_contract_raise_error(session, event_service)
 
     with pytest.raises(ContractNotSignedError):
         event_service.create_event(current_user, contract.id, event_dto)
+
+
+# update_event
+###################
+def test_support_can_update_owned_event(event_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
+
+    sales_rep = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_rep.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_rep.id,
+    )
+
+    persisted_event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_user.id,
+        location="Paris",
+        attendees=100,
+        notes="Anciennes notes",
+    )
+
+    new_data = EventUpdate(
+        location="Lyon",
+        attendees=250,
+        notes="Nouvelles notes",
+    )
+
+    event_service.update_event(
+        current_user,
+        persisted_event.id,
+        new_data,
+    )
+
+    session.refresh(persisted_event)
+
+    assert persisted_event.location == "Lyon"
+    assert persisted_event.attendees == 250
+    assert persisted_event.notes == "Nouvelles notes"
+
+
+def test_update_event_support_not_owned_event_raises_error(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+    )
+
+    other_support = create_persisted_user(
+        session,
+        employee_number="002",
+        email="support@test.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    sales_rep = create_persisted_user(
+        session,
+        employee_number="003",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_rep.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_rep.id,
+    )
+
+    persisted_event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=other_support.id,
+    )
+
+    new_data = EventUpdate(
+        notes="Modification",
+    )
+
+    with pytest.raises(EventOwnershipError):
+        event_service.update_event(
+            current_user,
+            persisted_event.id,
+            new_data,
+        )
+
+
+def test_update_event_with_invalid_event_returns_error(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+    )
+
+    new_data = EventUpdate(
+        notes="Modification",
+    )
+
+    with pytest.raises(EventNotFoundError):
+        event_service.update_event(
+            current_user,
+            999,
+            new_data,
+        )
+
+
+def test_update_event_unauthorized_user_raises_error(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+
+    new_data = EventUpdate(
+        notes="Modification",
+    )
+
+    from epicevent.exception import RolePermissionError
+
+    with pytest.raises(RolePermissionError):
+        event_service.update_event(
+            current_user,
+            999,
+            new_data,
+        )
+
+
+def test_management_can_update_any_event(event_service, session):
+    management = create_persisted_user(
+        session,
+        role_id=UserRole.MANAGEMENT,
+    )
+
+    support = create_persisted_user(
+        session,
+        employee_number="002",
+        email="support@test.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    sales_rep = create_persisted_user(
+        session,
+        employee_number="003",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_rep.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_rep.id,
+    )
+
+    persisted_event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support.id,
+        notes="Anciennes notes",
+    )
+
+    new_data = EventUpdate(
+        notes="Notes modifiées",
+    )
+
+    event_service.update_event(
+        management,
+        persisted_event.id,
+        new_data,
+    )
+
+    session.refresh(persisted_event)
+
+    assert persisted_event.notes == "Notes modifiées"
 
 
 # list_events

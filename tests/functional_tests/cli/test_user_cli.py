@@ -153,6 +153,30 @@ def test_update_user_without_authorization_displays_error(logged_user_factory, s
     assert "Vous n'avez pas les droits pour cette action."
 
 
+def test_update_user_cancel_displays_cancel_message(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    user = create_persisted_user(session, first_name="John")
+
+    result = runner.invoke(
+        cli,
+        ["user", "update", user.employee_number],
+        input="q\n",
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(user)
+
+    assert user.first_name == "John"
+    assert "La mise à jour de l'utilisateur a été annulée." in result.output
+
+
 # update_self
 ######################
 def test_update_self_by_current_user_success(logged_user_factory, session):
@@ -192,6 +216,27 @@ def test_update_user_duplicate_email_displays_error(logged_user_factory, session
 
     assert result.exit_code == 0
     assert "Cet email existe déjà." in result.output
+
+
+def test_update_self_cancel_deiplays_cancel_message(logged_user_factory, session):
+    runner = CliRunner()
+    current_user = logged_user_factory(
+        email="support@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["user", "profile"],
+        input=("q\n"),
+    )
+
+    assert result.exit_code == 0
+
+    session.refresh(current_user)
+
+    assert current_user.email == "support@email.com"
+    assert "Votre profil n'a pas été modifié." in result.output
 
 
 # deactivate

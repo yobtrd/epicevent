@@ -61,15 +61,15 @@ def ask_client_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def display_update_cancel():
-    display_message("La mise à jour du client a été annulée", "info")
-
-
 def display_update_success(client: ClientResponse):
     display_message(
         f"Le client ({client.email}) a été mis à jour.",
         "success",
     )
+
+
+def display_update_cancel():
+    display_message("La mise à jour du client a été annulée.", "info")
 
 
 # list
