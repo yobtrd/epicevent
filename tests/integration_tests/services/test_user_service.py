@@ -33,14 +33,14 @@ def test_create_superuser_creates_management_user(
         first_name="Admin",
         last_name="User",
         email="admin@test.com",
-        password="password",
+        password="Password",
     )
 
     user = user_service.create_superuser(superuser_dto)
 
     assert user.role_id == UserRole.MANAGEMENT
     assert user.email == "admin@test.com"
-    assert user.password_hash != "password"
+    assert user.password_hash != "Password"
 
 
 def test_create_superuser_fails_if_management_exists(
@@ -57,7 +57,7 @@ def test_create_superuser_fails_if_management_exists(
         first_name="Admin",
         last_name="User",
         email="admin@test.com",
-        password="password",
+        password="Password",
     )
 
     with pytest.raises(SuperuserAlreadyExistsError):

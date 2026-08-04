@@ -1,12 +1,6 @@
 from typing import Annotated
 
-from pydantic import (
-    AfterValidator,
-    BaseModel,
-    ConfigDict,
-    EmailStr,
-    Field,
-)
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, TypeAdapter
 
 from epicevent.security.roles import UserRole
 
@@ -18,12 +12,17 @@ def normalize_employee_number(value: str) -> str:
 EmployeeNumber = Annotated[str, AfterValidator(normalize_employee_number)]
 
 
+Password = Annotated[str, Field(min_length=8, pattern=r".*[A-Z].*")]
+
+password_validator = TypeAdapter(Password)
+
+
 class UserCreateBase(BaseModel):
     employee_number: EmployeeNumber = Field(min_length=1)
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     email: EmailStr
-    password: str = Field(min_length=1)
+    password: Password
 
     model_config = ConfigDict(
         extra="forbid",

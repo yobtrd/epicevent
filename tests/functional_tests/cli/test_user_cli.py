@@ -18,7 +18,7 @@ def test_create_superuser_creates_management_user(session, app_factory):
             "user",
             "create-superuser",
         ],
-        input=("001\nDoe\nJohn\nadmin@test.com\npassword\n"),
+        input=("001\nDoe\nJohn\nadmin@test.com\nPassword\nPassword\n"),
     )
 
     assert result.exit_code == 0
@@ -60,7 +60,9 @@ def test_create_user_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["user", "create"],
-        input=(f"{user_emp_number}\nDoe\nJane\njane@test.com\npassword\nSupport\n"),
+        input=(
+            f"{user_emp_number}\nDoe\nJane\njane@test.com\nPassword\nPassword\nSupport\n"
+        ),
     )
 
     assert result.exit_code == 0
@@ -86,7 +88,7 @@ def test_create_user_duplicate_email_displays_error(session, logged_user_factory
     result = runner.invoke(
         cli,
         ["user", "create"],
-        input=("003\nJohn\nDoe\nexist@email.com\npassword\nSupport\n"),
+        input=("003\nJohn\nDoe\nexist@email.com\nPassword\nPassword\nSupport\n"),
     )
 
     assert result.exit_code == 0
@@ -101,7 +103,7 @@ def test_create_user_duplicate_emp_number_displays_error(session, logged_user_fa
     result = runner.invoke(
         cli,
         ["user", "create"],
-        input=("010\nJohn\nDoe\nexist@email.com\npassword\nSupport\n"),
+        input=("010\nJohn\nDoe\nexist@email.com\nPassword\nPassword\nSupport\n"),
     )
 
     assert result.exit_code == 0
@@ -110,19 +112,50 @@ def test_create_user_duplicate_emp_number_displays_error(session, logged_user_fa
     assert user_in_db is None
 
 
-def test_create_user_with_invalid_input_displays_error(logged_user_factory):
+def test_create_user_with_invalid_input_email_error(logged_user_factory):
     runner = CliRunner()
     logged_user_factory(role_id=UserRole.MANAGEMENT)
 
     result = runner.invoke(
         cli,
         ["user", "create"],
-        input=("003\nJohn\nDoe\nbademail\npassword\nGestion\n"),
+        input=("003\nJohn\nDoe\nbademail\nPassword\nPassword\nGestion\n"),
     )
 
     assert result.exit_code == 0
     assert "Format invalide" in result.output
     assert "adresse email" in result.output
+
+
+def test_create_user_with_unconfirmed_password_display_error(logged_user_factory):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    result = runner.invoke(
+        cli,
+        ["user", "create"],
+        input=("003\nJohn\nDoe\njohn.doe@test.com\nPassword\npassword\n"),
+    )
+
+    assert result.exit_code == 1
+    assert "Les mots de passe ne correspondent pas." in result.output
+
+
+def test_create_user_with_invalid_password_display_error(logged_user_factory):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    result = runner.invoke(
+        cli,
+        ["user", "create"],
+        input=("003\nJohn\nDoe\njohn.doe@test.com\nshort\nshort\n"),
+    )
+
+    assert result.exit_code == 1
+    assert (
+        "Le mot de passe doit contenir au moins 8 caractères et une majuscule."
+        in result.output
+    )
 
 
 def test_create_user_with_no_authorization_displays_error(logged_user_factory):
@@ -184,13 +217,16 @@ def test_update_duplicate_emp_number_display_error(logged_user_factory, session)
 
 def test_update_user_without_authorization_displays_error(logged_user_factory, session):
     runner = CliRunner()
+    password_service = PasswordService()
     logged_user_factory(
         employee_number="001", email="sales@email.com", role_id=UserRole.SALES
     )
 
     target_user_emp_number = "002"
     create_persisted_user(
-        session, employee_number=target_user_emp_number, password_hash="password"
+        session,
+        employee_number=target_user_emp_number,
+        password_hash=password_service.hash("Password"),
     )
 
     result = runner.invoke(cli, ["user", "update", target_user_emp_number])
@@ -230,20 +266,20 @@ def test_update_self_by_current_user_success(logged_user_factory, session):
     password_service = PasswordService()
     current_user = logged_user_factory(
         email="old@email.com",
-        password_hash=password_service.hash("oldpassword"),
+        password_hash=password_service.hash("oldPassword"),
         role_id=UserRole.SUPPORT,
     )
 
     result = runner.invoke(
         cli,
         ["user", "profile"],
-        input=("3\nnew@test.com\n\n4\nnewpassword\nq"),
+        input=("3\nnew@test.com\n\n4\nnewPassword\nnewPassword\nq"),
     )
     assert result.exit_code == 0
     session.refresh(current_user)
     assert current_user.email == "new@test.com"
     assert "Votre profil a été mis à jour." in result.output
-    assert password_service.verify(current_user.password_hash, "newpassword")
+    assert password_service.verify(current_user.password_hash, "newPassword")
 
 
 def test_update_user_duplicate_email_displays_error(logged_user_factory, session):

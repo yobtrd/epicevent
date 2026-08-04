@@ -1,4 +1,4 @@
-from epicevent.cli.console import console
+from epicevent.cli.console import display_message
 from epicevent.exception import (
     ApplicationError,
     AuthenticationError,
@@ -11,7 +11,6 @@ from epicevent.exception import (
     EventNotFoundError,
     EventOwnershipError,
     InvalidCredentialsError,
-    InvalidInputError,
     RolePermissionError,
     SuperuserAlreadyExistsError,
     SupportAssignmentError,
@@ -44,12 +43,12 @@ def display_application_error(error: ApplicationError):
     message = ERROR_MESSAGES.get(type(error))
 
     if message:
-        console.print(f"\nErreur: {message}\n", style="error")
+        display_message(f"Erreur: {message}", "error")
     else:
-        console.print("\nErreur: Une erreur inattendue est survenue.\n", style="error")
+        display_message("Erreur: Une erreur inattendue est survenue.", "error")
 
 
-def display_invalid_input_error(error: InvalidInputError):
+def display_invalid_input_error(error: list[dict]):
     labels = {
         "email": "Email",
         "password": "Mot de passe",
@@ -70,8 +69,9 @@ def display_invalid_input_error(error: InvalidInputError):
     }
 
     for err in error.errors:
-        raw_field = err["loc"][-1]
+        raw_field = err.get("loc")[-1]
+
         label = labels.get(raw_field, raw_field)
         message = messages.get(label, "Saisie invalide.")
 
-        console.print(f"\n{label}: {message}\n", style="warning")
+        display_message(f"{label}: {message}", "warning")

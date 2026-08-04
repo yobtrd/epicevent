@@ -1,8 +1,13 @@
 import click
+from pydantic import ValidationError
 from rich.table import Table
 
 from epicevent.cli.console import ask, ask_required, console, display_message
-from epicevent.schemas.user_schema import UserDetailResponse, UserResponse
+from epicevent.schemas.user_schema import (
+    UserDetailResponse,
+    UserResponse,
+    password_validator,
+)
 from epicevent.security.roles import UserRole
 
 ROLE_MAPPING = {
@@ -20,29 +25,45 @@ ROLE_LABELS = {
 
 # Helpers
 ######################
-def _ask_choice(label: str, choices: list[str]) -> str:
+def _ask_for_password():
     while True:
-        value = ask_required(label).strip()
-
-        if not value:
-            console.print("Veuillez saisir un département.", style="warning")
+        password = ask_required("Mot de passe", hide_input=True)
+        try:
+            password_validator.validate_python(password)
+        except ValidationError:
+            display_message(
+                "Le mot de passe doit contenir au moins 8 caractères et une majuscule.",
+                "warning",
+            )
             continue
 
-        for choice in choices:
-            if value.casefold() == choice.casefold():
-                return choice
+        confirm = ask_required("Confirmer le mot de passe", hide_input=True)
 
-        console.print(
-            f"Choix invalide. Valeurs possibles : {', '.join(choices)}.",
-            style="warning",
-        )
+        if password != confirm:
+            display_message("Les mots de passe ne correspondent pas.", "warning")
+            continue
+        else:
+            return password
 
 
 def _ask_for_role():
     role_labels = list(ROLE_MAPPING.keys())
     role_prompt = f"Département ({', '.join(role_labels)})"
-    role_label = _ask_choice(role_prompt, role_labels)
-    return role_label
+    while True:
+        value = ask_required(role_prompt).strip()
+
+        if not value:
+            console.print("Veuillez saisir un département.", style="warning")
+            continue
+
+        for role_label in role_labels:
+            if value.casefold() == role_label.casefold():
+                return role_label
+
+        console.print(
+            f"Choix invalide. Valeurs possibles : {', '.join(role_labels)}.",
+            style="warning",
+        )
 
 
 def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
@@ -57,15 +78,20 @@ def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
         if choice.lower() == "q":
             break
 
-        if choice == "5" and "role" in [f[0] for f in fields.values()]:
-            role_label = _ask_for_role()
-            updates["role_id"] = ROLE_MAPPING[role_label]
-            continue
-
         if choice in fields:
             attr, label = fields[choice]
-            kwargs = {"hide_input": True} if attr == "password" else {}
-            value = ask(f"\nNouveau {label.lower()}", **kwargs)
+
+            if attr == "role":
+                role_label = _ask_for_role()
+                updates["role_id"] = ROLE_MAPPING[role_label]
+                continue
+
+            if attr == "password":
+                password = _ask_for_password()
+                updates["password"] = password
+                continue
+
+            value = ask(f"\nNouveau {label.lower()}")
 
             if value:
                 updates[attr] = value
@@ -87,10 +113,10 @@ def display_superuser_creation_success(superuser: UserResponse):
 ######################
 def ask_user_creation_data(include_role: bool = True) -> dict:
     employee_number = ask_required("Numéro d'employé")
-    last_name = ask_required("Nom")
+    last_name = ask_required("Nom de famille")
     first_name = ask_required("Prénom")
     email = ask_required("Email")
-    password = ask_required("Mot de passe", hide_input=True)
+    password = _ask_for_password()
 
     data = {
         "employee_number": employee_number,

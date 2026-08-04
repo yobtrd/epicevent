@@ -151,7 +151,7 @@ USER_DATA = {
     "first_name": "Jane",
     "last_name": "Doe",
     "email": "jane@test.com",
-    "password": "password",
+    "password": "Password",
     "role_id": UserRole.MANAGEMENT,
 }
 
@@ -160,7 +160,7 @@ USER_MODEL_DATA = {
     "first_name": "John",
     "last_name": "Doe",
     "email": "john@test.com",
-    "password_hash": PasswordService().hash("password"),
+    "password_hash": PasswordService().hash("Password"),
     "role_id": 1,
 }
 
