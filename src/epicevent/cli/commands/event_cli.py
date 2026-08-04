@@ -121,3 +121,26 @@ def assign(
         event_view.display_assign_support_success(assigned_support, updated_event)
     else:
         event_view.display_assign_support_cancel()
+
+
+@event.command()
+@click.argument("event_id")
+@with_app
+@handle_errors
+@require_auth
+def unassign(
+    app: Application,
+    current_user: UserResponse,
+    event_id: int,
+):
+    authorization.ensure_permission(current_user, Permission.ASSIGN_SUPPORT)
+    target_event = app.event_controller.get_detailed_event_by_id(event_id)
+
+    if event_view.ask_unassign_support_confirmation(target_event):
+        updated_event = app.event_controller.unassign_support(
+            current_user,
+            event_id=event_id,
+        )
+        event_view.display_unassign_support_success(updated_event)
+    else:
+        event_view.display_unassign_support_cancel()

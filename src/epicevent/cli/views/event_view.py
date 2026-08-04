@@ -172,3 +172,24 @@ def display_assign_support_success(
 
 def display_assign_support_cancel():
     display_message("L'ajout du collaborateur support a été annulée.", "info")
+
+
+# unassign
+#################
+def ask_unassign_support_confirmation(target_event: EventDetailResponse):
+    display_message(
+        f"Désassigner le support {target_event.support_representative.last_name} "
+        f"{target_event.support_representative.first_name} de l'évenement"
+        f'"{target_event.name}" n°{target_event.id} ?'
+    )
+    return click.confirm("[Y] pour confirmer, [N] pour annuler")
+
+
+def display_unassign_support_success(updated_event: EventDetailResponse):
+    display_message(
+        f"Le support a bien été désassigner de l'événement n°{updated_event.id}", "info"
+    )
+
+
+def display_unassign_support_cancel():
+    display_message("La désassignation du collaborateur support a été annulée.", "info")

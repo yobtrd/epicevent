@@ -763,3 +763,67 @@ def test_assign_support_no_authorization_displays_error(logged_user_factory, ses
 
     assert result.exit_code == 0
     assert "Vous n'avez pas les droits pour cette action." in result.output
+
+
+# unassign
+######################
+def test_unassign_support_success(logged_user_factory, session, force_console_width):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+    support_user = create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+        employee_number="111",
+        email="support@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(
+        session,
+        name="Test Event",
+        contract_id=contract.id,
+        support_representative_id=support_user.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "unassign", str(event.id)],
+        input="y",
+    )
+
+    assert result.exit_code == 0
+    assert (
+        f"Le support a bien été désassigner de l'événement n°{event.id}"
+        in result.output
+    )
+
+    session.refresh(event)
+    assert event.support_representative_id is None
+
+
+def test_unassign_support_cancel_displays_message(logged_user_factory, session):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    contract = create_contract_graph(session)
+    support_user = create_persisted_user(
+        session,
+        employee_number="005",
+        email="support@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+    event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_user.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "unassign", str(event.id)],
+        input="n",
+    )
+
+    assert result.exit_code == 0
+    assert "La désassignation du collaborateur support a été annulée." in result.output

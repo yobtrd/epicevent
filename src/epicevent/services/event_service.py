@@ -136,3 +136,10 @@ class EventService:
 
             event.support_representative = support
             return support, event
+
+    @require_permission(Permission.ASSIGN_SUPPORT)
+    def unassign_support(self, current_user: UserResponse, event_id: int) -> Event:
+        with self.uow:
+            event = self.get_event_by_id(event_id)
+            event.support_representative = None
+            return event

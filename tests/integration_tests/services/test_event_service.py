@@ -639,3 +639,45 @@ def test_assign_support_invalid_role(session, uow, event_service, logged_user_fa
         event_service.assign_support(
             current_user=manager, event_id=event.id, employee_number="444"
         )
+
+
+# unassign_support
+###################
+def test_unassign_support_success(session, uow, event_service, logged_user_factory):
+    manager = logged_user_factory(role_id=UserRole.MANAGEMENT)
+    support_user = create_persisted_user(
+        session,
+        role_id=UserRole.SUPPORT,
+        employee_number="333",
+        email="support@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(
+        session,
+        name="Test Event",
+        contract_id=contract.id,
+        support_representative_id=support_user.id,
+    )
+
+    event_service.unassign_support(current_user=manager, event_id=event.id)
+
+    session.refresh(event)
+    assert event.support_representative is None
+    assert event.support_representative_id is None
+
+
+def test_unassign_support_permission_denied(
+    session, uow, event_service, logged_user_factory
+):
+    sales_user = logged_user_factory(
+        role_id=UserRole.SALES,
+        employee_number="010",
+        email="sales@email.com",
+    )
+
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    with pytest.raises(RolePermissionError):
+        event_service.unassign_support(current_user=sales_user, event_id=event.id)

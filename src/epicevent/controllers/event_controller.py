@@ -4,11 +4,7 @@ from epicevent.exception import InvalidInputError
 from epicevent.schemas.contract_schema import ContractResponse
 from epicevent.schemas.event_schema import EventDetailResponse, EventResponse
 from epicevent.schemas.user_schema import UserResponse
-from epicevent.services.event_service import (
-    EventCreate,
-    EventService,
-    EventUpdate,
-)
+from epicevent.services.event_service import EventCreate, EventService, EventUpdate
 
 
 class EventController:
@@ -18,6 +14,10 @@ class EventController:
     def get_event_by_id(self, event_id: int):
         event = self.event_service.get_event_by_id(event_id)
         return EventResponse.model_validate(event)
+
+    def get_detailed_event_by_id(self, event_id: int):
+        event = self.event_service.get_event_by_id(event_id)
+        return EventDetailResponse.model_validate(event)
 
     def ensure_can_create_event(
         self, current_user: UserResponse, contract: ContractResponse
@@ -95,3 +95,11 @@ class EventController:
             UserResponse.model_validate(event_support),
             EventResponse.model_validate(event_updated),
         )
+
+    def unassign_support(
+        self,
+        current_user: UserResponse,
+        event_id: int,
+    ) -> EventResponse:
+        event_updated = self.event_service.unassign_support(current_user, event_id)
+        return EventResponse.model_validate(event_updated)
