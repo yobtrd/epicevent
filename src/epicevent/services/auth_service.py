@@ -3,6 +3,7 @@ from epicevent.exception import (
     ExpiredTokenError,
     InvalidCredentialsError,
     InvalidTokenError,
+    UserDisabledError,
     UserNotFoundError,
 )
 from epicevent.infrastructure.unit_of_work import UnitOfWork
@@ -37,11 +38,15 @@ class AuthService:
             user = self.uow.users.find_by_email(login.email)
             if not user:
                 raise InvalidCredentialsError()
+
             password_check = self.password_service.verify(
                 user.password_hash, login.password
             )
             if not password_check:
                 raise InvalidCredentialsError()
+
+            if not user.is_active:
+                raise UserDisabledError()
 
             access_token = self.token_service.create_access_token(user)
             refresh_token = self.token_service.create_refresh_token(user)

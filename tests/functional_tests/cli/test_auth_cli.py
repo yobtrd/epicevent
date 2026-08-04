@@ -102,6 +102,29 @@ def test_login_with_invalid_inpput_display_error(session, token_path, app_factor
     assert "adresse email" in result.output
 
 
+def test_login_with_deactivated_account(session, token_path, app_factory):
+    runner = CliRunner()
+    create_persisted_user(
+        session,
+        email="test@email.com",
+        password_hash=PasswordService().hash("password"),
+        is_active=False,
+    )
+
+    result = runner.invoke(
+        cli,
+        [
+            "auth",
+            "login",
+        ],
+        input="test@email.com\npassword\n",
+        color=False,
+    )
+
+    assert result.exit_code == 0
+    assert "Compte désactivé, veuillez contacter un administrateur." in result.output
+
+
 def test_logout(token_path):
     runner = CliRunner()
 

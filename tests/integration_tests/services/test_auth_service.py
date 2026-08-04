@@ -4,6 +4,7 @@ from freezegun import freeze_time
 from epicevent.exception import (
     AuthenticationError,
     InvalidCredentialsError,
+    UserDisabledError,
     UserNotFoundError,
 )
 from epicevent.schemas.auth_schema import AuthRequest
@@ -58,6 +59,21 @@ def test_authenticate_wrong_password(uow, session):
 
     auth_request = AuthRequest(email=user.email, password="wrong-password")
     with pytest.raises(InvalidCredentialsError):
+        auth_service.authenticate(auth_request)
+
+
+def test_authenticate_with_deactivated_account(uow, session):
+    auth_service = AuthService(uow)
+    password = "password"
+    user = create_persisted_user(
+        session,
+        email="test@email.com",
+        password_hash=PasswordService().hash(password),
+        is_active=False,
+    )
+
+    auth_request = AuthRequest(email=user.email, password="password")
+    with pytest.raises(UserDisabledError):
         auth_service.authenticate(auth_request)
 
 

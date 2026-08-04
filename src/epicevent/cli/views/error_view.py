@@ -16,6 +16,7 @@ from epicevent.exception import (
     SuperuserAlreadyExistsError,
     SupportAssignmentError,
     UserAlreadyDeactivatedError,
+    UserDisabledError,
     UserNotFoundError,
 )
 
@@ -24,6 +25,7 @@ ERROR_MESSAGES = {
     AuthenticationError: "Vous n'êtes pas connecté à une session.",
     RolePermissionError: "Vous n'avez pas les droits pour cette action.",
     InvalidCredentialsError: "Email ou mot de passe incorrect, veuillez réessayer.",
+    UserDisabledError: "Compte désactivé, veuillez contacter un administrateur.",
     UserNotFoundError: "L'utilisateur n'a pas été trouvé.",
     EmailAlreadyExistsError: "Cet email existe déjà.",
     UserAlreadyDeactivatedError: "Cet utilisateur est déjà désactivé",
