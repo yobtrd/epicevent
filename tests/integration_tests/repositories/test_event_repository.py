@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from epicevent.infrastructure.repositories.event_repository import EventRepository
 from epicevent.security.roles import UserRole
 from tests.conftest import (
@@ -151,45 +153,6 @@ def test_list_event_pagination(session):
     assert len(page2) == 5
 
 
-def test_list_management_user_sees_all_events(session):
-    repository = EventRepository(session)
-
-    support_rep_1 = create_persisted_user(
-        session,
-        employee_number="200",
-        email="support1@test.com",
-        role_id=UserRole.SUPPORT,
-    )
-
-    support_rep_2 = create_persisted_user(
-        session,
-        employee_number="201",
-        email="support2@test.com",
-        role_id=UserRole.SUPPORT,
-    )
-
-    contract = create_contract_graph(session)
-
-    create_persisted_event(
-        session,
-        contract_id=contract.id,
-        support_representative_id=support_rep_1.id,
-    )
-
-    create_persisted_event(
-        session,
-        contract_id=contract.id,
-        support_representative_id=support_rep_2.id,
-    )
-
-    events = repository.list(
-        user_id=support_rep_1.id,
-        user_role=UserRole.MANAGEMENT,
-    )
-
-    assert len(events) == 2
-
-
 def test_list_event_filters_support_representative(session):
     repository = EventRepository(session)
 
@@ -224,6 +187,7 @@ def test_list_event_filters_support_representative(session):
     events = repository.list(
         user_id=support_rep_1.id,
         user_role=UserRole.SUPPORT,
+        support_assigned=True,
     )
 
     assert len(events) == 1
@@ -296,6 +260,37 @@ def test_list_event_filters_unassigned(session):
 
     assert len(events) == 1
     assert events[0].support_representative_id is None
+
+
+def test_repository_list_events_filters_upcoming(session):
+    repository = EventRepository(session)
+    current_user = create_persisted_user(
+        session,
+        employee_number="004",
+        email="test@email.com",
+    )
+
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        end=datetime.now() + timedelta(days=1),
+    )
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        end=datetime.now() - timedelta(days=1),
+    )
+
+    events = repository.list(
+        user_id=current_user.id,
+        user_role=current_user.role,
+        upcoming=True,
+    )
+
+    assert len(events) == 1
+    assert events[0].end > datetime.now()
 
 
 # count

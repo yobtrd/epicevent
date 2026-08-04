@@ -93,7 +93,9 @@ class EventService:
     def list_events(
         self,
         current_user: UserResponse,
+        upcoming: bool = False,
         is_assigned: bool | None = None,
+        support_assigned: bool = False,
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[Event], int]:
@@ -101,14 +103,18 @@ class EventService:
             events = self.uow.events.list(
                 user_id=current_user.id,
                 user_role=current_user.role_id,
+                upcoming=upcoming,
                 is_assigned=is_assigned,
+                support_assigned=support_assigned,
                 limit=limit,
                 offset=offset,
             )
             total_count = self.uow.events.count(
                 user_id=current_user.id,
                 user_role=current_user.role_id,
+                upcoming=upcoming,
                 is_assigned=is_assigned,
+                support_assigned=support_assigned,
             )
             return events, total_count
 

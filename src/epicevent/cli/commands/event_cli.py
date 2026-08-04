@@ -51,14 +51,18 @@ def update(app: Application, current_user: UserResponse, event_id: str):
 
 
 @event.command()
+@click.option("--upcoming", is_flag=True)
 @click.option("--assigned/--unassigned", default=None)
+@click.option("--mine", is_flag=True)
 @with_app
 @handle_errors
 @require_auth
 def list(
     app: Application,
     current_user: UserResponse,
+    upcoming: bool,
     assigned: bool | None,
+    mine: bool,
 ):
     authorization.ensure_permission(current_user, Permission.LIST_EVENT)
 
@@ -67,7 +71,9 @@ def list(
     while True:
         events_list, total_count = app.event_controller.list_events(
             current_user,
+            upcoming=upcoming,
             is_assigned=assigned,
+            support_assigned=mine,
             limit=limit,
             offset=offset,
         )

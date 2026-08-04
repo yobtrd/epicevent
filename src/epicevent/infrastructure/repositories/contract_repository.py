@@ -24,10 +24,8 @@ class ContractRepository:
         user_role: int,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
+        sales_assigned: bool = False,
     ):
-        if user_role != UserRole.MANAGEMENT:
-            query = query.where(Contract.sales_representative_id == user_id)
-
         if is_signed is not None:
             query = query.where(Contract.is_signed == is_signed)
 
@@ -37,6 +35,12 @@ class ContractRepository:
         elif is_paid is False:
             query = query.where(Contract.remaining_amount > 0)
 
+        if sales_assigned:
+            if user_role == UserRole.SALES:
+                query = query.where(Contract.sales_representative_id == user_id)
+            else:
+                query = query.where(False)
+
         return query
 
     def list(
@@ -45,6 +49,7 @@ class ContractRepository:
         user_role: int,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
+        sales_assigned: bool = False,
         limit: int = 10,
         offset: int = 0,
     ):
@@ -59,6 +64,7 @@ class ContractRepository:
             user_role=user_role,
             is_signed=is_signed,
             is_paid=is_paid,
+            sales_assigned=sales_assigned,
         )
 
         query = query.limit(limit).offset(offset)
@@ -71,6 +77,7 @@ class ContractRepository:
         user_role: int,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
+        sales_assigned: bool = False,
     ) -> int:
         query = select(Contract)
 
@@ -80,6 +87,7 @@ class ContractRepository:
             user_role=user_role,
             is_signed=is_signed,
             is_paid=is_paid,
+            sales_assigned=sales_assigned,
         )
 
         count_query = select(func.count()).select_from(query.subquery())

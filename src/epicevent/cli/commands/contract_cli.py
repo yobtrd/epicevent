@@ -56,6 +56,7 @@ def update(app: Application, current_user: UserResponse, contract_id: str):
 @contract.command()
 @click.option("--signed/--unsigned", default=None)
 @click.option("--paid/--unpaid", default=None)
+@click.option("--mine", is_flag=True)
 @with_app
 @handle_errors
 @require_auth
@@ -64,6 +65,7 @@ def list(
     current_user: UserResponse,
     signed: bool | None,
     paid: bool | None,
+    mine: bool,
 ):
     authorization.ensure_permission(current_user, Permission.LIST_CONTRACT)
 
@@ -74,6 +76,7 @@ def list(
             current_user,
             is_signed=signed,
             is_paid=paid,
+            sales_assigned=mine,
             limit=limit,
             offset=offset,
         )

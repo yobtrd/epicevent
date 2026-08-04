@@ -373,11 +373,7 @@ def test_list_filters_signed(
 ):
     runner = CliRunner()
 
-    sales_user = logged_user_factory(
-        role_id=UserRole.SALES,
-        last_name="Doe",
-        employee_number="002",
-    )
+    sales_user = logged_user_factory(role_id=UserRole.SALES)
 
     client = create_persisted_client(
         session,
@@ -416,11 +412,7 @@ def test_list_filters_paid(
 ):
     runner = CliRunner()
 
-    sales_user = logged_user_factory(
-        role_id=UserRole.SALES,
-        last_name="Doe",
-        employee_number="002",
-    )
+    sales_user = logged_user_factory(role_id=UserRole.SALES)
 
     client = create_persisted_client(
         session,
@@ -450,3 +442,59 @@ def test_list_filters_paid(
     assert "Liste des contrats (1 au total)" in result.output
     assert "0.00" in result.output
     assert "500.00" not in result.output
+
+
+def test_list_filters_mine(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    current_sales_user = logged_user_factory(
+        employee_number="001",
+        email="sales1@email.com",
+        role_id=UserRole.SALES,
+    )
+    other_sales_user = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales2@email.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_sales_user.id,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_sales_user.id,
+        is_signed=True,
+    )
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_sales_user.id,
+        is_signed=True,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=other_sales_user.id,
+        is_signed=False,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["contract", "list", "--mine"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des contrats (2 au total)" in result.output
+    assert "Signé" in result.output
+    assert "Non signé" not in result.output

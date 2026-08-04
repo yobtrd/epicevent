@@ -78,6 +78,7 @@ class ContractService:
         current_user: UserResponse,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
+        sales_assigned: bool = False,
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[Contract], int]:
@@ -87,6 +88,7 @@ class ContractService:
                 user_role=current_user.role_id,
                 is_signed=is_signed,
                 is_paid=is_paid,
+                sales_assigned=sales_assigned,
                 limit=limit,
                 offset=offset,
             )
@@ -95,5 +97,6 @@ class ContractService:
                 user_role=current_user.role_id,
                 is_signed=is_signed,
                 is_paid=is_paid,
+                sales_assigned=sales_assigned,
             )
             return contracts, total_count

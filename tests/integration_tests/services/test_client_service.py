@@ -121,8 +121,18 @@ def test_update_user_unauthorized_user_raises_error(client_service, session, rol
 
 # list_clients
 ###################
-def test_list_client_return_cllient_list_for_management(client_service, session):
-    current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)
+@pytest.mark.parametrize(
+    "role",
+    [
+        UserRole.MANAGEMENT,
+        UserRole.SALES,
+        UserRole.SUPPORT,
+    ],
+)
+def test_list_client_return_client_list_for_all_contributors(
+    client_service, session, role
+):
+    current_user = create_persisted_user(session, role_id=role)
     for i in range(3):
         create_persisted_client(
             session,

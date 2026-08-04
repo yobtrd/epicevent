@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from click.testing import CliRunner
 
 from epicevent.cli.main import cli
@@ -574,6 +576,97 @@ def test_list_filters_unassigned(
     assert result.exit_code == 0
     assert "Liste des évènements (1 au total)" in result.output
     assert "Aucun support associé pour le moment." in result.output
+
+
+def test_list_filters_mine(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+
+    current_support_user = logged_user_factory(
+        employee_number="101",
+        email="support1@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+    other_support_user = create_persisted_user(
+        session,
+        employee_number="102",
+        email="support2@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_support_user.id,
+    )
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_support_user.id,
+    )
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=other_support_user.id,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "list", "--mine"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des évènements (2 au total)" in result.output
+
+
+def test_list_filters_upcoming(
+    logged_user_factory,
+    session,
+    force_console_width,
+):
+    runner = CliRunner()
+    support_user = logged_user_factory(role_id=UserRole.SUPPORT)
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_user.id,
+        start=datetime.now() - timedelta(days=5),
+        end=datetime.now() - timedelta(days=1),
+    )
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_user.id,
+        start=datetime.now() - timedelta(days=1),
+        end=datetime.now() + timedelta(days=1),
+    )
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=support_user.id,
+        start=datetime.now() + timedelta(days=1),
+        end=datetime.now() + timedelta(days=2),
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "list", "--upcoming"],
+        input="q",
+    )
+
+    assert result.exit_code == 0
+    assert "Liste des évènements (2 au total)" in result.output
 
 
 # assign

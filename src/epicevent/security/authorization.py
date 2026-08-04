@@ -24,9 +24,11 @@ ROLE_PERMISSIONS = {
         Permission.UPDATE_CONTRACT,
         Permission.LIST_CONTRACT,
         Permission.CREATE_EVENT,
+        Permission.LIST_EVENT,
     ],
     UserRole.SUPPORT: [
         Permission.LIST_CLIENT,
+        Permission.LIST_CONTRACT,
         Permission.UPDATE_EVENT,
         Permission.LIST_EVENT,
     ],

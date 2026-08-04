@@ -64,13 +64,17 @@ class EventController:
     def list_events(
         self,
         current_user: UserResponse,
+        upcoming: bool = False,
         is_assigned: bool | None = None,
+        support_assigned: bool = False,
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[EventDetailResponse], int]:
         events_list, total_count = self.event_service.list_events(
             current_user,
+            upcoming=upcoming,
             is_assigned=is_assigned,
+            support_assigned=support_assigned,
             limit=limit,
             offset=offset,
         )

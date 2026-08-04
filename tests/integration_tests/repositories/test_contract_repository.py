@@ -121,47 +121,6 @@ def test_list_contract_pagination(session):
     assert len(page2) == 5
 
 
-def test_list_management_user_sees_all_contracts(session):
-    repository = ContractRepository(session)
-
-    sales_rep_1 = create_persisted_user(session, role_id=UserRole.SALES)
-    sales_rep_2 = create_persisted_user(
-        session,
-        employee_number="003",
-        email="sales2@test.com",
-        role_id=UserRole.SALES,
-    )
-
-    client_1 = create_persisted_client(
-        session,
-        email="client1@test.com",
-        sales_representative_id=sales_rep_1.id,
-    )
-    client_2 = create_persisted_client(
-        session,
-        email="client2@test.com",
-        sales_representative_id=sales_rep_2.id,
-    )
-
-    create_persisted_contract(
-        session,
-        client_id=client_1.id,
-        sales_representative_id=sales_rep_1.id,
-    )
-    create_persisted_contract(
-        session,
-        client_id=client_2.id,
-        sales_representative_id=sales_rep_2.id,
-    )
-
-    contracts = repository.list(
-        user_id=sales_rep_1.id,
-        user_role=UserRole.MANAGEMENT,
-    )
-
-    assert len(contracts) == 2
-
-
 def test_list_contract_filters_sales_representative(session):
     repository = ContractRepository(session)
 
@@ -196,8 +155,7 @@ def test_list_contract_filters_sales_representative(session):
     )
 
     contracts = repository.list(
-        user_id=sales_rep_1.id,
-        user_role=UserRole.SALES,
+        user_id=sales_rep_1.id, user_role=UserRole.SALES, sales_assigned=True
     )
 
     assert len(contracts) == 1

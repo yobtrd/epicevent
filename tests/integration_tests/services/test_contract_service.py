@@ -193,8 +193,20 @@ def test_management_can_update_any_contract(contract_service, session):
 
 # list_contracts
 ###################
-def test_list_contracts_returns_contracts_for_sales_user(contract_service, session):
-    current_user = create_persisted_user(session)
+@pytest.mark.parametrize(
+    "role",
+    [
+        UserRole.MANAGEMENT,
+        UserRole.SALES,
+        UserRole.SUPPORT,
+    ],
+)
+def test_list_contracts_returns_contracts_for_all_contributors(
+    contract_service,
+    session,
+    role,
+):
+    current_user = create_persisted_user(session, role_id=role)
 
     client = create_persisted_client(
         session,
@@ -309,3 +321,71 @@ def test_list_contracts_filters_paid(contract_service, session):
     assert len(contracts_list) == 1
     assert total_count == 1
     assert contracts_list[0].remaining_amount == 0
+
+
+def test_list_contracts_filters_sales_assigned_with_sales(contract_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+    other_sales = create_persisted_user(
+        session,
+        employee_number="100",
+        email="support2@email.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+    )
+    create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=other_sales.id,
+    )
+
+    contracts_list, total_count = contract_service.list_contracts(
+        current_user, sales_assigned=True
+    )
+
+    assert len(contracts_list) == 1
+    assert total_count == 1
+    assert isinstance(contracts_list[0], Contract)
+
+
+@pytest.mark.parametrize("role", [UserRole.MANAGEMENT, UserRole.SUPPORT])
+def test_list_contracts_filters_sales_assigned_with_other_contributors(
+    contract_service,
+    session,
+    role,
+):
+    current_user = create_persisted_user(session, role_id=role)
+    sales_user = create_persisted_user(
+        session,
+        employee_number="004",
+        email="sales@email.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_user.id,
+    )
+
+    for _ in range(3):
+        create_persisted_contract(
+            session,
+            client_id=client.id,
+            sales_representative_id=sales_user.id,
+        )
+
+    contracts_list, total_count = contract_service.list_contracts(
+        current_user, sales_assigned=True
+    )
+
+    assert len(contracts_list) == 0
+    assert total_count == 0

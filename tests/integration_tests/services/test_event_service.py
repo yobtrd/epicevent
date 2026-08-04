@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import pytest
 
 from epicevent.exception import (
@@ -300,12 +302,20 @@ def test_management_can_update_any_event(event_service, session):
 
 # list_events
 ###################
-def test_list_events_returns_events_for_support_user(event_service, session):
+@pytest.mark.parametrize(
+    "role",
+    [
+        UserRole.MANAGEMENT,
+        UserRole.SALES,
+        UserRole.SUPPORT,
+    ],
+)
+def test_list_events_returns_events_for_all_contributors(event_service, session, role):
     current_user = create_persisted_user(
         session,
         employee_number="400",
-        email="support@email.com",
-        role_id=UserRole.SUPPORT,
+        email="contributor@email.com",
+        role_id=role,
     )
 
     contract = create_contract_graph(session)
@@ -434,6 +444,121 @@ def test_list_events_filters_unassigned(event_service, session):
     assert len(events_list) == 1
     assert total_count == 1
     assert events_list[0].support_representative_id is None
+
+
+def test_list_events_filters_support_assigned_with_support(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="300",
+        email="support1@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    other_support = create_persisted_user(
+        session,
+        employee_number="400",
+        email="support2@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_user.id,
+    )
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=other_support.id,
+    )
+
+    events_list, total_count = event_service.list_events(
+        current_user, support_assigned=True
+    )
+
+    assert len(events_list) == 1
+    assert total_count == 1
+    assert isinstance(events_list[0], Event)
+
+
+@pytest.mark.parametrize("role", [UserRole.MANAGEMENT, UserRole.SALES])
+def test_list_events_filters_support_assigned_with_other_contributors(
+    event_service,
+    session,
+    role,
+):
+    current_user = create_persisted_user(
+        session,
+        employee_number="003",
+        email="test@email.com",
+        role_id=role,
+    )
+    support_user = create_persisted_user(
+        session,
+        employee_number="004",
+        email="support@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+
+    contract = create_contract_graph(session)
+
+    for _ in range(3):
+        create_persisted_event(
+            session,
+            contract_id=contract.id,
+            support_representative_id=support_user.id,
+        )
+
+    events_list, total_count = event_service.list_events(
+        current_user, support_assigned=True
+    )
+
+    assert len(events_list) == 0
+    assert total_count == 0
+
+
+def test_list_events_filters_upcoming_only(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="500",
+        email="upcoming@email.com",
+        role_id=UserRole.SUPPORT,
+    )
+    contract = create_contract_graph(session)
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        start=datetime.now() - timedelta(days=2),
+        end=datetime.now() - timedelta(days=1),
+    )
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        start=datetime.now(),
+        end=datetime.now() + timedelta(days=1),
+    )
+
+    create_persisted_event(
+        session,
+        contract_id=contract.id,
+        start=datetime.now() - timedelta(hours=1),
+        end=datetime.now() + timedelta(days=2),
+    )
+
+    events_list, total_count = event_service.list_events(current_user, upcoming=True)
+
+    assert len(events_list) == 2
+    assert total_count == 2
+
+    events_list_all, total_count_all = event_service.list_events(
+        current_user, upcoming=False
+    )
+    assert len(events_list_all) == 3
+    assert total_count_all == 3
 
 
 # assign_support
