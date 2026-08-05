@@ -44,7 +44,7 @@ def test_create_client_duplicate_email_displays_error(logged_user_factory, sessi
     assert "Cet email existe déjà." in result.output
 
 
-def test_create_client_with_invalid_input_displays_error(logged_user_factory):
+def test_create_client_with_invalid_date_input_displays_error(logged_user_factory):
     runner = CliRunner()
     logged_user_factory(role_id=UserRole.SALES)
 
@@ -58,6 +58,25 @@ def test_create_client_with_invalid_input_displays_error(logged_user_factory):
 
     assert result.exit_code == 1
     assert "Format invalide. Veuillez utiliser JJ/MM/AAAA" in result.output
+
+
+def test_create_client_with_invalid_contact_date_displays_error(logged_user_factory):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.SALES)
+
+    result = runner.invoke(
+        cli,
+        ["client", "create"],
+        input=(
+            "Doe\nJohn\njon.doe@entreprise.com\n0123456789\nDoe&Co\n10/10/2010\n10/10/1990"
+        ),
+    )
+
+    assert result.exit_code == 0
+    assert (
+        "La date du dernier contact ne peut être antérieure au premier contact."
+        in result.output
+    )
 
 
 def test_create_client_with_no_authorization_displays_error(logged_user_factory):

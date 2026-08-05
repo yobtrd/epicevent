@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from epicevent.schemas.client_schema import ClientResponse
 from epicevent.schemas.user_schema import UserResponse
 
-TotalAmount = Annotated[Decimal, Field(gt=0, max_digits=10, decimal_places=2)]
+TotalAmount = Annotated[Decimal, Field(ge=0, max_digits=10, decimal_places=2)]
 RemainingAmount = Annotated[Decimal, Field(ge=0, max_digits=10, decimal_places=2)]
 
 

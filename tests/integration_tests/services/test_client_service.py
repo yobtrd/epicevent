@@ -6,6 +6,7 @@ from epicevent.exception import (
     ClientNotFoundError,
     ClientOwnershipError,
     EmailAlreadyExistsError,
+    InvalidContactDatesError,
     RolePermissionError,
 )
 from epicevent.models.client import Client
@@ -44,6 +45,19 @@ def test_create_client_with_same_email_raises_error(session, client_service):
     assert session.query(Client).count() == 1
 
 
+def test_create_client_with_invalid_contact_date_raises_error(session, client_service):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+
+    client_dto = create_client_dto(
+        first_contact="2010-10-10",
+        last_contact="1990-10-10",
+    )
+
+    with pytest.raises(InvalidContactDatesError):
+        client_service.create_client(current_user, client_dto)
+    assert session.query(Client).count() == 0
+
+
 @pytest.mark.parametrize("role", [UserRole.MANAGEMENT, UserRole.SUPPORT])
 def test_unauthorized_user_cannot_create_client(session, client_service, role):
     current_user = create_persisted_user(session, role_id=role)
@@ -61,16 +75,16 @@ def test_sales_can_update_owned_client(client_service, session):
     persisted_client = create_persisted_client(
         session,
         last_name="Doe",
-        last_contact="2020-10-10",
+        last_contact=date(2020, 10, 10),
         sales_representative_id=current_user.id,
     )
-    new_data = ClientUpdate(last_name="Dae", last_contact="2020-11-15")
+    new_data = ClientUpdate(last_name="Dae", last_contact="2025-11-15")
 
     client_service.update_client(current_user, persisted_client.email, new_data)
 
     session.refresh(persisted_client)
     assert persisted_client.last_name == "Dae"
-    assert persisted_client.last_contact == date(2020, 11, 15)
+    assert persisted_client.last_contact == date(2025, 11, 15)
 
 
 def test_update_client_sales_not_owned_client_raises_error(client_service, session):
@@ -87,10 +101,10 @@ def test_update_client_sales_not_owned_client_raises_error(client_service, sessi
         role_id=UserRole.SALES,
     )
     persisted_client = create_persisted_client(
-        session, last_contact="2020-10-10", sales_representative_id=other_sales.id
+        session, last_name="Doe", sales_representative_id=other_sales.id
     )
 
-    new_data = ClientUpdate(last_contact="2020-11-15")
+    new_data = ClientUpdate(last_name="Due")
 
     with pytest.raises(ClientOwnershipError):
         client_service.update_client(current_user, persisted_client.email, new_data)
@@ -104,6 +118,21 @@ def test_update_client_with_invalid_client_returns_error(client_service, session
 
     with pytest.raises(ClientNotFoundError):
         client_service.update_client(current_user, bad_client_email, new_data)
+
+
+def test_update_client_with_invalid_contact_date_raises_error(session, client_service):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+    persisted_client = create_persisted_client(
+        session,
+        first_contact=date(2010, 10, 10),
+        last_contact=date(2015, 10, 10),
+        sales_representative_id=current_user.id,
+    )
+
+    new_data = ClientUpdate(last_contact="1990-10-10")
+
+    with pytest.raises(InvalidContactDatesError):
+        client_service.update_client(current_user, persisted_client.email, new_data)
 
 
 @pytest.mark.parametrize("role", [UserRole.MANAGEMENT, UserRole.SUPPORT])

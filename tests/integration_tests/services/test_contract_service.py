@@ -5,6 +5,7 @@ import pytest
 from epicevent.exception import (
     ClientOwnershipError,
     ContractNotFoundError,
+    InvalidContractAmountError,
     RolePermissionError,
 )
 from epicevent.models.contract import Contract
@@ -34,6 +35,16 @@ def test_create_contract_by_management_success(session, contract_service):
     assert created.client_id == client.id
 
 
+def test_create_contact_with_invalid_amount_raises_errors(session, contract_service):
+    current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)
+    client = create_persisted_client(session, sales_representative_id=current_user.id)
+
+    contract_dto = create_contract_dto(total_amount=100, remaining_amount=4000)
+
+    with pytest.raises(InvalidContractAmountError):
+        contract_service.create_contract(current_user, client.email, contract_dto)
+
+
 @pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
 def test_unauthorized_user_cannot_create_contract(session, contract_service, role):
     current_user = create_persisted_user(session, role_id=role)
@@ -41,7 +52,7 @@ def test_unauthorized_user_cannot_create_contract(session, contract_service, rol
     contract_dto = create_contract_dto()
 
     with pytest.raises(RolePermissionError):
-        contract_service.create_contract(current_user, client, contract_dto)
+        contract_service.create_contract(current_user, client.email, contract_dto)
 
 
 # update_contract
@@ -130,20 +141,46 @@ def test_update_contract_with_invalid_contract_returns_error(contract_service, s
         )
 
 
-def test_update_contract_unauthorized_user_raises_error(contract_service, session):
-    current_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
+def test_update_contract_invalid_amount_raises_error(contract_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
 
     client = create_persisted_client(session, sales_representative_id=current_user.id)
 
     persisted_contract = create_persisted_contract(
         session,
+        total_amount=1000,
+        remaining_amount=500,
         client_id=client.id,
         sales_representative_id=current_user.id,
     )
 
-    new_data = ContractUpdate(is_signed=False)
+    new_data = ContractUpdate(remaining_amount=10000)
 
-    from epicevent.exception import RolePermissionError
+    with pytest.raises(InvalidContractAmountError):
+        contract_service.update_contract(
+            current_user,
+            persisted_contract.id,
+            new_data,
+        )
+
+
+def test_update_contract_unauthorized_user_raises_error(contract_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
+    sales_user = create_persisted_user(
+        session,
+        employee_number="015",
+        email="sales@email.com",
+        role_id=UserRole.SALES,
+    )
+    client = create_persisted_client(session, sales_representative_id=current_user.id)
+
+    persisted_contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_user.id,
+    )
+
+    new_data = ContractUpdate(is_signed=False)
 
     with pytest.raises(RolePermissionError):
         contract_service.update_contract(

@@ -56,7 +56,7 @@ def test_create_contract_with_invalid_client_email_displays_error(
     assert "Le client n'a pas été trouvé." in result.output
 
 
-def test_create_contract_with_invalid_input_displays_error(
+def test_create_contract_with_invalid_amount_input_displays_error(
     logged_user_factory, session, force_console_width
 ):
     runner = CliRunner()
@@ -74,6 +74,28 @@ def test_create_contract_with_invalid_input_displays_error(
     assert result.exit_code == 0
     assert "Format invalide" in result.output
     assert "le montant doit être un nombre entier ou décimal" in result.output
+    assert session.query(Contract).count() == 0
+
+
+def test_create_contract_with_invalid_amounts_displays_error(
+    logged_user_factory, session, force_console_width
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    client = create_sales_client(session)
+
+    result = runner.invoke(
+        cli,
+        ["contract", "create", client.email],
+        input="1000\n50000\nn\n",
+    )
+
+    assert result.exit_code == 0
+    assert (
+        "Le montant restant ne peut être inférieure au montant total." in result.output
+    )
     assert session.query(Contract).count() == 0
 
 

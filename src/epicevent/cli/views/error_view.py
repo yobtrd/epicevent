@@ -10,7 +10,10 @@ from epicevent.exception import (
     EmployeeNumberAlreadyExistsError,
     EventNotFoundError,
     EventOwnershipError,
+    InvalidContactDatesError,
+    InvalidContractAmountError,
     InvalidCredentialsError,
+    InvalidEventDatesError,
     InvalidInputError,
     RolePermissionError,
     SuperuserAlreadyExistsError,
@@ -32,10 +35,16 @@ ERROR_MESSAGES = {
     EmployeeNumberAlreadyExistsError: "Ce numéro d'employé existe déjà.",
     ClientNotFoundError: "Le client n'a pas été trouvé.",
     ClientOwnershipError: "Vous n'avez pas la gestion de ce client.",
+    InvalidContactDatesError: "La date du dernier contact ne peut être antérieure "
+    "au premier contact.",
     ContractNotFoundError: "Le contrat n'a pas été trouvé.",
     ContractNotSignedError: "Le contrat n'a pas encore été signé.",
+    InvalidContractAmountError: "Le montant restant ne peut être inférieure "
+    "au montant total.",
     EventNotFoundError: "L'événement n'a pas été trouvé.",
     EventOwnershipError: "Vous n'avez pas la gestion de cet événement.",
+    InvalidEventDatesError: "La date de fin de l'événement ne peut être antérieure "
+    "à sa date de début",
     SupportAssignmentError: "L'utilisateur assigné n'est pas du département support.",
 }
 
@@ -43,18 +52,16 @@ INVALID_INPUT_LABELS = {
     "email": "Email",
     "password": "Mot de passe",
     "employee_number": "Numéro d'employé",
-    "total_amount": "Montant total",
-    "remaining_amount": "Montant restant",
+    "total_amount": "Montant",
+    "remaining_amount": "Montant",
     "attendees": "Nombre de participant",
 }
 
 INVALID_INPUT_MESSAGES = {
     "Email": 'une adresse email doit contenir un "@".',
     "Mot de passe": "le mot de passe doit contenir au moins 8 caractères.",
-    "Montant total": "le montant doit être un nombre entier ou "
-    "décimal supérieur à 0 (ex: 1000 ou 1000.50).",
-    "Montant restant": "le montant doit être un nombre entier ou "
-    "décimal supérieur ou égal à 0 (ex: 1000 ou 1000.50).",
+    "Montant": "le montant doit être un nombre entier ou décimal "
+    "supérieur ou égal à 0 (ex: 1000 ou 1000.50).",
     "Nombre de participant": "le nombre doit être un nombre entier sans "
     "espaces (ex: 500) et ne peut dépasser 1000000.",
 }

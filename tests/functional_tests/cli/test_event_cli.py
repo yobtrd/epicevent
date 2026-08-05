@@ -100,7 +100,7 @@ def test_create_event_with_unsigned_contract_displays_error(
     assert session.query(Event).count() == 0
 
 
-def test_create_event_with_invalid_input_displays_error(
+def test_create_event_with_invalid_attendees_input_displays_error(
     logged_user_factory, session, force_console_width
 ):
     runner = CliRunner()
@@ -125,8 +125,39 @@ def test_create_event_with_invalid_input_displays_error(
     )
 
     assert result.exit_code == 0
-    assert "format invalide"
     assert "le nombre doit être un nombre entier sans espaces" in result.output
+    assert session.query(Event).count() == 0
+
+
+def test_create_event_with_invalid_dates_displays_error(
+    logged_user_factory, session, force_console_width
+):
+    runner = CliRunner()
+
+    logged_user = logged_user_factory(role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=logged_user.id,
+    )
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=logged_user.id,
+        is_signed=True,
+    )
+
+    result = runner.invoke(
+        cli,
+        ["event", "create", str(contract.id)],
+        input=("événement\n01/08/2026 10:00\n01/08/1990 18:00\nParis\n1000\nnotes\n"),
+    )
+
+    assert result.exit_code == 0
+    assert (
+        "La date de fin de l'événement ne peut être antérieure à sa date de début"
+        in result.output
+    )
     assert session.query(Event).count() == 0
 
 

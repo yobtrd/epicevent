@@ -1,9 +1,12 @@
+from datetime import date
+
 from epicevent.exception import (
     ClientOwnershipError,
     ContractNotFoundError,
     ContractNotSignedError,
     EventNotFoundError,
     EventOwnershipError,
+    InvalidEventDatesError,
     SupportAssignmentError,
     UserNotFoundError,
 )
@@ -54,6 +57,10 @@ class EventService:
         if current_user.id != event.support_representative_id:
             raise EventOwnershipError()
 
+    def _validate_event_dates(self, start: date, end: date) -> None:
+        if end < start:
+            raise InvalidEventDatesError()
+
     @require_permission(Permission.CREATE_EVENT)
     def create_event(
         self,
@@ -67,6 +74,7 @@ class EventService:
                 raise ContractNotFoundError()
 
             self.ensure_can_create_event(current_user, contract)
+            self._validate_event_dates(event_dto.start, event_dto.end)
 
             data = event_dto.model_dump()
             event = Event(**data, contract=contract)
@@ -83,7 +91,12 @@ class EventService:
         with self.uow:
             event = self.get_event_by_id(event_id)
             self.ensure_can_update_event(current_user, event)
+
             data = event_data.model_dump(exclude_unset=True)
+            start = data.get("start", event.start)
+            end = data.get("end", event.end)
+            self._validate_event_dates(start, end)
+
             for field, value in data.items():
                 setattr(event, field, value)
             self.uow.events.save(event)

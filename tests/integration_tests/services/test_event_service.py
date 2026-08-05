@@ -8,6 +8,7 @@ from epicevent.exception import (
     ContractNotSignedError,
     EventNotFoundError,
     EventOwnershipError,
+    InvalidEventDatesError,
     RolePermissionError,
     SupportAssignmentError,
     UserNotFoundError,
@@ -106,6 +107,25 @@ def test_create_event_with_unsigned_contract_raise_error(session, event_service)
     event_dto = create_event_dto()
 
     with pytest.raises(ContractNotSignedError):
+        event_service.create_event(current_user, contract.id, event_dto)
+
+
+def test_create_event_with_invalid_dates_raise_error(session, event_service):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        is_signed=True,
+    )
+
+    event_dto = create_event_dto(start="2020-10-10", end="1990-10-10")
+
+    with pytest.raises(InvalidEventDatesError):
         event_service.create_event(current_user, contract.id, event_dto)
 
 
@@ -209,7 +229,46 @@ def test_update_event_support_not_owned_event_raises_error(event_service, sessio
         )
 
 
-def test_update_event_with_invalid_event_returns_error(event_service, session):
+def test_update_event_with_invalid_dates_returns_errors(event_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SUPPORT)
+
+    sales_rep = create_persisted_user(
+        session,
+        employee_number="002",
+        email="sales@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    client = create_persisted_client(
+        session,
+        sales_representative_id=sales_rep.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=sales_rep.id,
+    )
+
+    persisted_event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_user.id,
+        start=datetime(2020, 8, 1, 10, 0),
+        end=datetime(2026, 8, 1, 10, 0),
+    )
+
+    new_data = EventUpdate(end="1990-05-01 10:00")
+
+    with pytest.raises(InvalidEventDatesError):
+        event_service.update_event(
+            current_user,
+            persisted_event.id,
+            new_data,
+        )
+
+
+def test_update_event_with_invalid_event_raises_error(event_service, session):
     current_user = create_persisted_user(
         session,
         role_id=UserRole.SUPPORT,

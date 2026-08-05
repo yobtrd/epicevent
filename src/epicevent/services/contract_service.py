@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 from epicevent.exception import (
     ClientNotFoundError,
     ClientOwnershipError,
     ContractNotFoundError,
+    InvalidContractAmountError,
 )
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
@@ -35,6 +38,18 @@ class ContractService:
         if current_user.id != client.sales_representative_id:
             raise ClientOwnershipError()
 
+    def _validate_contract_amount(
+        self,
+        total_amount: Decimal,
+        remaining_amount: Decimal,
+    ) -> None:
+        if (
+            (total_amount < 0)
+            or (remaining_amount < 0)
+            or (remaining_amount > total_amount)
+        ):
+            raise InvalidContractAmountError()
+
     @require_permission(Permission.CREATE_CONTRACT)
     def create_contract(
         self,
@@ -47,6 +62,11 @@ class ContractService:
             client = self.uow.clients.find_by_email(client_email)
             if client is None:
                 raise ClientNotFoundError()
+
+            self._validate_contract_amount(
+                contract_dto.total_amount,
+                contract_dto.remaining_amount,
+            )
 
             data = contract_dto.model_dump()
             contract = Contract(
@@ -68,6 +88,11 @@ class ContractService:
             contract = self.get_contract_by_id(contract_id)
             self.ensure_can_update_contract(current_user, contract.client)
             data = contract_data.model_dump(exclude_unset=True)
+
+            total_amount = data.get("total_amount", contract.total_amount)
+            remaining_amount = data.get("remaining_amount", contract.remaining_amount)
+            self._validate_contract_amount(total_amount, remaining_amount)
+
             for field, value in data.items():
                 setattr(contract, field, value)
             self.uow.contracts.save(contract)

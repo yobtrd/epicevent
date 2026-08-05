@@ -88,6 +88,18 @@ class SuperuserAlreadyExistsError(ApplicationError):
     pass
 
 
+class InvalidContactDatesError(ApplicationError):
+    pass
+
+
+class InvalidContractAmountError(ApplicationError):
+    pass
+
+
+class InvalidEventDatesError(ApplicationError):
+    pass
+
+
 # Validation errors
 ##################################
 class InvalidInputError(ApplicationError):

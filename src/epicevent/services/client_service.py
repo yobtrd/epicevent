@@ -1,4 +1,10 @@
-from epicevent.exception import ClientNotFoundError, ClientOwnershipError
+from datetime import date
+
+from epicevent.exception import (
+    ClientNotFoundError,
+    ClientOwnershipError,
+    InvalidContactDatesError,
+)
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models import Client
 from epicevent.schemas.client_schema import ClientCreate, ClientUpdate
@@ -23,6 +29,10 @@ class ClientService:
         if current_user.id != client.sales_representative_id:
             raise ClientOwnershipError()
 
+    def _validate_contact_dates(self, first_contact: date, last_contact: date) -> None:
+        if last_contact < first_contact:
+            raise InvalidContactDatesError()
+
     @require_permission(Permission.CREATE_CLIENT)
     def create_client(
         self,
@@ -30,6 +40,10 @@ class ClientService:
         client_dto: ClientCreate,
     ) -> Client:
         with self.uow:
+            self._validate_contact_dates(
+                client_dto.first_contact,
+                client_dto.last_contact,
+            )
             data = client_dto.model_dump()
             client = Client(**data, sales_representative_id=current_user.id)
             self.uow.clients.save(client)
@@ -46,6 +60,11 @@ class ClientService:
             client = self.get_client_by_email(client_email)
             self.ensure_client_owner(current_user, client)
             data = client_data.model_dump(exclude_unset=True)
+
+            first_contact = data.get("first_contact", client.first_contact)
+            last_contact = data.get("last_contact", client.last_contact)
+            self._validate_contact_dates(first_contact, last_contact)
+
             for field, value in data.items():
                 setattr(client, field, value)
             self.uow.clients.save(client)
