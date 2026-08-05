@@ -166,15 +166,15 @@ def test_current_user_can_update_his_profile(user_service, session):
     current_user = create_persisted_user(
         session,
         email="old@email.com",
-        password_hash=password_service.hash("defautpassword"),
+        password_hash=password_service.hash("defautPassword"),
     )
 
-    new_data = UserUpdateSelf(email="new@email.com", password="newpassword")
+    new_data = UserUpdateSelf(email="new@email.com", password="newPassword")
     user_service.update_self(current_user, new_data)
 
     session.refresh(current_user)
     assert current_user.email == "new@email.com"
-    assert password_service.verify(current_user.password_hash, "newpassword")
+    assert password_service.verify(current_user.password_hash, "newPassword")
 
 
 def test_update_self_partial_data_preserves_other_fields(user_service, session):

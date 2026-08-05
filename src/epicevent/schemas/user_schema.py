@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, TypeAdapter
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, TypeAdapter
 
+from epicevent.schemas.types import Email, Name
 from epicevent.security.roles import UserRole
 
 
@@ -9,19 +10,21 @@ def normalize_employee_number(value: str) -> str:
     return value.upper().strip()
 
 
-EmployeeNumber = Annotated[str, AfterValidator(normalize_employee_number)]
+EmployeeNumber = Annotated[
+    str, Field(min_length=1, max_length=20), AfterValidator(normalize_employee_number)
+]
 
 
-Password = Annotated[str, Field(min_length=8, pattern=r".*[A-Z].*")]
+Password = Annotated[str, Field(min_length=8, max_length=120, pattern=r".*[A-Z].*")]
 
 password_validator = TypeAdapter(Password)
 
 
 class UserCreateBase(BaseModel):
-    employee_number: EmployeeNumber = Field(min_length=1)
-    first_name: str = Field(min_length=1)
-    last_name: str = Field(min_length=1)
-    email: EmailStr
+    employee_number: EmployeeNumber
+    first_name: Name
+    last_name: Name
+    email: Email
     password: Password
 
     model_config = ConfigDict(
@@ -39,10 +42,10 @@ class SuperuserCreate(UserCreateBase):
 
 
 class UserUpdateSelf(BaseModel):
-    first_name: str | None = Field(default=None, min_length=1)
-    last_name: str | None = Field(default=None, min_length=1)
-    email: EmailStr | None = Field(default=None)
-    password: str | None = Field(default=None, min_length=1)
+    first_name: Name | None = None
+    last_name: Name | None = None
+    email: Email | None = None
+    password: Password | None = None
 
     model_config = ConfigDict(
         extra="forbid",
@@ -51,11 +54,11 @@ class UserUpdateSelf(BaseModel):
 
 
 class UserUpdateManagement(BaseModel):
-    employee_number: EmployeeNumber | None = Field(default=None, min_length=1)
-    first_name: str | None = Field(default=None, min_length=1)
-    last_name: str | None = Field(default=None, min_length=1)
-    email: EmailStr | None = Field(default=None)
-    role_id: UserRole | None = Field(default=None)
+    employee_number: EmployeeNumber | None = None
+    first_name: Name | None = None
+    last_name: Name | None = None
+    email: Email | None = None
+    role_id: UserRole | None = None
 
     model_config = ConfigDict(
         extra="forbid",

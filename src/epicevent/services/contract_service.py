@@ -6,8 +6,9 @@ from epicevent.exception import (
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
 from epicevent.models.contract import Contract
-from epicevent.schemas.client_schema import ClientResponse, normalize_client_email
+from epicevent.schemas.client_schema import ClientResponse
 from epicevent.schemas.contract_schema import ContractCreate, ContractUpdate
+from epicevent.schemas.types import normalize_email
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.decorators import require_permission
 from epicevent.security.permission import Permission
@@ -42,7 +43,7 @@ class ContractService:
         contract_dto: ContractCreate,
     ):
         with self.uow:
-            client_email = normalize_client_email(client_email)
+            client_email = normalize_email(client_email)
             client = self.uow.clients.find_by_email(client_email)
             if client is None:
                 raise ClientNotFoundError()

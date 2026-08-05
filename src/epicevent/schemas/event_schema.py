@@ -1,26 +1,36 @@
 from datetime import datetime
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from epicevent.schemas.contract_schema import ContractDetailResponse
 from epicevent.schemas.user_schema import UserResponse
 
+EventName = Annotated[str, Field(min_length=1, max_length=255)]
+Location = Annotated[str, Field(min_length=1, max_length=100)]
+Attendees = Annotated[int, Field(ge=1, le=1_000_000)]
+
 
 class EventCreate(BaseModel):
-    name: str = Field(min_length=1)
+    name: EventName
     start: datetime
     end: datetime
-    location: str = Field(min_length=1)
-    attendees: int = Field(ge=1, le=1_000_000)
+    location: Location
+    attendees: Attendees
     notes: str | None = None
+
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
 
 
 class EventUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1)
+    name: EventName | None = None
     start: datetime | None = None
     end: datetime | None = None
-    location: str | None = Field(default=None, min_length=1)
-    attendees: int | None = Field(default=None, ge=1, le=1_000_000)
+    location: Location | None = None
+    attendees: Attendees | None = None
     notes: str | None = None
 
     model_config = ConfigDict(

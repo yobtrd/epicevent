@@ -74,7 +74,7 @@ def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
             console.print(f"{key}. {label}")
         console.print("q. Terminer la saisie")
 
-        choice = ask("Votre choix").strip()
+        choice = ask("Votre choix")
         if choice.lower() == "q":
             break
 

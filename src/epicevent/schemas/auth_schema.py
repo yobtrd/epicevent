@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict
 
-from .user_schema import UserResponse
+from epicevent.schemas.types import Email
+from epicevent.schemas.user_schema import UserResponse
 
 
 class TokenPayload(BaseModel):
@@ -11,8 +12,8 @@ class TokenPayload(BaseModel):
 
 
 class AuthRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=1)
+    email: Email
+    password: str
 
     model_config = ConfigDict(
         extra="forbid",
@@ -24,8 +25,6 @@ class AuthResponse(BaseModel):
     user: UserResponse
     access_token: str
     refresh_token: str
-
-    model_config = ConfigDict(extra="forbid")
 
 
 class TokenPairs(BaseModel):

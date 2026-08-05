@@ -1,11 +1,8 @@
 from epicevent.exception import ClientNotFoundError, ClientOwnershipError
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models import Client
-from epicevent.schemas.client_schema import (
-    ClientCreate,
-    ClientUpdate,
-    normalize_client_email,
-)
+from epicevent.schemas.client_schema import ClientCreate, ClientUpdate
+from epicevent.schemas.types import normalize_email
 from epicevent.schemas.user_schema import UserResponse
 from epicevent.security.decorators import require_permission
 from epicevent.security.permission import Permission
@@ -16,13 +13,13 @@ class ClientService:
         self.uow = uow
 
     def get_client_by_email(self, client_email: str) -> Client:
-        client_email = normalize_client_email(client_email)
+        client_email = normalize_email(client_email)
         client = self.uow.clients.find_by_email(client_email)
         if client is None:
             raise ClientNotFoundError()
         return client
 
-    def ensure_client_owner(self, current_user, client):
+    def ensure_client_owner(self, current_user: UserResponse, client: Client):
         if current_user.id != client.sales_representative_id:
             raise ClientOwnershipError()
 

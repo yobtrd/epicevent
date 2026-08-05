@@ -26,10 +26,11 @@ def display_message(message: str, style: str = "info"):
 
 
 def ask(label: str, **kwargs):
-    return click.prompt(
+    value = click.prompt(
         click.style(label, fg="white", bold=True),
         **kwargs,
     )
+    return value.strip()
 
 
 def ask_required(label: str, **kwargs):
@@ -51,7 +52,7 @@ def ask_update_fields(fields: dict[str, tuple[str, str]]) -> dict:
 
         console.print("q. Terminer la saisie")
 
-        choice = ask("Votre choix").strip()
+        choice = ask("Votre choix")
 
         if choice.lower() == "q":
             break

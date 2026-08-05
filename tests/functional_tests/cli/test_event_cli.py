@@ -102,8 +102,7 @@ def test_create_event_with_unsigned_contract_displays_error(
 
 
 def test_create_event_with_invalid_input_displays_error(
-    logged_user_factory,
-    session,
+    logged_user_factory, session, force_console_width
 ):
     runner = CliRunner()
 
@@ -127,7 +126,8 @@ def test_create_event_with_invalid_input_displays_error(
     )
 
     assert result.exit_code == 0
-    assert "Le nombre doit être un nombre entier" in result.output
+    assert "format invalide"
+    assert "le nombre doit être un nombre entier sans espaces" in result.output
     assert session.query(Event).count() == 0
 
 
