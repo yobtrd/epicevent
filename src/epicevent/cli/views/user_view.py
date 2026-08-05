@@ -23,9 +23,15 @@ ROLE_LABELS = {
 }
 
 
-# Helpers
+# helpers
 ######################
-def _ask_for_password():
+def _ask_for_password() -> str:
+    """
+    Prompt for a password and validate its confirmation.
+
+    Returns:
+        The validated password.
+    """
     while True:
         password = ask_required("Mot de passe", hide_input=True)
         try:
@@ -46,7 +52,13 @@ def _ask_for_password():
             return password
 
 
-def _ask_for_role():
+def _ask_for_role() -> str:
+    """
+    Prompt for a user role and return the selected role label.
+
+    Returns:
+        The selected role label.
+    """
     role_labels = list(ROLE_MAPPING.keys())
     role_prompt = f"Département ({', '.join(role_labels)})"
     while True:
@@ -67,6 +79,15 @@ def _ask_for_role():
 
 
 def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
+    """
+    Display a dynamic update menu and collect modified fields.
+
+    Args:
+        fields: Mapping of menu choices to model attributes and display labels.
+
+    Returns:
+        Updated fields ready to be validated by the controller.
+    """
     updates = {}
     while True:
         console.print("\nChoisissez le champ à modifier :", style="highlight")
@@ -100,18 +121,36 @@ def _ask_update_menu(fields: dict[str, tuple[str, str]]) -> dict:
     return updates
 
 
-# create-superuser
+# create_superuser
 ######################
-def display_superuser_creation_success(superuser: UserResponse):
+def display_superuser_create_resume() -> None:
+    display_message("Création du superutilisateur", "info")
+
+
+def display_superuser_creation_success(superuser: UserResponse) -> None:
     display_message(
         f"Le superutilisateur ({superuser.email}) a bien été créé.",
         "success",
     )
 
 
-# create
+# create_user
 ######################
+def display_user_create_resume() -> None:
+    display_message("Création d'un nouvel utilisateur", "info")
+
+
 def ask_user_creation_data(include_role: bool = True) -> dict:
+    """
+    Collect user/superuser creation data from CLI inputs.
+
+    Args:
+        include_role: Whether the role selection should be requested
+        (= False for superuser).
+
+    Returns:
+        Raw user data collected from the CLI.
+    """
     employee_number = ask_required("Numéro d'employé")
     last_name = ask_required("Nom de famille")
     first_name = ask_required("Prénom")
@@ -133,7 +172,7 @@ def ask_user_creation_data(include_role: bool = True) -> dict:
     return data
 
 
-def display_user_creation_success(user: UserResponse):
+def display_user_creation_success(user: UserResponse) -> None:
     display_message(
         f"L'utilisateur {user.last_name} {user.first_name} "
         f"(n°{user.employee_number}) a été enregistré.",
@@ -141,11 +180,35 @@ def display_user_creation_success(user: UserResponse):
     )
 
 
-# update
+# update_self
 ######################
-def display_user_update_resume(target_user: UserResponse):
+def display_update_self_resume() -> None:
+    display_message("Mise à jour de votre profil", "info")
+
+
+def ask_user_self_data() -> dict:
+    fields = {
+        "1": ("first_name", "Prénom"),
+        "2": ("last_name", "Nom"),
+        "3": ("email", "Email"),
+        "4": ("password", "Mot de passe"),
+    }
+    return _ask_update_menu(fields)
+
+
+def display_update_self_success() -> None:
+    display_message("Votre profil a été mis à jour.", "success")
+
+
+def display_update_self_cancel() -> None:
+    display_message("Votre profil n'a pas été modifié.", "info")
+
+
+# update_user
+######################
+def display_user_update_resume(target_user: UserResponse) -> None:
     display_message(
-        f"Mis à jour de l'employée {target_user.last_name} {target_user.first_name}",
+        f"Mise à jour de l'employée {target_user.last_name} {target_user.first_name}",
         "info",
     )
 
@@ -161,40 +224,27 @@ def ask_user_update_data() -> dict:
     return _ask_update_menu(fields)
 
 
-def display_user_update_success(user: UserResponse):
+def display_user_update_success(user: UserResponse) -> None:
     display_message(
         f"L'utilisateur (n°{user.employee_number}) a été mis à jour.",
         "success",
     )
 
 
-def display_user_update_cancel():
+def display_user_update_cancel() -> None:
     display_message("La mise à jour de l'utilisateur a été annulée.", "info")
 
 
-# update_self
-######################
-def ask_user_self_data() -> dict:
-    fields = {
-        "1": ("first_name", "Prénom"),
-        "2": ("last_name", "Nom"),
-        "3": ("email", "Email"),
-        "4": ("password", "Mot de passe"),
-    }
-    return _ask_update_menu(fields)
-
-
-def display_update_self_success():
-    display_message("Votre profil a été mis à jour.", "success")
-
-
-def display_update_self_cancel():
-    display_message("Votre profil n'a pas été modifié.", "info")
-
-
-# list
+# list_users
 #################
-def display_users_table(users_list: list[UserDetailResponse], total_count: int):
+def display_users_table(users_list: list[UserDetailResponse], total_count: int) -> None:
+    """
+    Display users in a formatted table.
+
+    Args:
+        users_list: Users to display.
+        total_count: Total number of users matching the query.
+    """
     table = Table(title=f"\nListe des collaborateurs ({total_count} au total)")
     table.add_column("Numéro d'employé")
     table.add_column("Nom de famille")
@@ -218,11 +268,11 @@ def display_users_table(users_list: list[UserDetailResponse], total_count: int):
     console.print(table)
 
 
-def display_users_list_empty_message():
+def display_users_list_empty_message() -> None:
     display_message("Aucun collaborateur trouvé", "warning")
 
 
-# deactivate
+# deactivate_user
 ######################
 def ask_user_deactivate_confirmation(target_user: UserResponse) -> bool:
     display_message(
@@ -233,12 +283,12 @@ def ask_user_deactivate_confirmation(target_user: UserResponse) -> bool:
     return click.confirm("Entrer [Y] pour confirmer, [N] pour annuler")
 
 
-def diplay_user_deactivate_success(user: UserResponse):
+def display_user_deactivate_success(user: UserResponse) -> None:
     display_message(
         f"L'utilisateur (n°{user.employee_number}) a bien été désactivé.",
         "success",
     )
 
 
-def display_user_deactivate_cancel():
+def display_user_deactivate_cancel() -> None:
     display_message("L'opération de désactivation a été annulée.", "info")

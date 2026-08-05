@@ -7,15 +7,17 @@ from epicevent.cli.console import (
     console,
     display_message,
 )
+from epicevent.schemas.client_schema import ClientResponse
 from epicevent.schemas.contract_schema import ContractDetailResponse, ContractResponse
 
 
-# create
-#################
-def display_contract_create_resume(target_client):
+# create_contract
+####################
+def display_contract_create_resume(target_client: ClientResponse) -> None:
     display_message(
         f"Création d'un contrat pour le client {target_client.last_name} "
-        f"{target_client.first_name}"
+        f"{target_client.first_name}",
+        "info",
     )
 
 
@@ -31,19 +33,17 @@ def ask_contract_creation_data() -> dict:
     }
 
 
-def display_contract_creation_success(contract: ContractResponse):
-    display_message(
-        f"Le contrat n°{contract.id} a été enregistré.",
-        "success",
-    )
+def display_contract_creation_success(contract: ContractResponse) -> None:
+    display_message(f"Le contrat n°{contract.id} a été enregistré.", "success")
 
 
-# update
-#################
-def display_contract_update_resume(target_contract: ContractResponse):
+# update_contract
+####################
+def display_contract_update_resume(target_contract: ContractResponse) -> None:
     display_message(
         f"Modification du contrat n°{target_contract.id} du client "
-        f"{target_contract.client.last_name} {target_contract.client.first_name}."
+        f"{target_contract.client.last_name} {target_contract.client.first_name}.",
+        "info",
     )
 
 
@@ -57,20 +57,27 @@ def ask_contract_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def display_contract_update_success(contract: ContractResponse):
-    display_message(f"Le contrat n°{contract.id} a été mis à jour.")
+def display_contract_update_success(contract: ContractResponse) -> None:
+    display_message(f"Le contrat n°{contract.id} a été mis à jour.", "success")
 
 
-def display_contract_update_cancel():
-    display_message("La mise à jour du contract a été annulée.", "info")
+def display_contract_update_cancel() -> None:
+    display_message("La mise à jour du contrat a été annulée.", "info")
 
 
-# list
-#################
+# list_contracts
+####################
 def display_contracts_table(
     contracts_list: list[ContractDetailResponse],
     total_count: int,
-):
+) -> None:
+    """
+    Display contracts in a formatted table.
+
+    Args:
+        contracts_list: Contracts to display.
+        total_count: Total number of contracts matching the query.
+    """
     table = Table(title=f"\nListe des contrats ({total_count} au total)")
     table.add_column("Id du contrat")
     table.add_column("Client")
@@ -106,5 +113,5 @@ def display_contracts_table(
     console.print(table)
 
 
-def display_contract_list_empty_message():
+def display_contract_list_empty_message() -> None:
     display_message("Aucun contrat trouvé", "warning")

@@ -40,7 +40,7 @@ class ClientController:
         client = self.client_service.update_client(current_user, client_email, request)
         return ClientResponse.model_validate(client)
 
-    def list_client(
+    def list_clients(
         self, current_user, limit: int = 10, offset: int = 0
     ) -> tuple[list[ClientDetailResponse], int]:
         clients_list, total_count = self.client_service.list_clients(

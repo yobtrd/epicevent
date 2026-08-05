@@ -10,33 +10,36 @@ from epicevent.security.permission import Permission
 
 
 @click.group()
-def event():
-    """event commands."""
+def event() -> None:
+    """Gestion des événements."""
     pass
 
 
-@event.command()
-@click.argument("contract_id")
+@event.command("create")
+@click.argument("contract_id", metavar="ID_CONTRAT")
 @with_app
 @handle_errors
 @require_auth
-def create(app: Application, current_user: UserResponse, contract_id=int):
+def create_event(app: Application, current_user: UserResponse, contract_id=str) -> None:
+    """Créer un nouvel événement à partir de l'ID du contrat concerné."""
     authorization.ensure_permission(current_user, Permission.CREATE_EVENT)
     target_contract = app.contract_controller.get_contract_by_id(contract_id)
     app.event_controller.ensure_can_create_event(current_user, target_contract)
 
     event_view.display_event_create_resume(target_contract)
     data = event_view.ask_event_creation_data()
+
     event = app.event_controller.create_event(current_user, contract_id, data)
     event_view.display_event_creation_success(event)
 
 
-@event.command()
-@click.argument("event_id")
+@event.command("update")
+@click.argument("event_id", metavar="ID_EVENEMENT")
 @with_app
 @handle_errors
 @require_auth
-def update(app: Application, current_user: UserResponse, event_id: str):
+def update_event(app: Application, current_user: UserResponse, event_id: str) -> None:
+    """Mettre à jour un événement à partir de son identifiant."""
     authorization.ensure_permission(current_user, Permission.UPDATE_EVENT)
     target_event = app.event_controller.get_event_by_id(event_id)
     app.event_controller.ensure_can_update_event(current_user, target_event)
@@ -45,25 +48,38 @@ def update(app: Application, current_user: UserResponse, event_id: str):
     data = event_view.ask_event_update_data()
     if data:
         updated_event = app.event_controller.update_event(current_user, event_id, data)
-        event_view.dispaly_update_success(updated_event)
+        event_view.display_event_update_success(updated_event)
     else:
         event_view.display_event_update_cancel()
 
 
-@event.command()
-@click.option("--upcoming", is_flag=True)
-@click.option("--assigned/--unassigned", default=None)
-@click.option("--mine", is_flag=True)
+@event.command("list")
+@click.option(
+    "--upcoming",
+    help="Inclut seulement les événements futurs",
+    is_flag=True,
+)
+@click.option(
+    "--assigned/--unassigned",
+    help="Filtre les événements avec ou sans support assigné.",
+    default=None,
+)
+@click.option(
+    "--mine",
+    help="Inclut seulement les événements du support connecté",
+    is_flag=True,
+)
 @with_app
 @handle_errors
 @require_auth
-def list(
+def list_events(
     app: Application,
     current_user: UserResponse,
     upcoming: bool,
     assigned: bool | None,
     mine: bool,
-):
+) -> None:
+    """Lister les événements."""
     authorization.ensure_permission(current_user, Permission.LIST_EVENT)
 
     offset = 0
@@ -94,18 +110,23 @@ def list(
         offset = new_offset
 
 
-@event.command()
-@click.argument("event_id")
-@click.option("--support", help="Matricule du collaborateur support")
+@event.command("assign")
+@click.argument("event_id", metavar="ID_EVENEMENT")
+@click.option(
+    "--support",
+    metavar="MATRICULE",
+    help="Matricule du collaborateur support",
+)
 @with_app
 @handle_errors
 @require_auth
-def assign(
+def assign_support(
     app: Application,
     current_user: UserResponse,
-    event_id: int,
+    event_id: str,
     support: str,
-):
+) -> None:
+    """Assigner un collaborateur support à un événement."""
     authorization.ensure_permission(current_user, Permission.ASSIGN_SUPPORT)
     target_event = app.event_controller.get_event_by_id(event_id)
     target_support = app.user_controller.get_user_by_employee_number(
@@ -123,16 +144,17 @@ def assign(
         event_view.display_assign_support_cancel()
 
 
-@event.command()
-@click.argument("event_id")
+@event.command("unassign")
+@click.argument("event_id", metavar="ID_EVENEMENT")
 @with_app
 @handle_errors
 @require_auth
-def unassign(
+def unassign_support(
     app: Application,
     current_user: UserResponse,
-    event_id: int,
-):
+    event_id: str,
+) -> None:
+    """Désassigner le collaborateur support d'un événement."""
     authorization.ensure_permission(current_user, Permission.ASSIGN_SUPPORT)
     target_event = app.event_controller.get_detailed_event_by_id(event_id)
 

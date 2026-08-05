@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import click
 from rich.console import Console
 from rich.theme import Theme
@@ -21,11 +19,13 @@ console = Console(
 )
 
 
-def display_message(message: str, style: str = "info"):
+def display_message(message: str, style: str = "info") -> None:
+    """Display a message using the configured console style."""
     console.print(f"\n{message}\n", style=style)
 
 
-def ask(label: str, **kwargs):
+def ask(label: str, **kwargs) -> str:
+    """Prompt the user and return the stripped input."""
     value = click.prompt(
         click.style(label, fg="white", bold=True),
         **kwargs,
@@ -33,7 +33,8 @@ def ask(label: str, **kwargs):
     return value.strip()
 
 
-def ask_required(label: str, **kwargs):
+def ask_required(label: str, **kwargs) -> str:
+    """Prompt the user until a non-empty value is provided."""
     while True:
         value = ask(label, default="", show_default=False, **kwargs)
         if value.strip():
@@ -42,6 +43,15 @@ def ask_required(label: str, **kwargs):
 
 
 def ask_update_fields(fields: dict[str, tuple[str, str]]) -> dict:
+    """
+    Display an update menu and collect modified fields.
+
+    Args:
+        fields: Mapping between menu choices and model fields.
+
+    Returns:
+        Fields selected by the user with their new values.
+    """
     updates = {}
 
     while True:
@@ -67,23 +77,3 @@ def ask_update_fields(fields: dict[str, tuple[str, str]]) -> dict:
             console.print("Choix invalide", style="warning")
 
     return updates
-
-
-def ask_date(prompt: str) -> str:
-    while True:
-        value = ask_required(prompt)
-        try:
-            return datetime.strptime(value, "%d/%m/%Y").date()
-        except ValueError:
-            display_message("Format invalide. Veuillez utiliser JJ/MM/AAAA", "warning")
-
-
-def ask_datetime(prompt: str) -> datetime:
-    while True:
-        value = ask_required(prompt)
-        try:
-            return datetime.strptime(value, "%d/%m/%Y %H:%M")
-        except ValueError:
-            display_message(
-                "Format invalide. Veuillez utiliser JJ/MM/AAAA HH:MM", "warning"
-            )

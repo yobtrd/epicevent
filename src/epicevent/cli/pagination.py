@@ -9,6 +9,18 @@ def handle_pagination(
     received_count: int,
     total_count: int,
 ) -> int | None:
+    """
+    Display pagination options and return the next offset.
+
+    Args:
+        offset: Current pagination offset.
+        limit: Number of items requested per page.
+        received_count: Number of items returned on the current page.
+        total_count: Total number of available items.
+
+    Returns:
+        The next offset to fetch, or None when pagination should stop.
+    """
     options = []
     if offset > 0:
         options.append("[P] Précédent")
@@ -25,9 +37,9 @@ def handle_pagination(
 
     if choice == "Q":
         return None
-    elif choice == "N":
+    if choice == "N":
         return offset + limit if offset + received_count < total_count else offset
-    elif choice == "P":
+    if choice == "P":
         return max(0, offset - limit)
 
     return offset

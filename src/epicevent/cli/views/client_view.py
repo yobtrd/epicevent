@@ -1,7 +1,8 @@
+from datetime import datetime
+
 from rich.table import Table
 
 from epicevent.cli.console import (
-    ask_date,
     ask_required,
     ask_update_fields,
     console,
@@ -10,16 +11,31 @@ from epicevent.cli.console import (
 from epicevent.schemas.client_schema import ClientDetailResponse, ClientResponse
 
 
-# create
+# helper
 #################
+def _ask_date(prompt: str) -> str:
+    while True:
+        value = ask_required(prompt)
+        try:
+            return datetime.strptime(value, "%d/%m/%Y").date()
+        except ValueError:
+            display_message("Format invalide. Veuillez utiliser JJ/MM/AAAA", "warning")
+
+
+# create_client
+#################
+def display_client_create_resume() -> None:
+    display_message("Création d'un nouveau client", "info")
+
+
 def ask_client_creation_data() -> dict:
     last_name = ask_required("Nom de famille")
     first_name = ask_required("Prénom")
     email = ask_required("Email")
     phone = ask_required("Numéro de téléphone")
     business_name = ask_required("Nom de l'entreprise")
-    first_contact = ask_date("Premier contact (JJ/MM/AAAA)")
-    last_contact = ask_date("Dernier contact (JJ/MM/AAAA)")
+    first_contact = _ask_date("Premier contact (JJ/MM/AAAA)")
+    last_contact = _ask_date("Dernier contact (JJ/MM/AAAA)")
     return {
         "last_name": last_name,
         "first_name": first_name,
@@ -31,7 +47,7 @@ def ask_client_creation_data() -> dict:
     }
 
 
-def display_client_creation_success(client: ClientResponse):
+def display_client_creation_success(client: ClientResponse) -> None:
     display_message(
         f"Le client ({client.email}) a été enregistré.",
         "success",
@@ -40,7 +56,7 @@ def display_client_creation_success(client: ClientResponse):
 
 # update_client
 #################
-def display_client_update_resume(target_client: ClientResponse):
+def display_client_update_resume(target_client: ClientResponse) -> None:
     display_message(
         f"Mis à jour du client {target_client.last_name} {target_client.first_name}",
         "info",
@@ -55,26 +71,35 @@ def ask_client_update_data() -> dict:
         "4": ("phone", "Téléphone"),
         "5": ("first_contact", "Date du premier contact"),
         "6": ("last_contact", "Date du dernier contact"),
-        "7": ("address", "Adresse"),
     }
 
     return ask_update_fields(fields)
 
 
-def display_client_update_success(client: ClientResponse):
+def display_client_update_success(client: ClientResponse) -> None:
     display_message(
         f"Le client ({client.email}) a été mis à jour.",
         "success",
     )
 
 
-def display_client_update_cancel():
+def display_client_update_cancel() -> None:
     display_message("La mise à jour du client a été annulée.", "info")
 
 
-# list
+# list_clients
 #################
-def display_clients_table(clients_list: list[ClientDetailResponse], total_count: int):
+def display_clients_table(
+    clients_list: list[ClientDetailResponse],
+    total_count: int,
+) -> None:
+    """
+    Display clients in a formatted table.
+
+    Args:
+        clients_list: Clients to display.
+        total_count: Total number of client matching the query.
+    """
     table = Table(title=f"\nListe des clients ({total_count} au total)")
     table.add_column("Nom")
     table.add_column("Prénom")
@@ -107,5 +132,5 @@ def display_clients_table(clients_list: list[ClientDetailResponse], total_count:
     console.print(table)
 
 
-def display_clients_list_empty_message():
+def display_clients_list_empty_message() -> None:
     display_message("Aucun client trouvé", "warning")

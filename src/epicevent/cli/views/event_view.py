@@ -5,7 +5,6 @@ from rich.table import Table
 
 from epicevent.cli.console import (
     ask,
-    ask_datetime,
     ask_required,
     ask_update_fields,
     console,
@@ -17,29 +16,41 @@ from epicevent.schemas.user_schema import UserResponse
 
 
 # helpers
-#################
-def format_datetime(dt: datetime) -> str:
-    return dt.strftime("%d/%m/%Y %H:%M") if dt else "N/A"
+#####################
+def _format_datetime(value: datetime) -> str:
+    return value.strftime("%d/%m/%Y %H:%M")
 
 
-# create
-#################
-def display_event_create_resume(target_contract: ContractResponse):
+def _ask_datetime(prompt: str) -> datetime:
+    while True:
+        value = ask_required(prompt)
+        try:
+            return datetime.strptime(value, "%d/%m/%Y %H:%M")
+        except ValueError:
+            display_message(
+                "Format invalide. Veuillez utiliser JJ/MM/AAAA HH:MM", "warning"
+            )
+
+
+# create_event
+#####################
+def display_event_create_resume(target_contract: ContractResponse) -> None:
     display_message(
-        f"Création d'un évenement pour le contrat n°{target_contract.id} du client "
+        f"Création d'un événement pour le contrat n°{target_contract.id} du client "
         f"{target_contract.client.last_name} {target_contract.client.first_name}"
     )
 
 
 def ask_event_creation_data() -> dict:
-    name = ask_required("Nom de l'évènement")
-    start = ask_datetime("Date et heure de début (JJ/MM/AAAA HH:MM)")
-    end = ask_datetime("Date et heure de fin (JJ/MM/AAAA HH:MM)")
+    name = ask_required("Nom de l'événement")
+    start = _ask_datetime("Date et heure de début (JJ/MM/AAAA HH:MM)")
+    end = _ask_datetime("Date et heure de fin (JJ/MM/AAAA HH:MM)")
     location = ask_required("Lieu de l'événement")
     attendees = ask_required("Nombre de participants")
     notes = ask("Notes additionnelles (optionnel)", default="", show_default=False)
 
-    notes = None if notes == "" else notes
+    notes = notes.strip() or None
+
     return {
         "name": name,
         "start": start,
@@ -50,18 +61,18 @@ def ask_event_creation_data() -> dict:
     }
 
 
-def display_event_creation_success(event: EventResponse):
+def display_event_creation_success(event: EventResponse) -> None:
     display_message(
-        f'L\'évenement "{event.name}" (n°{event.id}) a été enregistré.',
+        f'L\'événement "{event.name}" (n°{event.id}) a été enregistré.',
         "success",
     )
 
 
-# update
-#################
-def display_event_update_resume(target_event: EventResponse):
+# update_event
+#####################
+def display_event_update_resume(target_event: EventResponse) -> None:
     display_message(
-        f'Modification de l\'évènement "{target_event.name}" '
+        f'Modification de l\'événement "{target_event.name}" '
         f"(n°{target_event.id}) du contrat "
         f"n°{target_event.contract_id}."
     )
@@ -69,7 +80,7 @@ def display_event_update_resume(target_event: EventResponse):
 
 def ask_event_update_data() -> dict:
     fields = {
-        "1": ("name", "Nom de l'évènement"),
+        "1": ("name", "Nom de l'événement"),
         "2": ("start", "Date et heure de début"),
         "3": ("end", "Date et heure de fin"),
         "4": ("location", "Lieu de l'événement"),
@@ -80,22 +91,32 @@ def ask_event_update_data() -> dict:
     return ask_update_fields(fields)
 
 
-def dispaly_update_success(event: EventResponse):
+def display_event_update_success(event: EventResponse) -> None:
     display_message(
-        f'L\'évènement "{event.name}" (n°{event.id}) a bien été mis à jour.'
+        f'L\'événement "{event.name}" (n°{event.id}) a bien été mis à jour.'
     )
 
 
-def display_event_update_cancel():
-    display_message("La mise à jour de l'évènement a été annulée.", "info")
+def display_event_update_cancel() -> None:
+    display_message("La mise à jour de l'événement a été annulée.", "info")
 
 
-# list
-#################
-def display_events_table(events_list: list[EventDetailResponse], total_count: int):
-    table = Table(title=f"\nListe des évènements ({total_count} au total)")
+# list_events
+#####################
+def display_events_table(
+    events_list: list[EventDetailResponse],
+    total_count: int,
+) -> None:
+    """
+    Display events in a formatted table.
+
+    Args:
+        events_list: Events to display.
+        total_count: Total number of event matching the query.
+    """
+    table = Table(title=f"\nListe des événements ({total_count} au total)")
     table.add_column("Nom")
-    table.add_column("Id de l'évènement")
+    table.add_column("Id de l'événement")
     table.add_column("Id du contrat")
     table.add_column("Nom du client")
     table.add_column("Contact du client")
@@ -128,68 +149,70 @@ def display_events_table(events_list: list[EventDetailResponse], total_count: in
             str(event.contract.id),
             client,
             sales_representative,
-            format_datetime(event.start),
-            format_datetime(event.end),
+            _format_datetime(event.start),
+            _format_datetime(event.end),
             support_representative,
             event.location,
             str(event.attendees),
-            event.notes,
+            event.notes or "",
         )
 
     console.print(table)
 
 
-def display_events_list_empty_message():
+def display_events_list_empty_message() -> None:
     display_message("Aucun événement trouvé", "warning")
 
 
-# assign
-#################
+# assign_support
+#####################
 def ask_assign_support_confirmation(
-    target_event: EventResponse, target_support: UserResponse
-):
+    target_event: EventResponse,
+    target_support: UserResponse,
+) -> bool:
     display_message(
         f"Vous aller assigner {target_support.last_name} "
         f"{target_support.first_name} (n°{target_support.employee_number}) "
-        f"à l'évènement {target_event.name} (n°{target_event.id})",
+        f"à l'événement {target_event.name} (n°{target_event.id})",
         "info",
     )
     return click.confirm("Confirmer ? ([Y] pour confirmer, [N] pour annuler)")
 
 
 def display_assign_support_success(
-    assigned_support: UserResponse, updated_event: EventResponse
-):
+    assigned_support: UserResponse,
+    updated_event: EventResponse,
+) -> None:
     display_message(
         f"Le collaborateur {assigned_support.last_name} "
         f"{assigned_support.first_name} "
         f"(n°{assigned_support.employee_number}) "
-        "a bien été assigné comme support à l'évènement "
+        "a bien été assigné comme support à l'événement "
         f"n°{updated_event.id}",
         "success",
     )
 
 
-def display_assign_support_cancel():
+def display_assign_support_cancel() -> None:
     display_message("L'ajout du collaborateur support a été annulée.", "info")
 
 
-# unassign
-#################
-def ask_unassign_support_confirmation(target_event: EventDetailResponse):
+# unassign_support
+#####################
+def ask_unassign_support_confirmation(target_event: EventDetailResponse) -> bool:
     display_message(
         f"Désassigner le support {target_event.support_representative.last_name} "
-        f"{target_event.support_representative.first_name} de l'évenement"
+        f"{target_event.support_representative.first_name} de l'événement"
         f'"{target_event.name}" n°{target_event.id} ?'
     )
     return click.confirm("[Y] pour confirmer, [N] pour annuler")
 
 
-def display_unassign_support_success(updated_event: EventDetailResponse):
+def display_unassign_support_success(updated_event: EventDetailResponse) -> None:
     display_message(
         f"Le support a bien été désassigner de l'événement n°{updated_event.id}", "info"
     )
 
 
-def display_unassign_support_cancel():
+def display_unassign_support_cancel() -> None:
     display_message("La désassignation du collaborateur support a été annulée.", "info")

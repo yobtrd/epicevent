@@ -10,29 +10,37 @@ from epicevent.security.permission import Permission
 
 
 @click.group()
-def client():
-    """client commands."""
+def client() -> None:
+    """Gestion des clients."""
     pass
 
 
-@client.command()
+@client.command("create")
 @with_app
 @handle_errors
 @require_auth
-def create(app: Application, current_user: UserResponse):
+def create_client(app: Application, current_user: UserResponse) -> None:
+    """Créer un nouveau client."""
     authorization.ensure_permission(current_user, Permission.CREATE_CLIENT)
 
+    client_view.display_client_create_resume()
     data = client_view.ask_client_creation_data()
+
     client = app.client_controller.create_client(current_user, data)
     client_view.display_client_creation_success(client)
 
 
-@client.command()
+@client.command("update")
 @click.argument("client_email")
 @with_app
 @handle_errors
 @require_auth
-def update(app: Application, current_user: UserResponse, client_email: str):
+def update_client(
+    app: Application,
+    current_user: UserResponse,
+    client_email: str,
+) -> None:
+    """Mettre à jour un client à partir de son adresse email."""
     authorization.ensure_permission(current_user, Permission.UPDATE_CLIENT)
     target_client = app.client_controller.get_client_by_email(client_email)
     app.client_controller.ensure_client_owner(current_user, target_client)
@@ -50,17 +58,18 @@ def update(app: Application, current_user: UserResponse, client_email: str):
         client_view.display_client_update_cancel()
 
 
-@client.command()
+@client.command("list")
 @with_app
 @handle_errors
 @require_auth
-def list(app: Application, current_user: UserResponse):
+def list_clients(app: Application, current_user: UserResponse) -> None:
+    """Lister les clients."""
     authorization.ensure_permission(current_user, Permission.LIST_CLIENT)
 
     offset = 0
     limit = 10
     while True:
-        clients_list, total_count = app.client_controller.list_client(
+        clients_list, total_count = app.client_controller.list_clients(
             current_user,
             offset=offset,
             limit=limit,

@@ -14,7 +14,7 @@ from .commands.user_cli import user
 
 @click.group()
 def cli():
-    """Epicevent CLI"""
+    """Epicevent CLI."""
 
 
 def main():

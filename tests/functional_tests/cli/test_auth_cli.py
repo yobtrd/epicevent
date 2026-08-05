@@ -7,6 +7,8 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
+# login
+#############
 def test_login_with_correct_credentials(session, token_path, app_factory):
     runner = CliRunner()
     user = create_persisted_user(
@@ -125,6 +127,8 @@ def test_login_with_deactivated_account(session, token_path, app_factory):
     assert "Compte désactivé, veuillez contacter un administrateur." in result.output
 
 
+# logout
+#############
 def test_logout(token_path):
     runner = CliRunner()
 

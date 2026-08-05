@@ -13,7 +13,7 @@ from tests.conftest import (
 )
 
 
-# create
+# create_contract
 ######################
 def test_create_contract_success(logged_user_factory, session):
     runner = CliRunner()
@@ -72,7 +72,6 @@ def test_create_contract_with_invalid_input_displays_error(
     )
 
     assert result.exit_code == 0
-    print(result.output)
     assert "Format invalide" in result.output
     assert "le montant doit être un nombre entier ou décimal" in result.output
     assert session.query(Contract).count() == 0
@@ -97,7 +96,7 @@ def test_create_contract_with_no_authorization_displays_error(
     assert session.query(Contract).count() == 0
 
 
-# update
+# update_contract
 ######################
 def test_update_contract_by_sales_success(logged_user_factory, session):
     runner = CliRunner()
@@ -272,10 +271,10 @@ def test_update_contract_cancel_displays_cancel_message(
     session.refresh(contract)
 
     assert contract.remaining_amount == 500
-    assert "La mise à jour du contract a été annulée." in result.output
+    assert "La mise à jour du contrat a été annulée." in result.output
 
 
-# list
+# list_contracts
 ######################
 def test_list_returns_contract_table(
     logged_user_factory,
@@ -312,7 +311,6 @@ def test_list_returns_contract_table(
     )
 
     assert result.exit_code == 0
-    print(result.output)
     assert "Liste des contrats (3 au total)" in result.output
     assert "Martin Jean" in result.output
     assert "Doe Jane (n°002)" in result.output

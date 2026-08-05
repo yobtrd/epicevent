@@ -15,9 +15,9 @@ from tests.conftest import (
 )
 
 
-# create
+# create_event
 ######################
-def test_create_event_success(logged_user_factory, session):
+def test_create_event_success(logged_user_factory, session, force_console_width):
     runner = CliRunner()
 
     logged_user = logged_user_factory(role_id=UserRole.SALES)
@@ -36,18 +36,17 @@ def test_create_event_success(logged_user_factory, session):
     result = runner.invoke(
         cli,
         ["event", "create", str(contract.id)],
-        input=("évènement\n01/08/2026 10:00\n01/08/2026 18:00\nParis\n150\nNote\n"),
+        input=("événement\n01/08/2026 10:00\n01/08/2026 18:00\nParis\n150\nNote\n"),
     )
 
     assert result.exit_code == 0
-    print(result.output)
     created_event = session.query(Event).filter_by(contract_id=contract.id).one()
 
     assert (
-        f'L\'évenement "{created_event.name}" (n°{created_event.id}) a été enregistré.'
+        f'L\'événement "{created_event.name}" (n°{created_event.id}) a été enregistré.'
         in result.output
     )
-    assert created_event.name == "évènement"
+    assert created_event.name == "événement"
     assert created_event.location == "Paris"
     assert created_event.attendees == 150
     assert created_event.notes == "Note"
@@ -122,7 +121,7 @@ def test_create_event_with_invalid_input_displays_error(
     result = runner.invoke(
         cli,
         ["event", "create", str(contract.id)],
-        input=("évènement\n01/08/2026 10:00\n01/08/2026 18:00\nParis\nabc\nnotes\n"),
+        input=("événement\n01/08/2026 10:00\n01/08/2026 18:00\nParis\nabc\nnotes\n"),
     )
 
     assert result.exit_code == 0
@@ -157,7 +156,7 @@ def test_create_event_with_no_authorization_displays_error(
     assert session.query(Event).count() == 0
 
 
-# update
+# update_event
 ######################
 def test_update_event_by_support_success(logged_user_factory, session):
     runner = CliRunner()
@@ -201,7 +200,7 @@ def test_update_event_by_support_success(logged_user_factory, session):
 
     assert event.attendees == 100
     assert (
-        f'L\'évènement "{event.name}" (n°{event.id}) a bien été mis à jour.'
+        f'L\'événement "{event.name}" (n°{event.id}) a bien été mis à jour.'
         in result.output
     )
 
@@ -217,7 +216,7 @@ def test_update_event_not_found_display_error(logged_user_factory):
     )
 
     assert result.exit_code == 0
-    assert "L'évènement n'a pas été trouvé." in result.output
+    assert "L'événement n'a pas été trouvé." in result.output
 
 
 def test_update_event_support_not_owned_event_displays_error(
@@ -265,7 +264,7 @@ def test_update_event_support_not_owned_event_displays_error(
     )
 
     assert result.exit_code == 0
-    assert "Vous n'avez pas la gestion de cet évènement." in result.output
+    assert "Vous n'avez pas la gestion de cet événement." in result.output
 
 
 def test_update_event_without_authorization_displays_error(
@@ -402,10 +401,10 @@ def test_update_event_cancel_displays_cancel_message(
     session.refresh(event)
 
     assert event.notes == "Notes initiales"
-    assert "La mise à jour de l'évènement a été annulée." in result.output
+    assert "La mise à jour de l'événement a été annulée." in result.output
 
 
-# list
+# list_events
 ######################
 def test_list_returns_event_table(
     logged_user_factory,
@@ -449,7 +448,7 @@ def test_list_returns_event_table(
     )
 
     assert result.exit_code == 0
-    assert "Liste des évènements (3 au total)" in result.output
+    assert "Liste des événements (3 au total)" in result.output
     assert "Durand Paul" in result.output
     assert "Martin Jean (n°003)" in result.output
     assert "Paris" in result.output
@@ -534,7 +533,7 @@ def test_list_filters_assigned(
     )
 
     assert result.exit_code == 0
-    assert "Liste des évènements (1 au total)" in result.output
+    assert "Liste des événements (1 au total)" in result.output
     assert "Aucun support associé pour le moment." not in result.output
 
 
@@ -574,7 +573,7 @@ def test_list_filters_unassigned(
     )
 
     assert result.exit_code == 0
-    assert "Liste des évènements (1 au total)" in result.output
+    assert "Liste des événements (1 au total)" in result.output
     assert "Aucun support associé pour le moment." in result.output
 
 
@@ -623,7 +622,7 @@ def test_list_filters_mine(
     )
 
     assert result.exit_code == 0
-    assert "Liste des évènements (2 au total)" in result.output
+    assert "Liste des événements (2 au total)" in result.output
 
 
 def test_list_filters_upcoming(
@@ -666,10 +665,10 @@ def test_list_filters_upcoming(
     )
 
     assert result.exit_code == 0
-    assert "Liste des évènements (2 au total)" in result.output
+    assert "Liste des événements (2 au total)" in result.output
 
 
-# assign
+# assign_support
 ######################
 def test_assign_support_success(logged_user_factory, session, force_console_width):
     runner = CliRunner()
@@ -691,13 +690,12 @@ def test_assign_support_success(logged_user_factory, session, force_console_widt
         input="y",
     )
 
-    print(result.output)
     assert result.exit_code == 0
 
     assert (
         f"Le collaborateur {support_user.last_name} {support_user.first_name} "
         f"(n°{support_user.employee_number}) a bien été assigné comme support "
-        f"à l'évènement n°{event.id}" in result.output
+        f"à l'événement n°{event.id}" in result.output
     )
 
     session.refresh(event)
@@ -740,7 +738,6 @@ def test_assign_support_invalid_role_displays_error(logged_user_factory, session
         input="y",
     )
 
-    print(result.output)
     assert result.exit_code == 0
     assert "L'utilisateur assigné n'est pas du département support." in result.output
 
@@ -765,7 +762,7 @@ def test_assign_support_no_authorization_displays_error(logged_user_factory, ses
     assert "Vous n'avez pas les droits pour cette action." in result.output
 
 
-# unassign
+# unassign_support
 ######################
 def test_unassign_support_success(logged_user_factory, session, force_console_width):
     runner = CliRunner()

@@ -10,30 +10,36 @@ from epicevent.security.permission import Permission
 
 
 @click.group()
-def user():
-    """user commands."""
+def user() -> None:
+    """Gestion des utilisateurs."""
     pass
 
 
 @user.command("create-superuser")
 @with_app
 @handle_errors
-def create_superuser(app: Application):
+def create_superuser(app: Application) -> None:
+    """Créer le superutilisateur."""
     app.user_controller.ensure_can_create_superuser()
 
+    user_view.display_superuser_create_resume()
     data = user_view.ask_user_creation_data(include_role=False)
+
     superuser = app.user_controller.create_superuser(data)
     user_view.display_superuser_creation_success(superuser)
 
 
-@user.command()
+@user.command("create")
 @with_app
 @handle_errors
 @require_auth
-def create(app: Application, current_user: UserResponse):
+def create_user(app: Application, current_user: UserResponse) -> None:
+    """Créer un nouvel utilisateur."""
     authorization.ensure_permission(current_user, Permission.CREATE_USER)
 
+    user_view.display_user_create_resume()
     data = user_view.ask_user_creation_data()
+
     user = app.user_controller.create_user(current_user, data)
     user_view.display_user_creation_success(user)
 
@@ -42,7 +48,9 @@ def create(app: Application, current_user: UserResponse):
 @with_app
 @handle_errors
 @require_auth
-def update_self(app: Application, current_user: UserResponse):
+def update_self(app: Application, current_user: UserResponse) -> None:
+    """Mettre à jour son profil utilisateur."""
+    user_view.display_update_self_resume()
     data = user_view.ask_user_self_data()
     if data:
         app.user_controller.update_self(current_user, data)
@@ -51,12 +59,17 @@ def update_self(app: Application, current_user: UserResponse):
         user_view.display_update_self_cancel()
 
 
-@user.command()
-@click.argument("employee_number")
+@user.command("update")
+@click.argument("employee_number", metavar="NUMERO_EMPLOYE")
 @with_app
 @handle_errors
 @require_auth
-def update(app: Application, current_user: UserResponse, employee_number: str):
+def update_user(
+    app: Application,
+    current_user: UserResponse,
+    employee_number: str,
+) -> None:
+    """Mettre à jour un utilisateur à partir de son matricule."""
     authorization.ensure_permission(current_user, Permission.UPDATE_USER)
     target_user = app.user_controller.get_user_by_employee_number(employee_number)
 
@@ -73,12 +86,21 @@ def update(app: Application, current_user: UserResponse, employee_number: str):
         user_view.display_user_update_cancel()
 
 
-@user.command()
-@click.option("--include-inactive", is_flag=True)
+@user.command("list")
+@click.option(
+    "--include-inactive",
+    help="Inclut les utillisateurs désactivés",
+    is_flag=True,
+)
 @with_app
 @handle_errors
 @require_auth
-def list(app: Application, current_user: UserResponse, include_inactive: bool):
+def list_user(
+    app: Application,
+    current_user: UserResponse,
+    include_inactive: bool,
+) -> None:
+    """Lister les utilisateurs."""
     authorization.ensure_permission(current_user, Permission.LIST_USER)
 
     offset = 0
@@ -107,12 +129,17 @@ def list(app: Application, current_user: UserResponse, include_inactive: bool):
         offset = new_offset
 
 
-@user.command()
-@click.argument("employee_number")
+@user.command("deactivate")
+@click.argument("employee_number", metavar="NUMERO_EMPLOYE")
 @with_app
 @handle_errors
 @require_auth
-def deactivate(app: Application, current_user: UserResponse, employee_number: str):
+def deactivate_user(
+    app: Application,
+    current_user: UserResponse,
+    employee_number: str,
+) -> None:
+    """Désactiver un utilisateur à partir de son matricule."""
     authorization.ensure_permission(current_user, Permission.DEACTIVATE_USER)
     target_user = app.user_controller.get_user_by_employee_number(employee_number)
 
@@ -121,6 +148,6 @@ def deactivate(app: Application, current_user: UserResponse, employee_number: st
             current_user,
             employee_number,
         )
-        user_view.diplay_user_deactivate_success(deactivated_user)
+        user_view.display_user_deactivate_success(deactivated_user)
     else:
         user_view.display_user_deactivate_cancel()

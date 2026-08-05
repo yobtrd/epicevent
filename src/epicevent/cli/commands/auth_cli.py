@@ -7,15 +7,17 @@ from epicevent.cli.views import auth_view
 
 
 @click.group()
-def auth():
-    """Authentication commands."""
+def auth() -> None:
+    """Gestion de l'authentification."""
     pass
 
 
 @auth.command()
 @with_app
 @handle_errors
-def login(app: Application):
+def login(app: Application) -> None:
+    """Connexion d'un utilisateur."""
+    auth_view.display_login_resume()
     credentials = auth_view.ask_user_credentials()
 
     auth_response = app.auth_controller.login(credentials)
@@ -27,7 +29,8 @@ def login(app: Application):
 
 
 @auth.command()
-def logout():
+def logout() -> None:
+    """Déconnexion d'un utilisateur."""
     storage = get_token_storage()
     storage.clear()
 

@@ -7,7 +7,7 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
-# create-superuser
+# create_superuser
 ######################
 def test_create_superuser_creates_management_user(session, app_factory):
     runner = CliRunner()
@@ -50,7 +50,7 @@ def test_create_superuser_fails_when_management_exists(session, app_factory):
     assert "Un superuser a déjà été créé." in result.output
 
 
-# create
+# create_user
 ######################
 def test_create_user_success(logged_user_factory, session):
     runner = CliRunner()
@@ -171,7 +171,7 @@ def test_create_user_with_no_authorization_displays_error(logged_user_factory):
     assert "Vous n'avez pas les droits pour cette action." in result.output
 
 
-# update
+# update_user
 ######################
 def test_update_user_by_management_success(logged_user_factory, session):
     runner = CliRunner()
@@ -321,7 +321,7 @@ def test_update_self_cancel_deiplays_cancel_message(logged_user_factory, session
     assert "Votre profil n'a pas été modifié." in result.output
 
 
-# list
+# list_users
 ######################
 def test_list_returns_users_table(
     logged_user_factory,
@@ -445,7 +445,7 @@ def test_list_include_inactive(
     assert "Désactivé" in result.output
 
 
-# deactivate
+# deactivate_user
 ######################
 def test_deactivate_user_success(logged_user_factory, session):
     runner = CliRunner()

@@ -10,32 +10,43 @@ from epicevent.security.permission import Permission
 
 
 @click.group()
-def contract():
-    """contract commands."""
+def contract() -> None:
+    """Gestion des contrats."""
     pass
 
 
-@contract.command()
+@contract.command("create")
 @click.argument("client_email")
 @with_app
 @handle_errors
 @require_auth
-def create(app: Application, current_user: UserResponse, client_email: str):
+def create_contract(
+    app: Application,
+    current_user: UserResponse,
+    client_email: str,
+) -> None:
+    """Créer un nouveau contrat à partir de l'email du client concerné."""
     authorization.ensure_permission(current_user, Permission.CREATE_CONTRACT)
     target_client = app.client_controller.get_client_by_email(client_email)
 
     contract_view.display_contract_create_resume(target_client)
     data = contract_view.ask_contract_creation_data()
+
     contract = app.contract_controller.create_contract(current_user, client_email, data)
     contract_view.display_contract_creation_success(contract)
 
 
-@contract.command()
-@click.argument("contract_id")
+@contract.command("update")
+@click.argument("contract_id", metavar="ID_CONTRAT")
 @with_app
 @handle_errors
 @require_auth
-def update(app: Application, current_user: UserResponse, contract_id: str):
+def update_contract(
+    app: Application,
+    current_user: UserResponse,
+    contract_id: str,
+) -> None:
+    """Mettre à jour un contrat à partir de son identifiant."""
     authorization.ensure_permission(current_user, Permission.UPDATE_CONTRACT)
     target_contract = app.contract_controller.get_contract_by_id(contract_id)
     app.contract_controller.ensure_can_update_contract(current_user, target_contract)
@@ -53,20 +64,33 @@ def update(app: Application, current_user: UserResponse, contract_id: str):
         contract_view.display_contract_update_cancel()
 
 
-@contract.command()
-@click.option("--signed/--unsigned", default=None)
-@click.option("--paid/--unpaid", default=None)
-@click.option("--mine", is_flag=True)
+@contract.command("list")
+@click.option(
+    "--signed/--unsigned",
+    help="Inclut seulement les contrats signés/non signés",
+    default=None,
+)
+@click.option(
+    "--paid/--unpaid",
+    help="Inclut seulement les contrats payés/non payés",
+    default=None,
+)
+@click.option(
+    "--mine",
+    help="Inclut seulement les contrats du commercial connecté",
+    is_flag=True,
+)
 @with_app
 @handle_errors
 @require_auth
-def list(
+def list_contracts(
     app: Application,
     current_user: UserResponse,
     signed: bool | None,
     paid: bool | None,
     mine: bool,
-):
+) -> None:
+    """Lister les contrats."""
     authorization.ensure_permission(current_user, Permission.LIST_CONTRACT)
 
     offset = 0

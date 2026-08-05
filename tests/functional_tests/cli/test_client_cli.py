@@ -6,7 +6,7 @@ from epicevent.security.roles import UserRole
 from tests.conftest import create_persisted_client, create_persisted_user
 
 
-# create
+# create_client
 ######################
 def test_create_client_success(logged_user_factory, session):
     runner = CliRunner()
@@ -70,7 +70,7 @@ def test_create_client_with_no_authorization_displays_error(logged_user_factory)
     assert "Vous n'avez pas les droits pour cette action." in result.output
 
 
-# update
+# update_client
 ######################
 def test_update_client_by_sales_success(logged_user_factory, session):
     runner = CliRunner()
@@ -188,7 +188,7 @@ def test_update_client_cancel_displays_cancel_message(
     assert "La mise à jour du client a été annulée." in result.output
 
 
-# list
+# list_clients
 ######################
 def test_list_returns_client_table(logged_user_factory, session, force_console_width):
     runner = CliRunner()

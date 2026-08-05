@@ -5,10 +5,26 @@ from epicevent import config
 
 
 class TokenStorage:
+    """
+    Handle persistence of authentication tokens for the CLI session.
+    """
+
     def __init__(self, path: Path):
         self.path = path
 
-    def save(self, access_token: str, refresh_token: str):
+    def _load(self) -> dict:
+        """
+        Load stored tokens from the storage file.
+
+        Returns an empty dictionary if the storage is unavailable.
+        """
+        try:
+            return json.loads(self.path.read_text())
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def save(self, access_token: str, refresh_token: str) -> None:
+        """Store authentication tokens locally."""
         self.path.parent.mkdir(
             parents=True,
             exist_ok=True,
@@ -24,20 +40,13 @@ class TokenStorage:
         )
 
     def get_access_token(self) -> str | None:
-        try:
-            data = json.loads(self.path.read_text())
-            return data["access_token"]
-        except (FileNotFoundError, json.JSONDecodeError, KeyError):
-            return None
+        return self._load().get("access_token")
 
     def get_refresh_token(self) -> str | None:
-        try:
-            data = json.loads(self.path.read_text())
-            return data["refresh_token"]
-        except (FileNotFoundError, json.JSONDecodeError, KeyError):
-            return None
+        return self._load().get("refresh_token")
 
-    def clear(self):
+    def clear(self) -> None:
+        """Remove stored authentication tokens."""
         self.path.unlink(missing_ok=True)
 
 
