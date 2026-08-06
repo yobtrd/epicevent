@@ -33,14 +33,14 @@ class AuthService:
             raise UserNotFoundError()
         return user
 
-    def authenticate(self, login: AuthRequest) -> AuthResponse:
+    def authenticate(self, request: AuthRequest) -> AuthResponse:
         with self.uow:
-            user = self.uow.users.find_by_email(login.email)
+            user = self.uow.users.find_by_email(request.email)
             if not user:
                 raise InvalidCredentialsError()
 
             password_check = self.password_service.verify(
-                user.password_hash, login.password
+                user.password_hash, request.password
             )
             if not password_check:
                 raise InvalidCredentialsError()

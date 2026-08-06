@@ -37,14 +37,14 @@ class ClientService:
     def create_client(
         self,
         current_user: UserResponse,
-        client_dto: ClientCreate,
+        client_data: ClientCreate,
     ) -> Client:
         with self.uow:
             self._validate_contact_dates(
-                client_dto.first_contact,
-                client_dto.last_contact,
+                client_data.first_contact,
+                client_data.last_contact,
             )
-            data = client_dto.model_dump()
+            data = client_data.model_dump()
             client = Client(**data, sales_representative_id=current_user.id)
             self.uow.clients.save(client)
             return client

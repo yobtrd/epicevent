@@ -55,7 +55,7 @@ class ContractService:
         self,
         current_user: UserResponse,
         client_email: str,
-        contract_dto: ContractCreate,
+        contract_data: ContractCreate,
     ):
         with self.uow:
             client_email = normalize_email(client_email)
@@ -64,11 +64,11 @@ class ContractService:
                 raise ClientNotFoundError()
 
             self._validate_contract_amount(
-                contract_dto.total_amount,
-                contract_dto.remaining_amount,
+                contract_data.total_amount,
+                contract_data.remaining_amount,
             )
 
-            data = contract_dto.model_dump()
+            data = contract_data.model_dump()
             contract = Contract(
                 **data,
                 client=client,

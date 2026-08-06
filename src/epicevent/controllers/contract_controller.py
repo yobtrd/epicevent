@@ -1,6 +1,4 @@
-from pydantic import ValidationError
-
-from epicevent.exception import InvalidInputError
+from epicevent.controllers.base_controller import BaseController
 from epicevent.schemas.contract_schema import (
     ContractCreate,
     ContractDetailResponse,
@@ -11,42 +9,47 @@ from epicevent.schemas.user_schema import UserResponse
 from epicevent.services.contract_service import ContractService
 
 
-class ContractController:
-    def __init__(self, contract_service: ContractService):
+class ContractController(BaseController):
+    """Coordinate contract operations between CLI and services."""
+
+    def __init__(self, contract_service: ContractService) -> None:
         self.contract_service = contract_service
 
-    def get_contract_by_id(self, contract_id: int):
+    def get_contract_by_id(self, contract_id: int) -> ContractResponse:
         contract = self.contract_service.get_contract_by_id(contract_id)
         return ContractResponse.model_validate(contract)
 
     def ensure_can_update_contract(
-        self, current_user: UserResponse, contract: ContractResponse
-    ):
+        self,
+        current_user: UserResponse,
+        contract: ContractResponse,
+    ) -> None:
         self.contract_service.ensure_can_update_contract(
             current_user,
             contract.client,
         )
 
     def create_contract(
-        self, current_user: UserResponse, client_email: str, data: dict
+        self,
+        current_user: UserResponse,
+        client_email: str,
+        data: dict,
     ) -> ContractResponse:
-        try:
-            request = ContractCreate(**data)
-        except ValidationError as e:
-            raise InvalidInputError(e.errors()) from e
-
+        request = self._validate(ContractCreate, data)
         contract = self.contract_service.create_contract(
-            current_user, client_email, request
+            current_user,
+            client_email,
+            request,
         )
         return ContractResponse.model_validate(contract)
 
     def update_contract(
-        self, current_user: UserResponse, contract_id: int, data: dict
+        self,
+        current_user: UserResponse,
+        contract_id: int,
+        data: dict,
     ) -> ContractResponse:
-        try:
-            request = ContractUpdate(**data)
-        except ValidationError as e:
-            raise InvalidInputError(e.errors()) from e
+        request = self._validate(ContractUpdate, data)
         contract = self.contract_service.update_contract(
             current_user, contract_id, request
         )
@@ -61,7 +64,7 @@ class ContractController:
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[ContractDetailResponse], int]:
-        contracts_list, toal_count = self.contract_service.list_contracts(
+        contracts_list, total_count = self.contract_service.list_contracts(
             current_user,
             is_signed=is_signed,
             is_paid=is_paid,
@@ -74,5 +77,5 @@ class ContractController:
                 ContractDetailResponse.model_validate(contract)
                 for contract in contracts_list
             ],
-            toal_count,
+            total_count,
         )

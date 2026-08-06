@@ -39,13 +39,13 @@ class UserService:
         if self.uow.users.superuser_exists():
             raise SuperuserAlreadyExistsError()
 
-    def create_superuser(self, user_dto: SuperuserCreate) -> User:
+    def create_superuser(self, user_data: SuperuserCreate) -> User:
         self.ensure_can_create_superuser()
 
         with self.uow:
-            hashed_password = self.password_service.hash(user_dto.password)
+            hashed_password = self.password_service.hash(user_data.password)
 
-            data = user_dto.model_dump(exclude={"password"})
+            data = user_data.model_dump(exclude={"password"})
             data["password_hash"] = hashed_password
             data["role_id"] = UserRole.MANAGEMENT
 
@@ -58,12 +58,12 @@ class UserService:
     def create_user(
         self,
         current_user: UserResponse,
-        user_dto: UserCreate,
+        user_data: UserCreate,
     ) -> User:
         with self.uow:
-            hashed_password = self.password_service.hash(user_dto.password)
+            hashed_password = self.password_service.hash(user_data.password)
 
-            data = user_dto.model_dump(exclude={"password"})
+            data = user_data.model_dump(exclude={"password"})
             data["password_hash"] = hashed_password
 
             user = User(**data)
@@ -71,8 +71,8 @@ class UserService:
 
             return user
 
-    def _apply_user_updates(self, user: User, data: dict):
-        for field, value in data.items():
+    def _apply_user_updates(self, user: User, user_data: dict):
+        for field, value in user_data.items():
             if field == "password":
                 user.password_hash = self.password_service.hash(value)
             else:
@@ -80,7 +80,9 @@ class UserService:
         self.uow.users.save(user)
 
     def update_self(
-        self, current_user: UserResponse, user_data: UserUpdateSelf
+        self,
+        current_user: UserResponse,
+        user_data: UserUpdateSelf,
     ) -> User:
         with self.uow:
             user = self.get_user_by_employee_number(current_user.employee_number)

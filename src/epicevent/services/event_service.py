@@ -66,7 +66,7 @@ class EventService:
         self,
         current_user: UserResponse,
         contract_id: int,
-        event_dto: EventCreate,
+        event_data: EventCreate,
     ):
         with self.uow:
             contract = self.uow.contracts.find_by_id(contract_id)
@@ -74,9 +74,9 @@ class EventService:
                 raise ContractNotFoundError()
 
             self.ensure_can_create_event(current_user, contract)
-            self._validate_event_dates(event_dto.start, event_dto.end)
+            self._validate_event_dates(event_data.start, event_data.end)
 
-            data = event_dto.model_dump()
+            data = event_data.model_dump()
             event = Event(**data, contract=contract)
             self.uow.events.save(event)
             return event
