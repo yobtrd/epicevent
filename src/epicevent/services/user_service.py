@@ -162,4 +162,5 @@ class UserService:
             if not user.is_active:
                 raise UserAlreadyDeactivatedError()
             user.is_active = False
+            self.uow.users.save(user)
             return user

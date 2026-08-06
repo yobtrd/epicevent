@@ -127,6 +127,7 @@ class EventService:
 
             for field, value in data.items():
                 setattr(event, field, value)
+            self.uow.events.save(event)
             return event
 
     @require_permission(Permission.LIST_EVENT)
@@ -190,6 +191,7 @@ class EventService:
                 raise SupportAssignmentError()
 
             event.support_representative = support
+            self.uow.events.save(event)
             return support, event
 
     @require_permission(Permission.ASSIGN_SUPPORT)
@@ -207,4 +209,5 @@ class EventService:
         with self.uow:
             event = self.get_event_by_id(event_id)
             event.support_representative = None
+            self.uow.events.save(event)
             return event

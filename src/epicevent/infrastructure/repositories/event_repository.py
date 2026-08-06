@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, joinedload
 
 from epicevent.models.contract import Contract
@@ -7,7 +7,9 @@ from epicevent.security.roles import UserRole
 
 
 class EventRepository:
-    def __init__(self, session: Session):
+    """Handle data access operations for events."""
+
+    def __init__(self, session: Session) -> None:
         self.session = session
 
     def save(self, event: Event) -> Event:
@@ -16,17 +18,18 @@ class EventRepository:
         return event
 
     def find_by_id(self, event_id: int) -> Event | None:
-        return self.session.query(Event).filter_by(id=event_id).first()
+        return self.session.get(Event, event_id)
 
     def _apply_filters(
         self,
-        query,
+        query: Select,
         user_id: int,
         user_role: int,
         upcoming: bool = False,
         is_assigned: bool | None = None,
         support_assigned: bool = False,
-    ):
+    ) -> Select:
+        """Apply active status filters to the query."""
         if upcoming:
             query = query.where(Event.end > func.now())
 
@@ -52,7 +55,13 @@ class EventRepository:
         support_assigned: bool = False,
         limit: int = 10,
         offset: int = 0,
-    ):
+    ) -> list[Event]:
+        """
+        Retrieve a paginated list of events matching the active filter.
+
+        Eagerly loads the contract (including client and sales representative)
+        and the support representative to optimize performance.
+        """
         query = select(Event).options(
             joinedload(Event.contract).joinedload(Contract.client),
             joinedload(Event.contract).joinedload(Contract.sales_representative),
@@ -92,5 +101,4 @@ class EventRepository:
         )
 
         count_query = select(func.count()).select_from(query.subquery())
-
         return self.session.execute(count_query).scalar_one()

@@ -2,34 +2,46 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from epicevent.exception import EmailAlreadyExistsError
+from epicevent.infrastructure.integrity_error_translator import (
+    translate_integrity_error,
+)
 from epicevent.models import Client
 
 
 class ClientRepository:
-    def __init__(self, session: Session):
+    """Handle data access operations for clients."""
+
+    def __init__(self, session: Session) -> None:
         self.session = session
 
-    def _translate_integrity_error(self, exc):
-        constraint = exc.orig.diag.constraint_name
+    def save(self, client: Client) -> Client:
+        """
+        Persist a client instance in the database.
 
-        match constraint:
-            case "client_email_key":
-                raise EmailAlreadyExistsError() from exc
-
-    def save(self, client: Client):
+        Uses flush to catch and translate unique constraint violations
+        (email) into domain exceptions.
+        """
         try:
             self.session.add(client)
             self.session.flush()
             return client
         except IntegrityError as exc:
-            self._translate_integrity_error(exc)
+            translate_integrity_error(exc)
 
     def find_by_email(self, email: str) -> Client | None:
         stmt = select(Client).where(Client.email == email)
         return self.session.scalars(stmt).first()
 
-    def list(self, limit: int = 100, offset: int = 0) -> list[Client]:
+    def list(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[Client]:
+        """
+        Retrieve a paginated list of clients.
+
+        Eagerly loads the sales_representative to optimize performance.
+        """
         return (
             self.session.execute(
                 select(Client)
@@ -42,4 +54,4 @@ class ClientRepository:
         )
 
     def count(self) -> int:
-        return self.session.query(func.count(Client.id)).scalar()
+        return self.session.execute(select(func.count(Client.id))).scalar_one()

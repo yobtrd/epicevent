@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session, joinedload
 
 from epicevent.models.contract import Contract
@@ -6,26 +6,29 @@ from epicevent.security.roles import UserRole
 
 
 class ContractRepository:
-    def __init__(self, session: Session):
+    """Handle data access operations for contracts."""
+
+    def __init__(self, session: Session) -> None:
         self.session = session
 
-    def save(self, contract):
+    def save(self, contract: Contract) -> Contract:
         self.session.add(contract)
         self.session.flush()
         return contract
 
     def find_by_id(self, contract_id: int) -> Contract | None:
-        return self.session.query(Contract).filter_by(id=contract_id).first()
+        return self.session.get(Contract, contract_id)
 
     def _apply_filters(
         self,
-        query,
+        query: Select,
         user_id: int,
         user_role: int,
         is_signed: bool | None = None,
         is_paid: bool | None = None,
         sales_assigned: bool = False,
-    ):
+    ) -> Select:
+        """Apply active status filters to the query."""
         if is_signed is not None:
             query = query.where(Contract.is_signed == is_signed)
 
@@ -52,7 +55,12 @@ class ContractRepository:
         sales_assigned: bool = False,
         limit: int = 10,
         offset: int = 0,
-    ):
+    ) -> list[Contract]:
+        """
+        Retrieve a paginated list of contracts matching the active filter.
+
+        Eagerly loads the client and sales representative to optimize performance.
+        """
         query = select(Contract).options(
             joinedload(Contract.client),
             joinedload(Contract.sales_representative),
@@ -79,6 +87,7 @@ class ContractRepository:
         is_paid: bool | None = None,
         sales_assigned: bool = False,
     ) -> int:
+        """Return the total count of contracts matching the active filter."""
         query = select(Contract)
 
         query = self._apply_filters(
@@ -91,5 +100,4 @@ class ContractRepository:
         )
 
         count_query = select(func.count()).select_from(query.subquery())
-
         return self.session.execute(count_query).scalar_one()

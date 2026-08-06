@@ -121,6 +121,7 @@ class ContractService:
 
             for field, value in data.items():
                 setattr(contract, field, value)
+            self.uow.contracts.save(contract)
             return contract
 
     @require_permission(Permission.LIST_CONTRACT)
