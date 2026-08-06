@@ -5,8 +5,10 @@ from epicevent.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 
-SessionLocal = sessionmaker(bind=engine)
+SessionFactory = sessionmaker(bind=engine)
 
 
 class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy ORM models."""
+
     pass

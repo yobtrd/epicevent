@@ -1,11 +1,14 @@
 from collections.abc import Callable
 from contextlib import contextmanager
 
+from sqlalchemy.orm import Session
+
 from epicevent.controllers.auth_controller import AuthController
 from epicevent.controllers.client_controller import ClientController
 from epicevent.controllers.contract_controller import ContractController
 from epicevent.controllers.event_controller import EventController
 from epicevent.controllers.user_controller import UserController
+from epicevent.infrastructure.base import SessionFactory
 from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.contract_repository import ContractRepository
 from epicevent.infrastructure.repositories.event_repository import EventRepository
@@ -19,10 +22,15 @@ from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
 from epicevent.services.user_service import UserService
 
-from .infrastructure.base import SessionLocal
-
 
 class Application:
+    """
+    Application facade exposing the available controllers.
+
+    Provides a single access point to the application use cases for
+    external interfaces such as the CLI.
+    """
+
     def __init__(
         self,
         auth_controller: AuthController,
@@ -30,7 +38,7 @@ class Application:
         client_controller: ClientController,
         contract_controller: ContractController,
         event_controller: EventController,
-    ):
+    ) -> None:
         self.auth_controller = auth_controller
         self.user_controller = user_controller
         self.client_controller = client_controller
@@ -39,12 +47,28 @@ class Application:
 
 
 class ApplicationFactory:
-    def __init__(self, session_factory: Callable, use_nested_transaction: bool = False):
+    """
+    Build the application dependency graph.
+
+    Creates database sessions, repositories, services, and controllers
+    for each application context.
+    """
+
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        use_nested_transaction: bool = False,
+    ) -> None:
         self.session_factory = session_factory
         self.use_nested_transaction = use_nested_transaction
 
     @contextmanager
     def create(self):
+        """
+        Create an application context with a dedicated database session.
+
+        The session is closed when the context exits.
+        """
         session = self.session_factory()
 
         try:
@@ -85,4 +109,4 @@ class ApplicationFactory:
             session.close()
 
 
-application_factory = ApplicationFactory(SessionLocal)
+application_factory = ApplicationFactory(SessionFactory)
