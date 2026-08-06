@@ -16,6 +16,7 @@ from epicevent.services.client_service import ClientService
 from epicevent.services.contract_service import ContractService
 from epicevent.services.event_service import EventService
 from epicevent.services.password_service import PasswordService
+from epicevent.services.token_service import TokenService
 from epicevent.services.user_service import UserService
 
 from .infrastructure.base import SessionLocal
@@ -61,8 +62,10 @@ class ApplicationFactory:
                 use_nested_transaction=self.use_nested_transaction,
             )
 
+            token_service = TokenService()
             password_service = PasswordService()
-            auth_service = AuthService(uow)
+
+            auth_service = AuthService(uow, token_service, password_service)
             user_service = UserService(uow, password_service)
             client_service = ClientService(uow)
             contract_service = ContractService(uow)

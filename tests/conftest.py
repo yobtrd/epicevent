@@ -26,6 +26,7 @@ from epicevent.schemas.contract_schema import ContractCreate
 from epicevent.schemas.event_schema import EventCreate
 from epicevent.schemas.user_schema import UserCreate
 from epicevent.security.roles import UserRole
+from epicevent.services.auth_service import AuthService
 from epicevent.services.client_service import ClientService
 from epicevent.services.contract_service import ContractService
 from epicevent.services.event_service import EventService
@@ -121,6 +122,15 @@ def force_console_width():
 
 # Services
 #######################
+@pytest.fixture
+def auth_service(uow):
+    return AuthService(
+        uow,
+        TokenService(),
+        PasswordService(),
+    )
+
+
 @pytest.fixture
 def user_service(uow):
     return UserService(

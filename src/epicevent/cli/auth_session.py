@@ -10,15 +10,7 @@ def get_authenticated_user(app: Application) -> UserResponse:
     """
     Retrieve the authenticated user from the current CLI session.
 
-    The function loads stored authentication tokens, validates the session
-    through the authentication controller, and updates stored tokens if they
-    have been refreshed.
-
-    Args:
-        app: Application instance providing access to controllers.
-
-    Returns:
-        The currently authenticated user.
+    Refreshes and stores tokens when the session is renewed.
 
     Raises:
         AuthenticationError: If the session cannot be authenticated.

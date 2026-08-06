@@ -5,18 +5,16 @@ from epicevent import config
 
 
 class TokenStorage:
-    """
-    Handle persistence of authentication tokens for the CLI session.
-    """
+    """Handle persistence of authentication tokens for the CLI session."""
 
     def __init__(self, path: Path):
         self.path = path
 
     def _load(self) -> dict:
         """
-        Load stored tokens from the storage file.
+        Load stored tokens.
 
-        Returns an empty dictionary if the storage is unavailable.
+        Returns an empty dictionary when no valid session data is available.
         """
         try:
             return json.loads(self.path.read_text())

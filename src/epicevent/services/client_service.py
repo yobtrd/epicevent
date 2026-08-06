@@ -6,7 +6,7 @@ from epicevent.exception import (
     InvalidContactDatesError,
 )
 from epicevent.infrastructure.unit_of_work import UnitOfWork
-from epicevent.models import Client
+from epicevent.models.client import Client
 from epicevent.schemas.client_schema import ClientCreate, ClientUpdate
 from epicevent.schemas.types import normalize_email
 from epicevent.schemas.user_schema import UserResponse
@@ -15,21 +15,36 @@ from epicevent.security.permission import Permission
 
 
 class ClientService:
-    def __init__(self, uow: UnitOfWork):
+    """Handle client management operations."""
+
+    def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
     def get_client_by_email(self, client_email: str) -> Client:
+        """
+        Retrieve a client by email.
+
+        Raises:
+            ClientNotFoundError: If no client matches the email.
+        """
         client_email = normalize_email(client_email)
         client = self.uow.clients.find_by_email(client_email)
         if client is None:
             raise ClientNotFoundError()
         return client
 
-    def ensure_client_owner(self, current_user: UserResponse, client: Client):
+    def ensure_client_owner(self, current_user: UserResponse, client: Client) -> None:
+        """
+        Ensure that the current sales user owns the client.
+
+        Raises:
+            ClientOwnershipError: If the sales is not the client owner.
+        """
         if current_user.id != client.sales_representative_id:
             raise ClientOwnershipError()
 
     def _validate_contact_dates(self, first_contact: date, last_contact: date) -> None:
+        """Validate that the last contact date is not before the first contact date."""
         if last_contact < first_contact:
             raise InvalidContactDatesError()
 
@@ -73,10 +88,15 @@ class ClientService:
     @require_permission(Permission.LIST_CLIENT)
     def list_clients(
         self,
-        current_user,
+        current_user: UserResponse,
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[Client], int]:
+        """
+        Retrieve clients with pagination.
+
+        Returns the paginated clients and the total matching count.
+        """
         with self.uow:
             clients = self.uow.clients.list(limit=limit, offset=offset)
             total_count = self.uow.clients.count()

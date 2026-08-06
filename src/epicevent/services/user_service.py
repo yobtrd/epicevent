@@ -20,26 +20,41 @@ from epicevent.services.password_service import PasswordService
 
 
 class UserService:
+    """Handle user management operations."""
+
     def __init__(
         self,
         uow: UnitOfWork,
         password_service: PasswordService,
-    ):
+    ) -> None:
         self.uow = uow
         self.password_service = password_service
 
     def get_user_by_employee_number(self, employee_number: str) -> User:
+        """
+        Retrieve a user by employee number.
+
+        Raises:
+            UserNotFoundError: If no user matches the employee number.
+        """
         employee_number = normalize_employee_number(employee_number)
         user = self.uow.users.find_by_employee_number(employee_number)
         if user is None:
             raise UserNotFoundError()
         return user
 
-    def ensure_can_create_superuser(self):
+    def ensure_can_create_superuser(self) -> None:
+        """
+        Ensure that a superuser can be created.
+
+        Raises:
+            SuperuserAlreadyExistsError: If a superuser already exists.
+        """
         if self.uow.users.superuser_exists():
             raise SuperuserAlreadyExistsError()
 
     def create_superuser(self, user_data: SuperuserCreate) -> User:
+        """Create a user with the management role and a hashed password."""
         self.ensure_can_create_superuser()
 
         with self.uow:
@@ -60,6 +75,7 @@ class UserService:
         current_user: UserResponse,
         user_data: UserCreate,
     ) -> User:
+        """Create a user with a hashed password."""
         with self.uow:
             hashed_password = self.password_service.hash(user_data.password)
 
@@ -71,7 +87,12 @@ class UserService:
 
             return user
 
-    def _apply_user_updates(self, user: User, user_data: dict):
+    def _apply_user_updates(self, user: User, user_data: dict) -> None:
+        """
+        Apply user updates to an entity.
+
+        Password updates are hashed before being stored.
+        """
         for field, value in user_data.items():
             if field == "password":
                 user.password_hash = self.password_service.hash(value)
@@ -109,6 +130,11 @@ class UserService:
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[User], int]:
+        """
+        Retrieve users with pagination.
+
+        Returns the paginated users and the total matching count.
+        """
         with self.uow:
             users = self.uow.users.list(
                 include_inactive=include_inactive,
@@ -124,6 +150,13 @@ class UserService:
         current_user: UserResponse,
         employee_number: str,
     ) -> User:
+        """
+        Deactivate a user account.
+
+        Raises:
+            UserNotFoundError: If the user does not exist.
+            UserAlreadyDeactivatedError: If the account is already inactive.
+        """
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             if not user.is_active:

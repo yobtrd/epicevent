@@ -19,10 +19,18 @@ from epicevent.security.roles import UserRole
 
 
 class ContractService:
-    def __init__(self, uow: UnitOfWork):
+    """Handle contract management operations."""
+
+    def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
     def get_contract_by_id(self, contract_id: int) -> Contract:
+        """
+        Retrieve a contract by ID.
+
+        Raises:
+            ContractNotFoundError: If no contract matches the ID.
+        """
         contract = self.uow.contracts.find_by_id(contract_id)
         if contract is None:
             raise ContractNotFoundError()
@@ -32,7 +40,16 @@ class ContractService:
         self,
         current_user: UserResponse,
         client: Client | ClientResponse,
-    ):
+    ) -> None:
+        """
+        Ensure that the user can update a contract.
+
+        Management users bypass ownership checks.
+        Sales users must own the associated client.
+
+        Raises:
+            ClientOwnershipError: If the user does not own the client.
+        """
         if current_user.role_id == UserRole.MANAGEMENT:
             return
         if current_user.id != client.sales_representative_id:
@@ -43,6 +60,15 @@ class ContractService:
         total_amount: Decimal,
         remaining_amount: Decimal,
     ) -> None:
+        """
+        Validate contract amounts.
+
+        The remaining amount cannot exceed the total amount and
+        both amounts must be non-negative.
+
+        Raises:
+            InvalidContractAmountError: If the amounts are invalid.
+        """
         if (
             (total_amount < 0)
             or (remaining_amount < 0)
@@ -56,7 +82,7 @@ class ContractService:
         current_user: UserResponse,
         client_email: str,
         contract_data: ContractCreate,
-    ):
+    ) -> Contract:
         with self.uow:
             client_email = normalize_email(client_email)
             client = self.uow.clients.find_by_email(client_email)
@@ -83,7 +109,7 @@ class ContractService:
         current_user: UserResponse,
         contract_id: int,
         contract_data: ContractUpdate,
-    ):
+    ) -> Contract:
         with self.uow:
             contract = self.get_contract_by_id(contract_id)
             self.ensure_can_update_contract(current_user, contract.client)
@@ -95,7 +121,6 @@ class ContractService:
 
             for field, value in data.items():
                 setattr(contract, field, value)
-            self.uow.contracts.save(contract)
             return contract
 
     @require_permission(Permission.LIST_CONTRACT)
@@ -108,6 +133,11 @@ class ContractService:
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[Contract], int]:
+        """
+        Retrieve contracts with pagination.
+
+        Returns the paginated contracts and the total matching count.
+        """
         with self.uow:
             contracts = self.uow.contracts.list(
                 user_id=current_user.id,

@@ -19,7 +19,9 @@ from epicevent.schemas.auth_schema import TokenPayload
 
 
 class TokenService:
-    def _now(self):
+    """Handle JWT token creation and validation."""
+
+    def _now(self) -> datetime:
         return datetime.now(UTC)
 
     def create_access_token(self, user: User) -> str:
@@ -42,7 +44,18 @@ class TokenService:
         }
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-    def decode_token(self, token: str, token_type: str | None = None) -> TokenPayload:
+    def decode_token(
+        self,
+        token: str,
+        token_type: str | None = None,
+    ) -> TokenPayload:
+        """
+        Decode a JWT token and validate its payload.
+
+        Raises:
+            ExpiredTokenError: If the token has expired.
+            InvalidTokenError: If the token cannot be validated.
+        """
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
             if token_type and payload.get("type") != token_type:

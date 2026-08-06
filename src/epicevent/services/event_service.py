@@ -27,10 +27,18 @@ from epicevent.security.roles import UserRole
 
 
 class EventService:
-    def __init__(self, uow: UnitOfWork):
+    """Handle event management operations."""
+
+    def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
     def get_event_by_id(self, event_id: int) -> Event:
+        """
+        Retrieve an event by ID.
+
+        Raises:
+            EventNotFoundError: If no event matches the ID.
+        """
         event = self.uow.events.find_by_id(event_id)
         if event is None:
             raise EventNotFoundError()
@@ -40,7 +48,17 @@ class EventService:
         self,
         current_user: UserResponse,
         contract: Contract | ContractResponse,
-    ):
+    ) -> None:
+        """
+        Ensure that a user can create an event for a contract.
+
+        The sales user must own the associated client and the contract
+        must be signed.
+
+        Raises:
+            ClientOwnershipError: If the user does not own the client.
+            ContractNotSignedError: If the contract is not signed.
+        """
         if current_user.id != contract.client.sales_representative_id:
             raise ClientOwnershipError()
         if not contract.is_signed:
@@ -50,7 +68,16 @@ class EventService:
         self,
         current_user: UserResponse,
         event: Event | EventResponse,
-    ):
+    ) -> None:
+        """
+        Ensure that a user can update an event.
+
+        Management users bypass ownership checks.
+        Support users must be assigned to the event.
+
+        Raises:
+            EventOwnershipError: If the user is not assigned to the event.
+        """
         if current_user.role_id == UserRole.MANAGEMENT:
             return
 
@@ -58,6 +85,7 @@ class EventService:
             raise EventOwnershipError()
 
     def _validate_event_dates(self, start: date, end: date) -> None:
+        """Validate that the event end date is not before the start date."""
         if end < start:
             raise InvalidEventDatesError()
 
@@ -67,7 +95,7 @@ class EventService:
         current_user: UserResponse,
         contract_id: int,
         event_data: EventCreate,
-    ):
+    ) -> Event:
         with self.uow:
             contract = self.uow.contracts.find_by_id(contract_id)
             if contract is None:
@@ -87,7 +115,7 @@ class EventService:
         current_user: UserResponse,
         event_id: int,
         event_data: EventUpdate,
-    ):
+    ) -> Event:
         with self.uow:
             event = self.get_event_by_id(event_id)
             self.ensure_can_update_event(current_user, event)
@@ -99,7 +127,6 @@ class EventService:
 
             for field, value in data.items():
                 setattr(event, field, value)
-            self.uow.events.save(event)
             return event
 
     @require_permission(Permission.LIST_EVENT)
@@ -112,6 +139,11 @@ class EventService:
         limit: int = 10,
         offset: int = 0,
     ) -> tuple[list[Event], int]:
+        """
+        Retrieve events with pagination.
+
+        Returns the paginated events and the total matching count.
+        """
         with self.uow:
             events = self.uow.events.list(
                 user_id=current_user.id,
@@ -138,6 +170,16 @@ class EventService:
         event_id: int,
         employee_number: str,
     ) -> tuple[User, Event]:
+        """
+        Assign a support representative to an event.
+
+        The assigned user must have the support role.
+
+        Raises:
+            EventNotFoundError: If the event does not exist.
+            UserNotFoundError: If the support user does not exist.
+            SupportAssignmentError: If the user is not support.
+        """
         with self.uow:
             event = self.get_event_by_id(event_id)
             support = self.uow.users.find_by_employee_number(employee_number)
@@ -151,7 +193,17 @@ class EventService:
             return support, event
 
     @require_permission(Permission.ASSIGN_SUPPORT)
-    def unassign_support(self, current_user: UserResponse, event_id: int) -> Event:
+    def unassign_support(
+        self,
+        current_user: UserResponse,
+        event_id: int,
+    ) -> Event:
+        """
+        Remove the support representative assigned to an event.
+
+        Raises:
+            EventNotFoundError: If the event does not exist.
+        """
         with self.uow:
             event = self.get_event_by_id(event_id)
             event.support_representative = None

@@ -8,7 +8,6 @@ from epicevent.exception import (
     UserNotFoundError,
 )
 from epicevent.schemas.auth_schema import AuthRequest
-from epicevent.services.auth_service import AuthService
 from epicevent.services.password_service import PasswordService
 from epicevent.services.token_service import TokenService
 from tests.conftest import create_persisted_user, create_user
@@ -16,8 +15,7 @@ from tests.conftest import create_persisted_user, create_user
 
 # authenticate
 ########################
-def test_authenticate_correct_credentials(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_correct_credentials(auth_service, session):
     password = "password"
     user = create_persisted_user(
         session,
@@ -34,8 +32,7 @@ def test_authenticate_correct_credentials(uow, session):
     assert response.refresh_token is not None
 
 
-def test_authenticate_unknow_email(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_unknow_email(auth_service, session):
     password = "password"
     create_persisted_user(
         session,
@@ -48,8 +45,7 @@ def test_authenticate_unknow_email(uow, session):
         auth_service.authenticate(auth_request)
 
 
-def test_authenticate_wrong_password(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_wrong_password(auth_service, session):
     password = "password"
     user = create_persisted_user(
         session,
@@ -62,8 +58,7 @@ def test_authenticate_wrong_password(uow, session):
         auth_service.authenticate(auth_request)
 
 
-def test_authenticate_with_deactivated_account(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_with_deactivated_account(auth_service, session):
     password = "password"
     user = create_persisted_user(
         session,
@@ -79,8 +74,7 @@ def test_authenticate_with_deactivated_account(uow, session):
 
 # get_current_user
 ########################
-def test_get_current_user_with_valid_token(uow, session):
-    auth_service = AuthService(uow)
+def test_get_current_user_with_valid_token(auth_service, session):
     token_service = TokenService()
 
     user = create_persisted_user(session, last_name="Doe")
@@ -92,9 +86,7 @@ def test_get_current_user_with_valid_token(uow, session):
     assert user_found.last_name == "Doe"
 
 
-def test_get_current_user_when_user_not_found_returns_error(uow):
-    auth_service = AuthService(uow)
-
+def test_get_current_user_when_user_not_found_returns_error(auth_service):
     user = create_user(id=999)
 
     token = TokenService().create_access_token(user)
@@ -105,8 +97,7 @@ def test_get_current_user_when_user_not_found_returns_error(uow):
 
 # refresh_session
 ########################
-def test_refresh_session_return_new_session(uow, session):
-    auth_service = AuthService(uow)
+def test_refresh_session_return_new_session(auth_service, session):
     token_service = TokenService()
 
     user = create_persisted_user(session, last_name="Doe")
@@ -120,8 +111,7 @@ def test_refresh_session_return_new_session(uow, session):
     assert response.new_tokens.refresh_token is not None
 
 
-def test_refresh_session_when_user_not_found_returns_error(uow):
-    auth_service = AuthService(uow)
+def test_refresh_session_when_user_not_found_returns_error(auth_service):
     token_service = TokenService()
 
     user = create_user(id=999)
@@ -133,8 +123,7 @@ def test_refresh_session_when_user_not_found_returns_error(uow):
 
 # authenticate_session
 ########################
-def test_authenticate_with_valid_access_token_returns_user(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_with_valid_access_token_returns_user(auth_service, session):
     token_service = TokenService()
 
     user = create_persisted_user(session, last_name="Doe")
@@ -152,9 +141,9 @@ def test_authenticate_with_valid_access_token_returns_user(uow, session):
 
 
 def test_authenticate_session_with_expired_access_token_returns_new_session(
-    uow, session
+    auth_service,
+    session,
 ):
-    auth_service = AuthService(uow)
     token_service = TokenService()
 
     user = create_persisted_user(session, last_name="Doe")
@@ -176,8 +165,10 @@ def test_authenticate_session_with_expired_access_token_returns_new_session(
     assert response.new_tokens.refresh_token is not None
 
 
-def test_authenticate_session_with_expired_refresh_token_returns_error(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_session_with_expired_refresh_token_returns_error(
+    auth_service,
+    session,
+):
     token_service = TokenService()
 
     user = create_persisted_user(session)
@@ -194,9 +185,7 @@ def test_authenticate_session_with_expired_refresh_token_returns_error(uow, sess
             )
 
 
-def test_authenticate_session_with_invalid_access_token_returns_error(uow):
-    auth_service = AuthService(uow)
-
+def test_authenticate_session_with_invalid_access_token_returns_error(auth_service):
     with pytest.raises(AuthenticationError):
         auth_service.authenticate_session(
             "this-is-not-a-valid-token",
@@ -204,9 +193,7 @@ def test_authenticate_session_with_invalid_access_token_returns_error(uow):
         )
 
 
-def test_authenticate_session_without_tokens_returns_error(uow):
-    auth_service = AuthService(uow)
-
+def test_authenticate_session_without_tokens_returns_error(auth_service):
     with pytest.raises(AuthenticationError):
         auth_service.authenticate_session(
             None,
@@ -214,8 +201,9 @@ def test_authenticate_session_without_tokens_returns_error(uow):
         )
 
 
-def test_authenticate_session_without_refresh_token_returns_error(uow, session):
-    auth_service = AuthService(uow)
+def test_authenticate_session_without_refresh_token_returns_error(
+    auth_service, session
+):
     token_service = TokenService()
 
     user = create_persisted_user(session)
@@ -228,8 +216,9 @@ def test_authenticate_session_without_refresh_token_returns_error(uow, session):
         )
 
 
-def test_authenticate_session_with_unknown_user_returns_authentication_error(uow):
-    auth_service = AuthService(uow)
+def test_authenticate_session_with_unknown_user_returns_authentication_error(
+    auth_service,
+):
     token_service = TokenService()
 
     user = create_user(id=999)
