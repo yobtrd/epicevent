@@ -2,6 +2,8 @@ from enum import StrEnum
 
 
 class Permission(StrEnum):
+    """Define permissions used for authorization checks."""
+
     CREATE_USER = "user.create"
     UPDATE_USER = "user.update"
     LIST_USER = "user.list"

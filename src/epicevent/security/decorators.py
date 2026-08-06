@@ -5,6 +5,16 @@ from epicevent.security.permission import Permission
 
 
 def require_permission(permission: Permission):
+    """
+    Require a specific permission before executing a service method.
+
+    The decorated function must receive the authenticated user as a
+    `current_user` keyword argument or as its second positional argument.
+
+    Raises:
+        RolePermissionError: If the user does not have the required permission.
+    """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

@@ -35,11 +35,18 @@ ROLE_PERMISSIONS = {
 }
 
 
-def has_permission(user: User, permission: Permission):
+def has_permission(user: User, permission: Permission) -> bool:
+    """Check whether a user has a specific permission."""
     user_permissions = ROLE_PERMISSIONS.get(user.role_id, [])
     return permission in user_permissions
 
 
-def ensure_permission(user: User, permission: Permission):
+def ensure_permission(user: User, permission: Permission) -> None:
+    """
+    Ensure that a user has a specific permission.
+
+    Raises:
+        RolePermissionError: If the user lacks the required permission.
+    """
     if not has_permission(user, permission):
         raise RolePermissionError()
