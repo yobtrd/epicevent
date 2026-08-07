@@ -1,3 +1,7 @@
+import os
+
+os.environ["ENV_FILE"] = ".env.test"
+
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
@@ -9,7 +13,7 @@ import epicevent.models  # noqa: F401
 from epicevent import bootstrap
 from epicevent.cli.console import console
 from epicevent.cli.token_storage import get_token_storage
-from epicevent.config import TEST_DATABASE_URL
+from epicevent.config.settings import settings
 from epicevent.infrastructure.base import Base
 from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.contract_repository import ContractRepository
@@ -39,7 +43,7 @@ from epicevent.services.user_service import UserService
 #######################
 @pytest.fixture(scope="session")
 def engine():
-    engine = create_engine(TEST_DATABASE_URL)
+    engine = create_engine(settings.database_url)
 
     Base.metadata.create_all(engine)
 
@@ -103,7 +107,7 @@ def token_path(monkeypatch, tmp_path):
     path = tmp_path / "token.json"
 
     monkeypatch.setattr(
-        "epicevent.config.TOKEN_PATH",
+        "epicevent.config.settings.settings.token_path",
         path,
     )
 

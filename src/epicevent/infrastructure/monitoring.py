@@ -1,15 +1,14 @@
 import sentry_sdk
 
-from epicevent.config import SENTRY_DSN
+from epicevent.config.settings import settings
 
 
 def init_monitoring() -> None:
     """Initializes Sentry SDK with configuration from settings."""
-    if SENTRY_DSN:
+    if settings.sentry_dsn:
         sentry_sdk.init(
-            dsn=SENTRY_DSN,
+            dsn=settings.sentry_dsn,
             send_default_pii=True,
-            debug=False,
         )
 
 

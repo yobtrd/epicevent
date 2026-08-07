@@ -11,6 +11,7 @@ wheels/
 # Environments
 .venv
 .env
+.env.test
 venv
 env
 

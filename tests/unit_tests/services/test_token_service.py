@@ -2,7 +2,7 @@ import jwt
 import pytest
 from freezegun import freeze_time
 
-from epicevent.config import SECRET_KEY
+from epicevent.config.settings import settings
 from epicevent.exception import ExpiredTokenError, InvalidTokenError
 from epicevent.services.auth_service import TokenService
 from tests.conftest import create_user
@@ -15,7 +15,7 @@ def test_create_access_token():
 
     payload = jwt.decode(
         access_token,
-        SECRET_KEY,
+        settings.secret_key,
         algorithms=["HS256"],
     )
 
@@ -31,7 +31,7 @@ def test_create_refresh_token():
 
     payload = jwt.decode(
         refresh_token,
-        SECRET_KEY,
+        settings.secret_key,
         algorithms=["HS256"],
     )
 

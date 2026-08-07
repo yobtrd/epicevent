@@ -7,11 +7,8 @@ from jwt.exceptions import (
 )
 from pydantic import ValidationError
 
-from epicevent.config import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    ALGORITHM,
-    REFRESH_TOKEN_EXPIRE_DAYS,
-    SECRET_KEY,
+from epicevent.config.settings import (
+    settings,
 )
 from epicevent.exception import ExpiredTokenError, InvalidTokenError
 from epicevent.models.user import User
@@ -29,20 +26,20 @@ class TokenService:
         payload = {
             "sub": str(user.id),
             "iat": now,
-            "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
             "type": "access",
         }
-        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
     def create_refresh_token(self, user: User) -> str:
         now = self._now()
         payload = {
             "sub": str(user.id),
             "iat": now,
-            "exp": now + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+            "exp": now + timedelta(days=settings.refresh_token_expire_days),
             "type": "refresh",
         }
-        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
     def decode_token(
         self,
@@ -57,7 +54,11 @@ class TokenService:
             InvalidTokenError: If the token cannot be validated.
         """
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+            payload = jwt.decode(
+                token,
+                settings.secret_key,
+                algorithms=settings.algorithm,
+            )
             if token_type and payload.get("type") != token_type:
                 raise InvalidTokenError()
             return TokenPayload.model_validate(payload)
