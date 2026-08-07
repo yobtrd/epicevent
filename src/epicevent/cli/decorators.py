@@ -2,11 +2,13 @@ from functools import wraps
 
 import epicevent.bootstrap as bootstrap
 from epicevent.cli.auth_session import get_authenticated_user
-from epicevent.cli.views.error_view import (
+from epicevent.cli.error_handler import (
+    ERROR_MESSAGES,
     display_application_error,
     display_invalid_input_error,
 )
 from epicevent.exception import ApplicationError, InvalidInputError
+from epicevent.infrastructure.monitoring import capture_exception
 
 
 def with_app(func):
@@ -30,10 +32,14 @@ def with_app(func):
 
 def handle_errors(func):
     """
-    Handle application-level exceptions raised by CLI commands.
+    Handle application exceptions raised by CLI commands.
 
-    Converts domain exceptions into user-friendly console messages instead of
-    exposing raw exceptions to the CLI user.
+    Converts expected application errors into user-friendly console messages
+    and reports unexpected application errors to the monitoring system.
+
+    Validation errors are displayed with field-specific messages, while
+    unknown application errors are captured before displaying a generic error
+    message to the user.
     """
 
     @wraps(func)
@@ -43,11 +49,13 @@ def handle_errors(func):
 
         except InvalidInputError as error:
             display_invalid_input_error(error)
+            return None
 
         except ApplicationError as error:
+            if type(error) not in ERROR_MESSAGES:
+                capture_exception(error)
             display_application_error(error)
-
-        return None
+            return None
 
     return wrapper
 

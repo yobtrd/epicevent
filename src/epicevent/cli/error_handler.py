@@ -69,7 +69,10 @@ INVALID_INPUT_MESSAGES = {
 
 def display_application_error(error: ApplicationError) -> None:
     """
-    Display an application error message.
+    Display a user-friendly message for an application error.
+
+    Falls back to a generic unexpected error message when no message is
+    configured for the exception type.
 
     Args:
         error: Application exception raised by the application layer.
@@ -79,7 +82,7 @@ def display_application_error(error: ApplicationError) -> None:
     if message:
         display_message(f"Erreur: {message}", "error")
     else:
-        display_message("Erreur: Une erreur inattendue est survenue.", "error")
+        display_unexpected_error()
 
 
 def display_invalid_input_error(error: InvalidInputError) -> None:
@@ -104,3 +107,7 @@ def display_invalid_input_error(error: InvalidInputError) -> None:
 
         message = INVALID_INPUT_MESSAGES.get(label, "Saisie invalide.")
         display_message(f"{label}: Format invalide, {message}", "warning")
+
+
+def display_unexpected_error():
+    display_message("Erreur: Une erreur inattendue est survenue.", "error")

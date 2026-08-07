@@ -13,6 +13,7 @@ dependencies = [
     "pyjwt[crypto]>=2.13.0",
     "python-dotenv>=1.2.2",
     "rich>=15.0.0",
+    "sentry-sdk>=2.66.1",
     "sqlalchemy>=2.0.51",
 ]
 

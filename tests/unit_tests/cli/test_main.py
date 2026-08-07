@@ -27,3 +27,16 @@ def test_main_displays_unexpected_error(mocker, capsys):
 
     captured = capsys.readouterr()
     assert "Erreur: Une erreur inattendue est survenue." in captured.out
+
+
+def test_main_captures_unexpected_error(mocker):
+    capture = mocker.patch("epicevent.cli.main.capture_exception")
+
+    display = mocker.patch("epicevent.cli.main.display_unexpected_error")
+
+    mocker.patch("epicevent.cli.main.cli", side_effect=RuntimeError())
+
+    main()
+
+    capture.assert_called_once()
+    display.assert_called_once()

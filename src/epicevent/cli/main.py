@@ -1,15 +1,12 @@
 import click
 
-from epicevent.cli.views.error_view import display_application_error
-from epicevent.exception import (
-    ApplicationError,
-)
-
-from .commands.auth_cli import auth
-from .commands.client_cli import client
-from .commands.contract_cli import contract
-from .commands.event_cli import event
-from .commands.user_cli import user
+from epicevent.cli.commands.auth_cli import auth
+from epicevent.cli.commands.client_cli import client
+from epicevent.cli.commands.contract_cli import contract
+from epicevent.cli.commands.event_cli import event
+from epicevent.cli.commands.user_cli import user
+from epicevent.cli.error_handler import display_unexpected_error
+from epicevent.infrastructure.monitoring import capture_exception, init_monitoring
 
 
 @click.group()
@@ -18,10 +15,12 @@ def cli():
 
 
 def main():
+    init_monitoring()
     try:
         cli()
-    except ApplicationError as error:
-        display_application_error(error)
+    except Exception as error:
+        capture_exception(error)
+        display_unexpected_error()
 
 
 cli.add_command(auth)
