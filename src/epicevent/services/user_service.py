@@ -3,6 +3,7 @@ from epicevent.exception import (
     UserAlreadyDeactivatedError,
     UserNotFoundError,
 )
+from epicevent.infrastructure import monitoring
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.user import User
 from epicevent.schemas.user_schema import (
@@ -67,7 +68,7 @@ class UserService:
             user = User(**data)
             self.uow.users.save(user)
 
-            return user
+        return user
 
     @require_permission(Permission.CREATE_USER)
     def create_user(
@@ -85,7 +86,12 @@ class UserService:
             user = User(**data)
             self.uow.users.save(user)
 
-            return user
+        monitoring.capture_event(
+            "user_created",
+            user_id=user.id,
+        )
+
+        return user
 
     def _apply_user_updates(self, user: User, user_data: dict) -> None:
         """
@@ -108,7 +114,13 @@ class UserService:
         with self.uow:
             user = self.get_user_by_employee_number(current_user.employee_number)
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
-            return user
+
+        monitoring.capture_event(
+            "user_profile_updated",
+            user_id=user.id,
+        )
+
+        return user
 
     @require_permission(Permission.UPDATE_USER)
     def update_user(
@@ -120,7 +132,13 @@ class UserService:
         with self.uow:
             user = self.get_user_by_employee_number(employee_number)
             self._apply_user_updates(user, user_data.model_dump(exclude_unset=True))
-            return user
+
+        monitoring.capture_event(
+            "user_updated_management",
+            user_id=user.id,
+        )
+
+        return user
 
     @require_permission(Permission.LIST_USER)
     def list_users(
@@ -142,7 +160,7 @@ class UserService:
                 offset=offset,
             )
             total_count = self.uow.users.count(include_inactive=include_inactive)
-            return users, total_count
+        return users, total_count
 
     @require_permission(Permission.DEACTIVATE_USER)
     def deactivate(
@@ -163,4 +181,4 @@ class UserService:
                 raise UserAlreadyDeactivatedError()
             user.is_active = False
             self.uow.users.save(user)
-            return user
+        return user

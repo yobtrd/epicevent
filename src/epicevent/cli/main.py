@@ -6,7 +6,7 @@ from epicevent.cli.commands.contract_cli import contract
 from epicevent.cli.commands.event_cli import event
 from epicevent.cli.commands.user_cli import user
 from epicevent.cli.error_handler import display_unexpected_error
-from epicevent.infrastructure.monitoring import capture_exception, init_monitoring
+from epicevent.infrastructure import monitoring
 
 
 @click.group()
@@ -15,12 +15,14 @@ def cli():
 
 
 def main():
-    init_monitoring()
+    monitoring.init_monitoring()
     try:
         cli()
     except Exception as error:
-        capture_exception(error)
+        monitoring.capture_exception(error)
         display_unexpected_error()
+    finally:
+        monitoring.shutdown_monitoring()
 
 
 cli.add_command(auth)

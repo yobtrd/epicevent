@@ -9,7 +9,7 @@ from epicevent.exception import (
 # handle_errors
 #################
 def test_handle_errors_captures_unknown_application_error(mocker):
-    capture = mocker.patch("epicevent.cli.decorators.capture_exception")
+    capture = mocker.patch("epicevent.cli.decorators.monitoring.capture_exception")
 
     @handle_errors
     def command():
@@ -22,7 +22,7 @@ def test_handle_errors_captures_unknown_application_error(mocker):
 
 
 def test_handle_errors_does_not_capture_known_application_error(mocker):
-    capture = mocker.patch("epicevent.cli.decorators.capture_exception")
+    capture = mocker.patch("epicevent.cli.decorators.monitoring.capture_exception")
 
     @handle_errors
     def command():
@@ -34,7 +34,7 @@ def test_handle_errors_does_not_capture_known_application_error(mocker):
 
 
 def test_handle_errors_does_not_capture_validation_error(mocker):
-    capture = mocker.patch("epicevent.cli.decorators.capture_exception")
+    capture = mocker.patch("epicevent.cli.decorators.monitoring.capture_exception")
 
     @handle_errors
     def command():

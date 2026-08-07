@@ -8,7 +8,7 @@ from epicevent.cli.error_handler import (
     display_invalid_input_error,
 )
 from epicevent.exception import ApplicationError, InvalidInputError
-from epicevent.infrastructure.monitoring import capture_exception
+from epicevent.infrastructure import monitoring
 
 
 def with_app(func):
@@ -53,7 +53,7 @@ def handle_errors(func):
 
         except ApplicationError as error:
             if type(error) not in ERROR_MESSAGES:
-                capture_exception(error)
+                monitoring.capture_exception(error)
             display_application_error(error)
             return None
 

@@ -55,6 +55,21 @@ def test_unauthorized_user_cannot_create_contract(session, contract_service, rol
         contract_service.create_contract(current_user, client.email, contract_dto)
 
 
+def test_create_contract_triggers_monitoring_if_created_signed(
+    contract_service,
+    session,
+    mocker,
+):
+    current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)
+    client = create_persisted_client(session, sales_representative_id=current_user.id)
+    contract_dto = create_contract_dto()
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    created = contract_service.create_contract(current_user, client.email, contract_dto)
+
+    capture.assert_called_once_with("contract_signed", contract_id=created.id)
+
+
 # update_contract
 ###################
 def test_sales_can_update_owned_contract(contract_service, session):
@@ -226,6 +241,62 @@ def test_management_can_update_any_contract(contract_service, session):
     session.refresh(persisted_contract)
 
     assert persisted_contract.is_signed is True
+
+
+def test_update_contract_triggers_monitoring_when_signing(
+    contract_service,
+    session,
+    mocker,
+):
+    current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)
+    client = create_persisted_client(session, sales_representative_id=current_user.id)
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        is_signed=False,
+    )
+
+    new_data = ContractUpdate(is_signed=True)
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+
+    contract_service.update_contract(
+        current_user,
+        contract.id,
+        new_data,
+    )
+
+    capture.assert_called_once_with("contract_signed", contract_id=contract.id)
+
+
+def test_update_contract_does_not_trigger_monitoring_if_already_signed(
+    contract_service,
+    session,
+    mocker,
+):
+    current_user = create_persisted_user(session, role_id=UserRole.MANAGEMENT)
+    client = create_persisted_client(session, sales_representative_id=current_user.id)
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        is_signed=True,
+    )
+
+    new_data = ContractUpdate(is_signed=True)
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+
+    contract_service.update_contract(
+        current_user,
+        contract.id,
+        new_data,
+    )
+
+    capture.assert_not_called()
 
 
 # list_contracts

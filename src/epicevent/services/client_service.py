@@ -59,10 +59,12 @@ class ClientService:
                 client_data.first_contact,
                 client_data.last_contact,
             )
+
             data = client_data.model_dump()
             client = Client(**data, sales_representative_id=current_user.id)
             self.uow.clients.save(client)
-            return client
+
+        return client
 
     @require_permission(Permission.UPDATE_CLIENT)
     def update_client(
@@ -83,7 +85,8 @@ class ClientService:
             for field, value in data.items():
                 setattr(client, field, value)
             self.uow.clients.save(client)
-            return client
+
+        return client
 
     @require_permission(Permission.LIST_CLIENT)
     def list_clients(
@@ -100,4 +103,5 @@ class ClientService:
         with self.uow:
             clients = self.uow.clients.list(limit=limit, offset=offset)
             total_count = self.uow.clients.count()
-            return clients, total_count
+
+        return clients, total_count

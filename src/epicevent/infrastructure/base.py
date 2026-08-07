@@ -5,7 +5,7 @@ from epicevent.config.settings import settings
 
 engine = create_engine(settings.database_url)
 
-SessionFactory = sessionmaker(bind=engine)
+SessionFactory = sessionmaker(bind=engine, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):

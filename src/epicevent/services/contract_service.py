@@ -6,6 +6,7 @@ from epicevent.exception import (
     ContractNotFoundError,
     InvalidContractAmountError,
 )
+from epicevent.infrastructure import monitoring
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.client import Client
 from epicevent.models.contract import Contract
@@ -101,7 +102,14 @@ class ContractService:
                 sales_representative_id=client.sales_representative_id,
             )
             self.uow.contracts.save(contract)
-            return contract
+
+        if contract.is_signed:
+            monitoring.capture_event(
+                "contract_signed",
+                contract_id=contract.id,
+            )
+
+        return contract
 
     @require_permission(Permission.UPDATE_CONTRACT)
     def update_contract(
@@ -112,6 +120,9 @@ class ContractService:
     ) -> Contract:
         with self.uow:
             contract = self.get_contract_by_id(contract_id)
+
+            was_signed = contract.is_signed
+
             self.ensure_can_update_contract(current_user, contract.client)
             data = contract_data.model_dump(exclude_unset=True)
 
@@ -122,7 +133,14 @@ class ContractService:
             for field, value in data.items():
                 setattr(contract, field, value)
             self.uow.contracts.save(contract)
-            return contract
+
+        if not was_signed and contract.is_signed:
+            monitoring.capture_event(
+                "contract_signed",
+                contract_id=contract.id,
+            )
+
+        return contract
 
     @require_permission(Permission.LIST_CONTRACT)
     def list_contracts(
@@ -156,4 +174,5 @@ class ContractService:
                 is_paid=is_paid,
                 sales_assigned=sales_assigned,
             )
-            return contracts, total_count
+
+        return contracts, total_count

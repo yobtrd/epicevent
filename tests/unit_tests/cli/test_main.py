@@ -30,7 +30,7 @@ def test_main_displays_unexpected_error(mocker, capsys):
 
 
 def test_main_captures_unexpected_error(mocker):
-    capture = mocker.patch("epicevent.cli.main.capture_exception")
+    capture = mocker.patch("epicevent.cli.main.monitoring.capture_exception")
 
     display = mocker.patch("epicevent.cli.main.display_unexpected_error")
 

@@ -35,3 +35,10 @@ def logout() -> None:
     storage.clear()
 
     auth_view.display_logout_success()
+
+
+@auth.command()
+@with_app
+@handle_errors
+def test():
+    print(1 / 0)

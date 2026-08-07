@@ -124,6 +124,20 @@ def test_unauthorized_user_cannot_create_user(user_service, session, role):
     assert session.query(User).count() == 0
 
 
+def test_create_user_triggers_monitoring(
+    user_service,
+    session,
+    mocker,
+):
+    current_user = create_user(role_id=UserRole.MANAGEMENT)
+    user_dto = create_user_dto()
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    created = user_service.create_user(current_user, user_dto)
+
+    capture.assert_called_once_with("user_created", user_id=created.id)
+
+
 # update_user_management
 ###########################
 def test_management_can_update_profile(user_service, session):
@@ -159,6 +173,24 @@ def test_update_user_unauthorized_user_raises_error(user_service, session, role)
         user_service.update_user(current_user, persisted_user.employee_number, new_data)
 
 
+def test_update_user_management_triggers_monitoring(
+    user_service,
+    session,
+    mocker,
+):
+    current_user = create_user(role_id=UserRole.MANAGEMENT)
+    persisted_user = create_persisted_user(session, role_id=UserRole.SALES)
+
+    new_data = UserUpdateManagement(role_id=UserRole.SUPPORT)
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    user_service.update_user(current_user, persisted_user.employee_number, new_data)
+
+    capture.assert_called_once_with(
+        "user_updated_management", user_id=persisted_user.id
+    )
+
+
 # update_self_profile
 ###########################
 def test_current_user_can_update_his_profile(user_service, session):
@@ -189,6 +221,20 @@ def test_update_self_partial_data_preserves_other_fields(user_service, session):
     assert current_user.email == "john.new@test.com"
     assert current_user.first_name == "John"
     assert current_user.last_name == "Doe"
+
+
+def test_update_self_triggers_monitoring(
+    user_service,
+    session,
+    mocker,
+):
+    current_user = create_persisted_user(session)
+    new_data = UserUpdateSelf(email="new@email.com")
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    user_service.update_self(current_user, new_data)
+
+    capture.assert_called_once_with("user_profile_updated", user_id=current_user.id)
 
 
 # list_users

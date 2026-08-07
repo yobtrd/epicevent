@@ -107,7 +107,8 @@ class EventService:
             data = event_data.model_dump()
             event = Event(**data, contract=contract)
             self.uow.events.save(event)
-            return event
+
+        return event
 
     @require_permission(Permission.UPDATE_EVENT)
     def update_event(
@@ -128,7 +129,8 @@ class EventService:
             for field, value in data.items():
                 setattr(event, field, value)
             self.uow.events.save(event)
-            return event
+
+        return event
 
     @require_permission(Permission.LIST_EVENT)
     def list_events(
@@ -162,7 +164,8 @@ class EventService:
                 is_assigned=is_assigned,
                 support_assigned=support_assigned,
             )
-            return events, total_count
+
+        return events, total_count
 
     @require_permission(Permission.ASSIGN_SUPPORT)
     def assign_support(
@@ -192,7 +195,8 @@ class EventService:
 
             event.support_representative = support
             self.uow.events.save(event)
-            return support, event
+
+        return support, event
 
     @require_permission(Permission.ASSIGN_SUPPORT)
     def unassign_support(
@@ -210,4 +214,5 @@ class EventService:
             event = self.get_event_by_id(event_id)
             event.support_representative = None
             self.uow.events.save(event)
-            return event
+
+        return event
