@@ -92,7 +92,7 @@ def display_contracts_table(
             f"{contract.client.last_name} {contract.client.first_name} "
             f"({contract.client.email})"
         )
-        sales_representative = (
+        sales_contact = (
             f"{contract.sales_representative.first_name} "
             f"{contract.sales_representative.last_name} "
             f"(n°{contract.sales_representative.employee_number})"
@@ -102,7 +102,7 @@ def display_contracts_table(
         table.add_row(
             str(contract.id),
             client,
-            sales_representative,
+            sales_contact,
             str(contract.total_amount),
             str(contract.remaining_amount),
             statut,
@@ -126,7 +126,7 @@ def display_contract_details(contract: ContractDetailResponse) -> None:
         f"{contract.client.last_name} {contract.client.first_name} "
         f"({contract.client.email})"
     )
-    sales_representative = (
+    sales_contact = (
         f"{contract.sales_representative.first_name} "
         f"{contract.sales_representative.last_name} "
         f"(n°{contract.sales_representative.employee_number})"
@@ -136,7 +136,7 @@ def display_contract_details(contract: ContractDetailResponse) -> None:
 
     table.add_row("Id du contrat:", str(contract.id))
     table.add_row("Client:", client)
-    table.add_row("Contact commercial du client:", sales_representative)
+    table.add_row("Contact commercial du client:", sales_contact)
     table.add_row("Montant total:", str(contract.total_amount))
     table.add_row("Montant restant:", str(contract.remaining_amount))
     table.add_row("Créé le:", created_at)

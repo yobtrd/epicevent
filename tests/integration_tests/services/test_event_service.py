@@ -649,6 +649,43 @@ def test_list_events_filters_upcoming_only(event_service, session):
     assert total_count_all == 3
 
 
+# show_event
+###################
+def test_show_event_returns_event(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        employee_number="400",
+        email="contributor@email.com",
+        role_id=UserRole.SALES,
+    )
+
+    contract = create_contract_graph(session)
+
+    persisted_event = create_persisted_event(
+        session,
+        contract_id=contract.id,
+        support_representative_id=current_user.id,
+    )
+
+    event_showed = event_service.show_event(
+        current_user,
+        persisted_event.id,
+    )
+
+    assert persisted_event.id == event_showed.id
+    assert event_showed.contract_id == contract.id
+
+
+def test_show_event_with_invalid_id_raises_error(event_service, session):
+    current_user = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+
+    with pytest.raises(EventNotFoundError):
+        event_service.show_event(current_user, 99999)
+
+
 # assign_support
 ###################
 def test_assign_support_success(session, uow, event_service, logged_user_factory):

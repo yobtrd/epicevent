@@ -110,6 +110,23 @@ def list_events(
         offset = new_offset
 
 
+@event.command("show")
+@click.argument("event_id", type=int, metavar="ID_EVENEMENT")
+@with_app
+@handle_errors
+@require_auth
+def show_event(
+    app: Application,
+    current_user: UserResponse,
+    event_id: int,
+) -> None:
+    """Afficher un événement."""
+    authorization.ensure_permission(current_user, Permission.SHOW_EVENT)
+
+    event = app.event_controller.show_event(current_user, event_id)
+    event_view.display_event_details(event)
+
+
 @event.command("assign")
 @click.argument("event_id", metavar="ID_EVENEMENT")
 @click.option(

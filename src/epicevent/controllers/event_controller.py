@@ -84,6 +84,14 @@ class EventController(BaseController):
             total_count,
         )
 
+    def show_event(
+        self,
+        current_user: UserResponse,
+        event_id: int,
+    ) -> EventDetailResponse:
+        event = self.event_service.show_event(current_user, event_id)
+        return EventDetailResponse.model_validate(event)
+
     def assign_support(
         self,
         current_user: UserResponse,

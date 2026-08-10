@@ -481,9 +481,7 @@ def test_list_returns_event_table(
     assert result.exit_code == 0
     assert "Liste des événements (3 au total)" in result.output
     assert "Durand Paul" in result.output
-    assert "Martin Jean (n°003)" in result.output
     assert "Paris" in result.output
-    assert "150" in result.output
 
 
 def test_list_with_no_event_displays_warning(logged_user_factory):
@@ -605,7 +603,7 @@ def test_list_filters_unassigned(
 
     assert result.exit_code == 0
     assert "Liste des événements (1 au total)" in result.output
-    assert "Aucun support associé pour le moment." in result.output
+    assert "Non assigné" in result.output
 
 
 def test_list_filters_mine(
@@ -697,6 +695,60 @@ def test_list_filters_upcoming(
 
     assert result.exit_code == 0
     assert "Liste des événements (2 au total)" in result.output
+
+
+# show_event
+######################
+def test_show_event_returns_event_sheet(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(
+        employee_number="400",
+        role_id=UserRole.SALES,
+    )
+
+    contract = create_contract_graph(session)
+
+    event = create_persisted_event(
+        session,
+        name="Mariage de John",
+        contract_id=contract.id,
+        start=datetime(2023, 11, 20, 14, 30),
+        end=datetime(2023, 11, 20, 23, 30),
+        location="53 Rue du Château",
+        attendees=75,
+        notes="Réception prévue à 18h.",
+        support_representative_id=current_user.id,
+    )
+
+    result = runner.invoke(cli, ["event", "show", str(event.id)])
+
+    assert result.exit_code == 0
+    assert f"Événement n°{event.id}" in result.output
+    assert "Mariage de John" in result.output
+    assert "20/11/2023 14:30" in result.output
+    assert "20/11/2023 23:30" in result.output
+    assert "53 Rue du Château" in result.output
+    assert "75" in result.output
+    assert "Réception prévue à 18h." in result.output
+    assert "400" in result.output
+
+
+def test_show_event_with_invalid_id_display_error(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.SALES)
+
+    result = runner.invoke(cli, ["event", "show", "9999"])
+
+    assert result.exit_code == 0
+    assert "Erreur: L'événement n'a pas été trouvé." in result.output
 
 
 # assign_support

@@ -175,6 +175,16 @@ class EventService:
 
         return events, total_count
 
+    @require_permission(Permission.SHOW_EVENT)
+    def show_event(
+        self,
+        current_user: UserResponse,
+        event_id: int,
+    ) -> Event:
+        with self.uow:
+            event = self.get_event_by_id(event_id)
+        return event
+
     @require_permission(Permission.ASSIGN_SUPPORT)
     def assign_support(
         self,

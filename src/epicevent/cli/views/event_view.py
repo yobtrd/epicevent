@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import click
+from rich.panel import Panel
 from rich.table import Table
 
 from epicevent.cli.console import (
@@ -119,42 +120,29 @@ def display_events_table(
     table.add_column("Id de l'événement")
     table.add_column("Id du contrat")
     table.add_column("Nom du client")
-    table.add_column("Contact du client")
     table.add_column("Date et heure de début")
-    table.add_column("Date et heure de fin")
-    table.add_column("Contact du support")
+    table.add_column("Contact support")
     table.add_column("Lieu de l'événement")
-    table.add_column("Nombre de participants")
-    table.add_column("Notes additionnelles")
 
     for event in events_list:
         client = f"{event.contract.client.last_name} {event.contract.client.first_name}"
-        sales_representative = (
-            f"{event.contract.sales_representative.last_name} "
-            f"{event.contract.sales_representative.first_name} "
-            f"(n°{event.contract.sales_representative.employee_number})"
+
+        support_contact = (
+            f"{event.support_representative.first_name} "
+            f"{event.support_representative.last_name} "
+            f"(n°{event.support_representative.employee_number})"
+            if event.support_representative
+            else "Non assigné"
         )
-        if event.support_representative:
-            support_representative = (
-                f"{event.support_representative.last_name} "
-                f"{event.support_representative.first_name} "
-                f"n°{event.support_representative.employee_number}"
-            )
-        else:
-            support_representative = "Aucun support associé pour le moment."
 
         table.add_row(
             event.name,
             str(event.id),
             str(event.contract.id),
             client,
-            sales_representative,
             _format_datetime(event.start),
-            _format_datetime(event.end),
-            support_representative,
+            support_contact,
             event.location,
-            str(event.attendees),
-            event.notes or "",
         )
 
     console.print(table)
@@ -162,6 +150,53 @@ def display_events_table(
 
 def display_events_list_empty_message() -> None:
     display_message("Aucun événement trouvé", "warning")
+
+
+# show_contract
+######################
+def display_event_details(event: EventDetailResponse) -> None:
+    table = Table(show_header=False, box=None)
+
+    table.add_column(style="highlight")
+
+    client = (
+        f"{event.contract.client.first_name} "
+        f"{event.contract.client.last_name} "
+        f"({event.contract.client.email})"
+    )
+    sales_contact = (
+        f"{event.contract.sales_representative.first_name} "
+        f"{event.contract.sales_representative.last_name} "
+        f"(n°{event.contract.sales_representative.employee_number})"
+    )
+    support_contact = (
+        f"{event.support_representative.first_name} "
+        f"{event.support_representative.last_name} "
+        f"(n°{event.support_representative.employee_number})"
+        if event.support_representative
+        else "Non assigné"
+    )
+
+    table.add_row("Nom:", event.name)
+    table.add_row("Id de l'événement:", str(event.id))
+    table.add_row("Id du contrat:", str(event.contract.id))
+    table.add_row("Client:", client)
+    table.add_row("Contact du client:", sales_contact)
+    table.add_row("Date et heure de début:", _format_datetime(event.start))
+    table.add_row("Date et heure de fin:", _format_datetime(event.end))
+    table.add_row("Contact du support:", support_contact)
+    table.add_row("Lieu de l'événement:", event.location)
+    table.add_row("Nombre de participants:", str(event.attendees))
+    table.add_row("Notes additionnelles:", event.notes or "")
+
+    console.print(
+        "",
+        Panel(
+            table,
+            expand=False,
+            title=f"[italic]Événement n°{event.id}[/italic]",
+        ),
+    )
 
 
 # assign_support
