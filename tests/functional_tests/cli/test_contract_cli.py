@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from click.testing import CliRunner
@@ -335,7 +336,7 @@ def test_list_returns_contract_table(
     assert result.exit_code == 0
     assert "Liste des contrats (3 au total)" in result.output
     assert "Martin Jean" in result.output
-    assert "Doe Jane (n°002)" in result.output
+    assert "Jane Doe (n°002)" in result.output
     assert "1000.00" in result.output
 
 
@@ -516,3 +517,57 @@ def test_list_filters_mine(
     assert "Liste des contrats (2 au total)" in result.output
     assert "Signé" in result.output
     assert "Non signé" not in result.output
+
+
+# show_contract
+######################
+def test_show_contract_returns_contract_sheet(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+    current_user = logged_user_factory(role_id=UserRole.SALES)
+
+    client = create_persisted_client(
+        session,
+        email="client@test.com",
+        sales_representative_id=current_user.id,
+    )
+
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        total_amount=1000,
+        remaining_amount=500,
+        created_at=datetime(2023, 11, 20, 14, 30),
+        is_signed=True,
+    )
+
+    result = runner.invoke(cli, ["contract", "show", str(contract.id)])
+
+    assert result.exit_code == 0
+
+    assert f"Contrat n°{contract.id}" in result.output
+    assert "John Doe" in result.output
+    assert "client@test.com" in result.output
+    assert "1000" in result.output
+    assert "500" in result.output
+    assert "20/11/2023 14:30" in result.output
+    assert "Signé" in result.output
+
+
+def test_show_contract_with_invalid_id_display_error(
+    logged_user_factory,
+    session,
+):
+    runner = CliRunner()
+
+    logged_user_factory(
+        role_id=UserRole.SALES,
+    )
+
+    result = runner.invoke(cli, ["contract", "show", "9999"])
+
+    assert result.exit_code == 0
+    assert "Erreur: Le contrat n'a pas été trouvé." in result.output

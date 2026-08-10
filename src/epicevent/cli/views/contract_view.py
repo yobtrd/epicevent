@@ -1,4 +1,5 @@
 import click
+from rich.panel import Panel
 from rich.table import Table
 
 from epicevent.cli.console import (
@@ -84,7 +85,6 @@ def display_contracts_table(
     table.add_column("Contact commercial du client")
     table.add_column("Montant total")
     table.add_column("Montant restant")
-    table.add_column("Créé le")
     table.add_column("Statut")
 
     for contract in contracts_list:
@@ -93,11 +93,10 @@ def display_contracts_table(
             f"({contract.client.email})"
         )
         sales_representative = (
-            f"{contract.sales_representative.last_name} "
             f"{contract.sales_representative.first_name} "
+            f"{contract.sales_representative.last_name} "
             f"(n°{contract.sales_representative.employee_number})"
         )
-        created_at = contract.created_at.strftime("%d/%m/%Y %H:%M")
         statut = "Signé" if contract.is_signed is True else "Non signé"
 
         table.add_row(
@@ -106,7 +105,6 @@ def display_contracts_table(
             sales_representative,
             str(contract.total_amount),
             str(contract.remaining_amount),
-            created_at,
             statut,
         )
 
@@ -115,3 +113,40 @@ def display_contracts_table(
 
 def display_contract_list_empty_message() -> None:
     display_message("Aucun contrat trouvé", "warning")
+
+
+# show_contract
+######################
+def display_contract_details(contract: ContractDetailResponse) -> None:
+    table = Table(show_header=False, box=None)
+
+    table.add_column(style="highlight")
+
+    client = (
+        f"{contract.client.last_name} {contract.client.first_name} "
+        f"({contract.client.email})"
+    )
+    sales_representative = (
+        f"{contract.sales_representative.first_name} "
+        f"{contract.sales_representative.last_name} "
+        f"(n°{contract.sales_representative.employee_number})"
+    )
+    created_at = contract.created_at.strftime("%d/%m/%Y %H:%M")
+    statut = "Signé" if contract.is_signed is True else "Non signé"
+
+    table.add_row("Id du contrat:", str(contract.id))
+    table.add_row("Client:", client)
+    table.add_row("Contact commercial du client:", sales_representative)
+    table.add_row("Montant total:", str(contract.total_amount))
+    table.add_row("Montant restant:", str(contract.remaining_amount))
+    table.add_row("Créé le:", created_at)
+    table.add_row("Statut:", statut)
+
+    console.print(
+        "",
+        Panel(
+            table,
+            expand=False,
+            title=f"[italic]Contrat n°{contract.id}[/italic]",
+        ),
+    )

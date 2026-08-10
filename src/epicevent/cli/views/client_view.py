@@ -148,12 +148,12 @@ def display_client_details(client: ClientDetailResponse) -> None:
     )
 
     table.add_row("Nom complet:", f"{client.first_name} {client.last_name}")
-    table.add_row("Email", client.email)
+    table.add_row("Email:", client.email)
     table.add_row("Téléphone:", client.phone)
     table.add_row("Nom de l'entreprise: ", client.business_name)
     table.add_row("Premier contact:", first_contact)
-    table.add_row("Dernier contact", last_contact)
-    table.add_row("Contact commercial", sales_representative_info)
+    table.add_row("Dernier contact:", last_contact)
+    table.add_row("Contact commercial:", sales_representative_info)
 
     console.print(
         "",

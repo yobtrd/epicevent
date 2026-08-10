@@ -79,3 +79,11 @@ class ContractController(BaseController):
             ],
             total_count,
         )
+
+    def show_contract(
+        self,
+        current_user: UserResponse,
+        contract_id: int,
+    ) -> ContractDetailResponse:
+        contract = self.contract_service.show_contract(current_user, contract_id)
+        return ContractDetailResponse.model_validate(contract)

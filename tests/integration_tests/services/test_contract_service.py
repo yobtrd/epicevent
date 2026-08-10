@@ -505,3 +505,42 @@ def test_list_contracts_filters_sales_assigned_with_other_contributors(
 
     assert len(contracts_list) == 0
     assert total_count == 0
+
+
+# show_contract
+###################
+def test_show_contract_returns_contract(contract_service, session):
+    current_user = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+    persisted_contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+    )
+
+    contract_showed = contract_service.show_contract(
+        current_user,
+        persisted_contract.id,
+    )
+
+    assert persisted_contract.id == contract_showed.id
+    assert contract_showed.client.id == client.id
+
+
+def test_show_contract_with_invalid_id_raises_error(
+    contract_service,
+    session,
+):
+    current_user = create_persisted_user(
+        session,
+        role_id=UserRole.SALES,
+    )
+
+    with pytest.raises(ContractNotFoundError):
+        contract_service.show_contract(current_user, 99999)

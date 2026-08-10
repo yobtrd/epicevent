@@ -178,3 +178,13 @@ class ContractService:
             )
 
         return contracts, total_count
+
+    @require_permission(Permission.SHOW_CONTRACT)
+    def show_contract(
+        self,
+        current_user: UserResponse,
+        contract_id: int,
+    ) -> Contract:
+        with self.uow:
+            contract = self.get_contract_by_id(contract_id)
+        return contract

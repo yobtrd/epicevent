@@ -119,3 +119,20 @@ def list_contracts(
         if new_offset is None:
             break
         offset = new_offset
+
+
+@contract.command("show")
+@click.argument("contract_id", type=int, metavar="ID_CONTRAT")
+@with_app
+@handle_errors
+@require_auth
+def show_contract(
+    app: Application,
+    current_user: UserResponse,
+    contract_id: int,
+) -> None:
+    """Afficher un contrat."""
+    authorization.ensure_permission(current_user, Permission.SHOW_CONTRACT)
+
+    contract = app.contract_controller.show_contract(current_user, contract_id)
+    contract_view.display_contract_details(contract)

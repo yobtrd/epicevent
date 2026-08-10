@@ -276,7 +276,7 @@ def display_user_details(user: UserDetailResponse) -> None:
     table.add_column(style="highlight")
 
     table.add_row("Matricule:", user.employee_number)
-    table.add_row("Nom complet", f"{user.first_name} {user.last_name}")
+    table.add_row("Nom complet:", f"{user.first_name} {user.last_name}")
     table.add_row("Email:", user.email)
     table.add_row("Département: ", ROLE_LABELS.get(user.role_id))
     table.add_row("Actif:", "Oui" if user.is_active else "Non")
