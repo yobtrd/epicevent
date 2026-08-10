@@ -129,6 +129,35 @@ def test_create_event_with_invalid_dates_raise_error(session, event_service):
         event_service.create_event(current_user, contract.id, event_dto)
 
 
+def test_create_event_triggers_monitoring(
+    event_service,
+    session,
+    mocker,
+):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+    client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+    contract = create_persisted_contract(
+        session,
+        client_id=client.id,
+        sales_representative_id=current_user.id,
+        is_signed=True,
+    )
+    event_dto = create_event_dto()
+
+    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    created = event_service.create_event(current_user, contract.id, event_dto)
+
+    capture.assert_called_once_with(
+        "event_created",
+        event_id=created.id,
+        contract_id=contract.id,
+        actor_id=current_user.id,
+    )
+
+
 # update_event
 ###################
 def test_support_can_update_owned_event(event_service, session):

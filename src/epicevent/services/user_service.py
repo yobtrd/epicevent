@@ -89,6 +89,7 @@ class UserService:
         monitoring.capture_event(
             "user_created",
             user_id=user.id,
+            actor_id=current_user.id,
         )
 
         return user
@@ -136,6 +137,7 @@ class UserService:
         monitoring.capture_event(
             "user_updated_management",
             user_id=user.id,
+            actor_id=current_user.id,
         )
 
         return user

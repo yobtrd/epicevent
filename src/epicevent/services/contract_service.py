@@ -107,6 +107,7 @@ class ContractService:
             monitoring.capture_event(
                 "contract_signed",
                 contract_id=contract.id,
+                actor_id=current_user.id,
             )
 
         return contract
@@ -138,6 +139,7 @@ class ContractService:
             monitoring.capture_event(
                 "contract_signed",
                 contract_id=contract.id,
+                actor_id=current_user.id,
             )
 
         return contract

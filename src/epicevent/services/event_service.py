@@ -10,6 +10,7 @@ from epicevent.exception import (
     SupportAssignmentError,
     UserNotFoundError,
 )
+from epicevent.infrastructure import monitoring
 from epicevent.infrastructure.unit_of_work import UnitOfWork
 from epicevent.models.contract import Contract
 from epicevent.models.event import Event
@@ -107,6 +108,13 @@ class EventService:
             data = event_data.model_dump()
             event = Event(**data, contract=contract)
             self.uow.events.save(event)
+
+        monitoring.capture_event(
+            "event_created",
+            event_id=event.id,
+            contract_id=contract.id,
+            actor_id=current_user.id,
+        )
 
         return event
 

@@ -135,7 +135,11 @@ def test_create_user_triggers_monitoring(
     capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
     created = user_service.create_user(current_user, user_dto)
 
-    capture.assert_called_once_with("user_created", user_id=created.id)
+    capture.assert_called_once_with(
+        "user_created",
+        user_id=created.id,
+        actor_id=current_user.id,
+    )
 
 
 # update_user_management
@@ -187,7 +191,9 @@ def test_update_user_management_triggers_monitoring(
     user_service.update_user(current_user, persisted_user.employee_number, new_data)
 
     capture.assert_called_once_with(
-        "user_updated_management", user_id=persisted_user.id
+        "user_updated_management",
+        user_id=persisted_user.id,
+        actor_id=current_user.id,
     )
 
 

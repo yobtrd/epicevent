@@ -67,7 +67,11 @@ def test_create_contract_triggers_monitoring_if_created_signed(
     capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
     created = contract_service.create_contract(current_user, client.email, contract_dto)
 
-    capture.assert_called_once_with("contract_signed", contract_id=created.id)
+    capture.assert_called_once_with(
+        "contract_signed",
+        contract_id=created.id,
+        actor_id=current_user.id,
+    )
 
 
 # update_contract
@@ -268,7 +272,11 @@ def test_update_contract_triggers_monitoring_when_signing(
         new_data,
     )
 
-    capture.assert_called_once_with("contract_signed", contract_id=contract.id)
+    capture.assert_called_once_with(
+        "contract_signed",
+        contract_id=contract.id,
+        actor_id=current_user.id,
+    )
 
 
 def test_update_contract_does_not_trigger_monitoring_if_already_signed(
