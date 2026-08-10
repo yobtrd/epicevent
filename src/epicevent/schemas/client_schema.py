@@ -61,4 +61,4 @@ class ClientResponse(BaseModel):
 
 
 class ClientDetailResponse(ClientResponse):
-    sales_representative: UserResponse | None = None
+    sales_representative: UserResponse

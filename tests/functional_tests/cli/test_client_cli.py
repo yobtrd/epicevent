@@ -1,3 +1,5 @@
+from datetime import date
+
 from click.testing import CliRunner
 
 from epicevent.cli.main import cli
@@ -255,3 +257,48 @@ def test_list_pagination(logged_user_factory, session, force_console_width):
 
     assert result.exit_code == 0
     assert "client11@test.com" in result.output
+
+
+# show_client
+######################
+def test_show_client_returns_client_sheet(logged_user_factory, session):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(employee_number="100", role_id=UserRole.SALES)
+
+    create_persisted_client(
+        session,
+        last_name="Doe",
+        first_name="John",
+        phone="00000000",
+        last_contact=date(2023, 11, 20),
+        email="client@test.com",
+        sales_representative_id=current_user.id,
+    )
+
+    result = runner.invoke(cli, ["client", "show", "client@test.com"])
+
+    assert result.exit_code == 0
+    assert "Client client@test.com" in result.output
+    assert "client@test.com" in result.output
+    assert "John Doe" in result.output
+    assert "20/11/2023" in result.output
+    assert "00000000" in result.output
+    assert "100" in result.output
+
+
+def test_show_client_with_invalid_email_display_error(logged_user_factory, session):
+    runner = CliRunner()
+
+    current_user = logged_user_factory(role_id=UserRole.SALES)
+
+    create_persisted_client(
+        session,
+        email="client@email.com",
+        sales_representative_id=current_user.id,
+    )
+
+    result = runner.invoke(cli, ["client", "show", "bad@test.com"])
+
+    assert result.exit_code == 0
+    assert "Erreur: Le client n'a pas été trouvé." in result.output

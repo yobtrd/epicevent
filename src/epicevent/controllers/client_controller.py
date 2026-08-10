@@ -56,3 +56,11 @@ class ClientController(BaseController):
             [ClientDetailResponse.model_validate(client) for client in clients_list],
             total_count,
         )
+
+    def show_client(
+        self,
+        current_user: UserResponse,
+        client_email: str,
+    ) -> ClientDetailResponse:
+        client = self.client_service.show_client(current_user, client_email)
+        return ClientDetailResponse.model_validate(client)

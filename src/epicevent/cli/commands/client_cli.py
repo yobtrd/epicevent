@@ -89,3 +89,20 @@ def list_clients(app: Application, current_user: UserResponse) -> None:
         if new_offset is None:
             break
         offset = new_offset
+
+
+@client.command("show")
+@click.argument("client_email")
+@with_app
+@handle_errors
+@require_auth
+def show_client(
+    app: Application,
+    current_user: UserResponse,
+    client_email: str,
+) -> None:
+    """Afficher un client."""
+    authorization.ensure_permission(current_user, Permission.SHOW_CLIENT)
+
+    client = app.client_controller.show_client(current_user, client_email)
+    client_view.display_client_details(client)

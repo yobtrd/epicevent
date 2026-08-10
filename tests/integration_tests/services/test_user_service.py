@@ -353,7 +353,7 @@ def test_show_user_by_management_returns_user(user_service, session):
     assert user_showed.employee_number == persisted_user.employee_number
 
 
-def test_show_user_with_indalid_employee_number_returns_error(user_service):
+def test_show_user_with_indalid_employee_number_raises_error(user_service):
     current_user = create_user(role_id=UserRole.MANAGEMENT)
 
     with pytest.raises(UserNotFoundError):

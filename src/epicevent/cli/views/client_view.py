@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from rich.panel import Panel
 from rich.table import Table
 
 from epicevent.cli.console import (
@@ -8,7 +9,10 @@ from epicevent.cli.console import (
     console,
     display_message,
 )
-from epicevent.schemas.client_schema import ClientDetailResponse, ClientResponse
+from epicevent.schemas.client_schema import (
+    ClientDetailResponse,
+    ClientResponse,
+)
 
 
 # helper
@@ -104,15 +108,10 @@ def display_clients_table(
     table.add_column("Nom")
     table.add_column("Prénom")
     table.add_column("Email")
-    table.add_column("Téléphone")
     table.add_column("Nom de l'entreprise")
-    table.add_column("Premier contact")
-    table.add_column("Dernier Contact")
     table.add_column("Contact commercial")
 
     for client in clients_list:
-        first_contact = client.first_contact.strftime("%d/%m/%Y")
-        last_contact = client.last_contact.strftime("%d/%m/%Y")
         sales_representative_info = (
             f"{client.sales_representative.first_name} "
             f"{client.sales_representative.last_name} "
@@ -122,10 +121,7 @@ def display_clients_table(
             client.last_name,
             client.first_name,
             client.email,
-            client.phone,
             client.business_name,
-            first_contact,
-            last_contact,
             sales_representative_info,
         )
 
@@ -134,3 +130,36 @@ def display_clients_table(
 
 def display_clients_list_empty_message() -> None:
     display_message("Aucun client trouvé", "warning")
+
+
+# show_client
+######################
+def display_client_details(client: ClientDetailResponse) -> None:
+    table = Table(show_header=False, box=None)
+
+    table.add_column(style="highlight")
+
+    first_contact = client.first_contact.strftime("%d/%m/%Y")
+    last_contact = client.last_contact.strftime("%d/%m/%Y")
+    sales_representative_info = (
+        f"{client.sales_representative.first_name} "
+        f"{client.sales_representative.last_name} "
+        f"(n°{client.sales_representative.employee_number})"
+    )
+
+    table.add_row("Nom complet:", f"{client.first_name} {client.last_name}")
+    table.add_row("Email", client.email)
+    table.add_row("Téléphone:", client.phone)
+    table.add_row("Nom de l'entreprise: ", client.business_name)
+    table.add_row("Premier contact:", first_contact)
+    table.add_row("Dernier contact", last_contact)
+    table.add_row("Contact commercial", sales_representative_info)
+
+    console.print(
+        "",
+        Panel(
+            table,
+            expand=False,
+            title=f"[italic]Client {client.email}[/italic]",
+        ),
+    )

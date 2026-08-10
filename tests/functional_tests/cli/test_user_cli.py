@@ -446,7 +446,7 @@ def test_list_include_inactive(
 
 # show_user
 ######################
-def test_show_returns_user_sheet(logged_user_factory, session):
+def test_show_user_returns_user_sheet(logged_user_factory, session):
     runner = CliRunner()
 
     logged_user_factory(role_id=UserRole.MANAGEMENT)
@@ -464,13 +464,16 @@ def test_show_returns_user_sheet(logged_user_factory, session):
 
     assert result.exit_code == 0
     assert "Collaborateur n°002" in result.output
+    assert "Jane Doe" in result.output
     assert "jane@test.com" in result.output
     assert "Commercial" in result.output
     assert "Actif" in result.output
     assert "Oui" in result.output
 
 
-def test_show_with_invalid_employee_number_display_error(logged_user_factory, session):
+def test_show_user_with_invalid_employee_number_display_error(
+    logged_user_factory, session
+):
     runner = CliRunner()
     logged_user_factory(role_id=UserRole.MANAGEMENT)
 

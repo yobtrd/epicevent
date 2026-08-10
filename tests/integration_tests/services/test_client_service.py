@@ -196,3 +196,30 @@ def test_list_client_pagination(client_service, session):
     )
     assert len(clients_list_page2) == 5
     assert total_count == 15
+
+
+# show_client
+###################
+def test_show_client_returns_client(client_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+    persisted_client = create_persisted_client(
+        session,
+        sales_representative_id=current_user.id,
+    )
+
+    client_showed = client_service.show_client(current_user, persisted_client.email)
+
+    assert persisted_client.id == client_showed.id
+    assert client_showed.email == persisted_client.email
+
+
+def test_show_client_with_indalid_email_raises_error(client_service, session):
+    current_user = create_persisted_user(session, role_id=UserRole.SALES)
+    create_persisted_client(
+        session,
+        email="client@email.com",
+        sales_representative_id=current_user.id,
+    )
+
+    with pytest.raises(ClientNotFoundError):
+        client_service.show_client(current_user, "bad@email.com")

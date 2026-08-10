@@ -105,3 +105,13 @@ class ClientService:
             total_count = self.uow.clients.count()
 
         return clients, total_count
+
+    @require_permission(Permission.SHOW_CLIENT)
+    def show_client(
+        self,
+        current_user: UserResponse,
+        client_email: str,
+    ) -> Client:
+        with self.uow:
+            client = self.get_client_by_email(client_email)
+        return client
