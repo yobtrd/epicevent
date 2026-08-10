@@ -1,5 +1,6 @@
 import click
 from pydantic import ValidationError
+from rich.panel import Panel
 from rich.table import Table
 
 from epicevent.cli.console import ask, ask_required, console, display_message
@@ -246,23 +247,18 @@ def display_users_table(users_list: list[UserDetailResponse], total_count: int) 
         total_count: Total number of users matching the query.
     """
     table = Table(title=f"\nListe des collaborateurs ({total_count} au total)")
-    table.add_column("Numéro d'employé")
+    table.add_column("Matricule")
     table.add_column("Nom de famille")
     table.add_column("Prénom")
-    table.add_column("Email")
-    table.add_column("Role")
-    table.add_column("Actif")
+    table.add_column("Département")
 
     for user in users_list:
-        role_label = ROLE_LABELS.get(user.role_id, "Inconnu")
-        active = "Activé" if user.is_active else "Désactivé"
+        role_label = ROLE_LABELS.get(user.role_id)
         table.add_row(
             user.employee_number,
             user.last_name,
             user.first_name,
-            user.email,
             role_label,
-            active,
         )
 
     console.print(table)
@@ -270,6 +266,29 @@ def display_users_table(users_list: list[UserDetailResponse], total_count: int) 
 
 def display_users_list_empty_message() -> None:
     display_message("Aucun collaborateur trouvé", "warning")
+
+
+# show_user
+######################
+def display_user_details(user: UserResponse) -> None:
+    table = Table(show_header=False, box=None)
+
+    table.add_column(style="highlight")
+
+    table.add_row("Matricule:", user.employee_number)
+    table.add_row("Prénom:", user.first_name)
+    table.add_row("Nom:", user.last_name)
+    table.add_row("Email:", user.email)
+    table.add_row("Département: ", ROLE_LABELS.get(user.role_id))
+    table.add_row("Actif:", "Oui" if user.is_active else "Non")
+    console.print(
+        "",
+        Panel(
+            table,
+            expand=False,
+            title=f"[italic]Collaborateur n°{user.employee_number}[/italic]",
+        ),
+    )
 
 
 # deactivate_user

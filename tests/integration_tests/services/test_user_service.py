@@ -341,6 +341,34 @@ def test_list_users_includes_inactive_users(user_service, session):
     assert inactive_user in users_list
 
 
+# show_user
+###################
+def test_show_user_by_management_returns_user(user_service, session):
+    current_user = create_user(role_id=UserRole.MANAGEMENT)
+    persisted_user = create_persisted_user(session)
+
+    user_showed = user_service.show_user(current_user, persisted_user.employee_number)
+
+    assert persisted_user.id == user_showed.id
+    assert user_showed.employee_number == persisted_user.employee_number
+
+
+def test_show_user_with_indalid_employee_number_returns_error(user_service):
+    current_user = create_user(role_id=UserRole.MANAGEMENT)
+
+    with pytest.raises(UserNotFoundError):
+        user_service.show_user(current_user, "99999")
+
+
+@pytest.mark.parametrize("role", [UserRole.SALES, UserRole.SUPPORT])
+def unauthorized_users_cannot_show_user(user_service, session, role):
+    current_user = create_user(role_id=role)
+    persisted_user = create_persisted_user(session)
+
+    with pytest.raises(RolePermissionError):
+        user_service.show_user(current_user, persisted_user.employee_number)
+
+
 # deactivate
 ###########################
 def test_management_can_deactivate_user(user_service, session):

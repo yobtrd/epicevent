@@ -101,7 +101,7 @@ def list_user(
     include_inactive: bool,
 ) -> None:
     """Lister les utilisateurs."""
-    authorization.ensure_permission(current_user, Permission.LIST_USER)
+    authorization.ensure_permission(current_user, Permission.LIST_USERS)
 
     offset = 0
     limit = 10
@@ -127,6 +127,23 @@ def list_user(
         if new_offset is None:
             break
         offset = new_offset
+
+
+@user.command("show")
+@click.argument("employee_number", metavar="NUMERO_EMPLOYE")
+@with_app
+@handle_errors
+@require_auth
+def show_user(
+    app: Application,
+    current_user: UserResponse,
+    employee_number: str,
+) -> None:
+    """Afficher un utilisateur."""
+    authorization.ensure_permission(current_user, Permission.SHOW_USER)
+
+    user = app.user_controller.show_user(current_user, employee_number)
+    user_view.display_user_details(user)
 
 
 @user.command("deactivate")

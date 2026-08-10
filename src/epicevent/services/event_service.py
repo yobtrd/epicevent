@@ -140,7 +140,7 @@ class EventService:
 
         return event
 
-    @require_permission(Permission.LIST_EVENT)
+    @require_permission(Permission.LIST_EVENTS)
     def list_events(
         self,
         current_user: UserResponse,

@@ -88,7 +88,7 @@ class ClientService:
 
         return client
 
-    @require_permission(Permission.LIST_CLIENT)
+    @require_permission(Permission.LIST_CLIENTS)
     def list_clients(
         self,
         current_user: UserResponse,

@@ -91,7 +91,7 @@ def list_contracts(
     mine: bool,
 ) -> None:
     """Lister les contrats."""
-    authorization.ensure_permission(current_user, Permission.LIST_CONTRACT)
+    authorization.ensure_permission(current_user, Permission.LIST_CONTRACTS)
 
     offset = 0
     limit = 10

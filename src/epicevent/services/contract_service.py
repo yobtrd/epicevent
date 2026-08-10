@@ -144,7 +144,7 @@ class ContractService:
 
         return contract
 
-    @require_permission(Permission.LIST_CONTRACT)
+    @require_permission(Permission.LIST_CONTRACTS)
     def list_contracts(
         self,
         current_user: UserResponse,

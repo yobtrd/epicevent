@@ -80,7 +80,7 @@ def list_events(
     mine: bool,
 ) -> None:
     """Lister les événements."""
-    authorization.ensure_permission(current_user, Permission.LIST_EVENT)
+    authorization.ensure_permission(current_user, Permission.LIST_EVENTS)
 
     offset = 0
     limit = 10

@@ -142,7 +142,7 @@ class UserService:
 
         return user
 
-    @require_permission(Permission.LIST_USER)
+    @require_permission(Permission.LIST_USERS)
     def list_users(
         self,
         current_user: UserResponse,
@@ -163,6 +163,16 @@ class UserService:
             )
             total_count = self.uow.users.count(include_inactive=include_inactive)
         return users, total_count
+
+    @require_permission(Permission.SHOW_USER)
+    def show_user(
+        self,
+        current_user: UserResponse,
+        employee_number: str,
+    ) -> User:
+        with self.uow:
+            user = self.get_user_by_employee_number(employee_number)
+        return user
 
     @require_permission(Permission.DEACTIVATE_USER)
     def deactivate(

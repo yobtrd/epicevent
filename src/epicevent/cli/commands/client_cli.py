@@ -64,7 +64,7 @@ def update_client(
 @require_auth
 def list_clients(app: Application, current_user: UserResponse) -> None:
     """Lister les clients."""
-    authorization.ensure_permission(current_user, Permission.LIST_CLIENT)
+    authorization.ensure_permission(current_user, Permission.LIST_CLIENTS)
 
     offset = 0
     limit = 10

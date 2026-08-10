@@ -54,7 +54,7 @@ class UserController(BaseController):
         include_inactive: bool = False,
         limit: int = 10,
         offset: int = 0,
-    ) -> tuple[list[UserDetailResponse], int]:
+    ) -> tuple[list[UserResponse], int]:
         users_list, total_count = self.user_service.list_users(
             current_user,
             include_inactive=include_inactive,
@@ -62,9 +62,17 @@ class UserController(BaseController):
             offset=offset,
         )
         return (
-            [UserDetailResponse.model_validate(user) for user in users_list],
+            [UserResponse.model_validate(user) for user in users_list],
             total_count,
         )
+
+    def show_user(
+        self,
+        current_user: UserResponse,
+        employee_number: str,
+    ) -> UserDetailResponse:
+        user = self.user_service.show_user(current_user, employee_number)
+        return UserDetailResponse.model_validate(user)
 
     def deactivate_user(
         self,

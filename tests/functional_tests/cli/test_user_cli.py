@@ -362,11 +362,11 @@ def test_list_returns_users_table(
     assert "002" in result.output
     assert "Jane" in result.output
     assert "Doe" in result.output
-    assert "jane@test.com" in result.output
     assert "Commercial" in result.output
-    assert "Activé" in result.output
 
     assert "003" not in result.output
+    assert "john@test.com" not in result.output
+    assert "Oui" not in result.output
 
 
 def test_list_with_no_user_displays_warning(logged_user_factory):
@@ -440,9 +440,44 @@ def test_list_include_inactive(
 
     assert result.exit_code == 0
     assert "Liste des collaborateurs (3 au total)" in result.output
-    assert "active@test.com" in result.output
-    assert "inactive@test.com" in result.output
-    assert "Désactivé" in result.output
+    assert "002" in result.output
+    assert "003" in result.output
+
+
+# show_user
+######################
+def test_show_returns_user_sheet(logged_user_factory, session):
+    runner = CliRunner()
+
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    create_persisted_user(
+        session,
+        employee_number="002",
+        first_name="Jane",
+        last_name="Doe",
+        email="jane@test.com",
+        role_id=UserRole.SALES,
+    )
+
+    result = runner.invoke(cli, ["user", "show", "002"])
+
+    assert result.exit_code == 0
+    assert "Collaborateur n°002" in result.output
+    assert "jane@test.com" in result.output
+    assert "Commercial" in result.output
+    assert "Actif" in result.output
+    assert "Oui" in result.output
+
+
+def test_show_with_invalid_employee_number_display_error(logged_user_factory, session):
+    runner = CliRunner()
+    logged_user_factory(role_id=UserRole.MANAGEMENT)
+
+    result = runner.invoke(cli, ["user", "show", "9999"])
+
+    assert result.exit_code == 0
+    assert "Erreur: L'utilisateur n'a pas été trouvé." in result.output
 
 
 # deactivate_user
