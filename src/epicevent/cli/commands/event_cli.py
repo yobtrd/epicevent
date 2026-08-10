@@ -16,11 +16,15 @@ def event() -> None:
 
 
 @event.command("create")
-@click.argument("contract_id", metavar="ID_CONTRAT")
+@click.argument("contract_id", type=int)
 @with_app
 @handle_errors
 @require_auth
-def create_event(app: Application, current_user: UserResponse, contract_id=str) -> None:
+def create_event(
+    app: Application,
+    current_user: UserResponse,
+    contract_id: int,
+) -> None:
     """Créer un nouvel événement à partir de l'ID du contrat concerné."""
     authorization.ensure_permission(current_user, Permission.CREATE_EVENT)
     target_contract = app.contract_controller.get_contract_by_id(contract_id)
@@ -34,11 +38,15 @@ def create_event(app: Application, current_user: UserResponse, contract_id=str) 
 
 
 @event.command("update")
-@click.argument("event_id", metavar="ID_EVENEMENT")
+@click.argument("event_id", type=int)
 @with_app
 @handle_errors
 @require_auth
-def update_event(app: Application, current_user: UserResponse, event_id: str) -> None:
+def update_event(
+    app: Application,
+    current_user: UserResponse,
+    event_id: int,
+) -> None:
     """Mettre à jour un événement à partir de son identifiant."""
     authorization.ensure_permission(current_user, Permission.UPDATE_EVENT)
     target_event = app.event_controller.get_event_by_id(event_id)
@@ -111,7 +119,7 @@ def list_events(
 
 
 @event.command("show")
-@click.argument("event_id", type=int, metavar="ID_EVENEMENT")
+@click.argument("event_id", type=int)
 @with_app
 @handle_errors
 @require_auth
@@ -128,7 +136,7 @@ def show_event(
 
 
 @event.command("assign")
-@click.argument("event_id", metavar="ID_EVENEMENT")
+@click.argument("event_id", type=int)
 @click.option(
     "--support",
     metavar="MATRICULE",
@@ -140,7 +148,7 @@ def show_event(
 def assign_support(
     app: Application,
     current_user: UserResponse,
-    event_id: str,
+    event_id: int,
     support: str,
 ) -> None:
     """Assigner un collaborateur support à un événement."""
@@ -162,14 +170,14 @@ def assign_support(
 
 
 @event.command("unassign")
-@click.argument("event_id", metavar="ID_EVENEMENT")
+@click.argument("event_id", type=int)
 @with_app
 @handle_errors
 @require_auth
 def unassign_support(
     app: Application,
     current_user: UserResponse,
-    event_id: str,
+    event_id: int,
 ) -> None:
     """Désassigner le collaborateur support d'un événement."""
     authorization.ensure_permission(current_user, Permission.ASSIGN_SUPPORT)

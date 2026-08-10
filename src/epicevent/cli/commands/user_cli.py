@@ -60,7 +60,7 @@ def update_self(app: Application, current_user: UserResponse) -> None:
 
 
 @user.command("update")
-@click.argument("employee_number", metavar="NUMERO_EMPLOYE")
+@click.argument("employee_number")
 @with_app
 @handle_errors
 @require_auth
@@ -130,7 +130,7 @@ def list_user(
 
 
 @user.command("show")
-@click.argument("employee_number", metavar="NUMERO_EMPLOYE")
+@click.argument("employee_number")
 @with_app
 @handle_errors
 @require_auth
@@ -147,7 +147,7 @@ def show_user(
 
 
 @user.command("deactivate")
-@click.argument("employee_number", metavar="NUMERO_EMPLOYE")
+@click.argument("employee_number")
 @with_app
 @handle_errors
 @require_auth

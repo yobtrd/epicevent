@@ -37,14 +37,14 @@ def create_contract(
 
 
 @contract.command("update")
-@click.argument("contract_id", metavar="ID_CONTRAT")
+@click.argument("contract_id", type=int)
 @with_app
 @handle_errors
 @require_auth
 def update_contract(
     app: Application,
     current_user: UserResponse,
-    contract_id: str,
+    contract_id: int,
 ) -> None:
     """Mettre à jour un contrat à partir de son identifiant."""
     authorization.ensure_permission(current_user, Permission.UPDATE_CONTRACT)
@@ -122,7 +122,7 @@ def list_contracts(
 
 
 @contract.command("show")
-@click.argument("contract_id", type=int, metavar="ID_CONTRAT")
+@click.argument("contract_id", type=int)
 @with_app
 @handle_errors
 @require_auth
