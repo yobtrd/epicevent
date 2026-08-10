@@ -10,17 +10,6 @@ class TokenStorage:
     def __init__(self, path: Path):
         self.path = path
 
-    def _load(self) -> dict:
-        """
-        Load stored tokens.
-
-        Returns an empty dictionary when no valid session data is available.
-        """
-        try:
-            return json.loads(self.path.read_text())
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {}
-
     def save(self, access_token: str, refresh_token: str) -> None:
         """Store authentication tokens locally."""
         self.path.parent.mkdir(
@@ -37,11 +26,19 @@ class TokenStorage:
             )
         )
 
-    def get_access_token(self) -> str | None:
-        return self._load().get("access_token")
+    def get_tokens(self) -> tuple[str | None, str | None]:
+        """
+        Load stored authentication tokens from the local session file.
 
-    def get_refresh_token(self) -> str | None:
-        return self._load().get("refresh_token")
+        Returns:
+            A tuple containing (access_token, refresh_token).
+            Returns (None, None) if the session file is missing or corrupted.
+        """
+        try:
+            data = json.loads(self.path.read_text())
+            return data.get("access_token"), data.get("refresh_token")
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None, None
 
     def clear(self) -> None:
         """Remove stored authentication tokens."""

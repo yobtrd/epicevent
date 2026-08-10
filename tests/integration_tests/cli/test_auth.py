@@ -44,8 +44,7 @@ def test_get_authenticated_user_saves_new_tokens_after_refresh(
         with app_factory.create() as app:
             get_authenticated_user(app)
 
-    final_access_token = token_storage.get_access_token()
-    final_refresh_token = token_storage.get_refresh_token()
+    final_access_token, final_refresh_token = token_storage.get_tokens()
 
     assert final_access_token != initial_access_token
     assert final_refresh_token != initial_refresh_token

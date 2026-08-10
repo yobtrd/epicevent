@@ -16,8 +16,7 @@ def get_authenticated_user(app: Application) -> UserResponse:
         AuthenticationError: If the session cannot be authenticated.
     """
     storage = get_token_storage()
-    access_token = storage.get_access_token()
-    refresh_token = storage.get_refresh_token()
+    access_token, refresh_token = storage.get_tokens()
 
     try:
         session_result = app.auth_controller.authenticate_session(
