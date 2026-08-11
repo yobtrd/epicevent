@@ -54,7 +54,7 @@ INVALID_INPUT_LABELS = {
     "employee_number": "Numéro d'employé",
     "total_amount": "Montant",
     "remaining_amount": "Montant",
-    "attendees": "Nombre de participant",
+    "attendees": "Nombre de participants",
 }
 
 INVALID_INPUT_MESSAGES = {

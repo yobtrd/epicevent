@@ -110,7 +110,7 @@ class InvalidInputError(ApplicationError):
 
 # Persistence errors
 ##################################
-class DatabaseError(ApplicationError):
+class DatabaseError(Exception):
     """Unexpected database or persistence error."""
 
     pass

@@ -1,5 +1,5 @@
 from epicevent.cli.main import main
-from epicevent.exception import ApplicationError
+from epicevent.exception import ApplicationError, DatabaseError
 
 
 def test_main_handles_application_error(mocker, capsys):
@@ -35,6 +35,19 @@ def test_main_captures_unexpected_error(mocker):
     display = mocker.patch("epicevent.cli.main.display_unexpected_error")
 
     mocker.patch("epicevent.cli.main.cli", side_effect=RuntimeError())
+
+    main()
+
+    capture.assert_called_once()
+    display.assert_called_once()
+
+
+def test_main_captures_database_error(mocker):
+    capture = mocker.patch("epicevent.cli.main.monitoring.capture_exception")
+
+    display = mocker.patch("epicevent.cli.main.display_unexpected_error")
+
+    mocker.patch("epicevent.cli.main.cli", side_effect=DatabaseError())
 
     main()
 
