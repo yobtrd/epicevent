@@ -7,6 +7,15 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
+def test_command_requires_authentication_when_user_not_authenticated():
+    runner = CliRunner()
+
+    result = runner.invoke(cli, ["user", "create"])
+
+    assert result.exit_code == 0
+    assert "Vous n'êtes pas connecté à une session." in result.output
+
+
 # login
 #############
 def test_login_with_correct_credentials(session, token_path, app_factory):

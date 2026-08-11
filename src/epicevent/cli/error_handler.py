@@ -62,7 +62,7 @@ INVALID_INPUT_MESSAGES = {
     "Mot de passe": "le mot de passe doit contenir au moins 8 caractères.",
     "Montant": "le montant doit être un nombre entier ou décimal "
     "supérieur ou égal à 0 (ex: 1000 ou 1000.50).",
-    "Nombre de participant": "le nombre doit être un nombre entier sans "
+    "Nombre de participants": "le nombre doit être un nombre entier sans "
     "espaces (ex: 500) et ne peut dépasser 1000000.",
 }
 

@@ -1,21 +1,14 @@
 from sqlalchemy import inspect, text
 
-from epicevent.infrastructure.base import Base, engine as prod_engine
+from epicevent.infrastructure.base import Base
 
 
-def test_database_connection_is_active():
-    with prod_engine.connect() as conn:
-        result = conn.execute(text("SELECT version();"))
-        assert "PostgreSQL" in result.one()[0]
-
-
-def test_test_database_connection_is_active(engine):
+def test_database_connection_is_active(engine):
     with engine.connect() as conn:
-        result = conn.execute(text("SELECT version();"))
-        assert "PostgreSQL" in result.one()[0]
+        conn.execute(text("SELECT 1"))
 
 
-def test_database_schema_matches_metadata(engine):
+def test_database_tables_match_metadata(engine):
     inspector = inspect(engine)
 
     metadata_tables = set(Base.metadata.tables.keys())

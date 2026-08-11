@@ -1,12 +1,11 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.egg-info/
+.pytest_cache/
 build/
 dist/
 wheels/
-*.egg-info
-*.pytest_cache
-.pytest_cache/
 
 # Environments
 .venv
@@ -20,3 +19,7 @@ env
 
 # IDE
 .vscode/
+
+# Coverage
+.coverage
+htmlcov/
