@@ -1,6 +1,6 @@
 from functools import wraps
 
-import epicevent.bootstrap as bootstrap
+from epicevent import bootstrap
 from epicevent.cli.auth_session import get_authenticated_user
 from epicevent.cli.error_handler import (
     display_application_error,
@@ -22,7 +22,7 @@ def with_app(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        with bootstrap.application_factory.create() as app:
+        with bootstrap.get_application_factory().create() as app:
             return func(app, *args, **kwargs)
 
     return wrapper

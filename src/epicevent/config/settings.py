@@ -1,7 +1,11 @@
 import os
+from functools import lru_cache
 from pathlib import Path
 
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from epicevent.exception import ConfigurationError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_TOKEN_PATH = PROJECT_ROOT / ".epicevent" / "tokens.json"
@@ -38,4 +42,14 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    """Load and cache application settings.
+
+    Raises:
+        ConfigurationError: If the application configuration is invalid.
+    """
+    try:
+        return Settings()
+    except ValidationError as exc:
+        raise ConfigurationError(exc.errors()) from exc

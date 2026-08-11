@@ -7,7 +7,7 @@ from epicevent.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 
-def test_command_requires_authentication_when_user_not_authenticated():
+def test_command_requires_authentication_when_user_not_authenticated(token_path):
     runner = CliRunner()
 
     result = runner.invoke(cli, ["user", "create"])

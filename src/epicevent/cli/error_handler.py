@@ -4,6 +4,7 @@ from epicevent.exception import (
     AuthenticationError,
     ClientNotFoundError,
     ClientOwnershipError,
+    ConfigurationError,
     ContractNotFoundError,
     ContractNotSignedError,
     EmailAlreadyExistsError,
@@ -107,6 +108,22 @@ def display_invalid_input_error(error: InvalidInputError) -> None:
 
         message = INVALID_INPUT_MESSAGES.get(label, "Saisie invalide.")
         display_message(f"{label}: Format invalide, {message}", "warning")
+
+
+def display_configuration_error(error: ConfigurationError) -> None:
+    missing_fields = [err["loc"][0] for err in error.errors if err["type"] == "missing"]
+
+    if missing_fields:
+        display_message(
+            f"Erreur: Configuration incomplète. "
+            f"Variables manquantes : {', '.join(missing_fields)}.",
+            "error",
+        )
+    else:
+        display_message(
+            "Erreur: La configuration de l'application est invalide.",
+            "error",
+        )
 
 
 def display_unexpected_error():

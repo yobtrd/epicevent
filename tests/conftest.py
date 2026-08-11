@@ -13,7 +13,7 @@ import epicevent.models  # noqa: F401
 from epicevent import bootstrap
 from epicevent.cli.console import console
 from epicevent.cli.token_storage import get_token_storage
-from epicevent.config.settings import settings
+from epicevent.config.settings import get_settings
 from epicevent.infrastructure.base import Base
 from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.contract_repository import ContractRepository
@@ -43,7 +43,7 @@ from epicevent.services.user_service import UserService
 #######################
 @pytest.fixture(scope="session")
 def engine():
-    engine = create_engine(settings.database_url)
+    engine = create_engine(get_settings().database_url)
 
     Base.metadata.create_all(engine)
 
@@ -94,21 +94,30 @@ def uow(session):
 
 
 @pytest.fixture
-def app_factory(session, uow):
-    bootstrap.application_factory = bootstrap.ApplicationFactory(
+def app_factory(session, monkeypatch):
+    factory = bootstrap.ApplicationFactory(
         session_factory=lambda: session,
         use_nested_transaction=True,
     )
-    return bootstrap.application_factory
+
+    monkeypatch.setattr(
+        bootstrap,
+        "get_application_factory",
+        lambda: factory,
+    )
+
+    return factory
 
 
 @pytest.fixture
 def token_path(monkeypatch, tmp_path):
     path = tmp_path / "token.json"
+    settings = get_settings()
+    settings.token_path = path
 
     monkeypatch.setattr(
-        "epicevent.config.settings.settings.token_path",
-        path,
+        "epicevent.cli.token_storage.get_settings",
+        lambda: settings,
     )
 
     return path

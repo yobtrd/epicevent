@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from epicevent.config.settings import settings
+from epicevent.config.settings import get_settings
 
 
 class TokenStorage:
@@ -46,4 +46,4 @@ class TokenStorage:
 
 
 def get_token_storage() -> TokenStorage:
-    return TokenStorage(settings.token_path)
+    return TokenStorage(get_settings().token_path)

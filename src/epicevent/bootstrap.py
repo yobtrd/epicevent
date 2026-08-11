@@ -8,7 +8,7 @@ from epicevent.controllers.client_controller import ClientController
 from epicevent.controllers.contract_controller import ContractController
 from epicevent.controllers.event_controller import EventController
 from epicevent.controllers.user_controller import UserController
-from epicevent.infrastructure.base import SessionFactory
+from epicevent.infrastructure.base import get_session_factory
 from epicevent.infrastructure.repositories.client_repository import ClientRepository
 from epicevent.infrastructure.repositories.contract_repository import ContractRepository
 from epicevent.infrastructure.repositories.event_repository import EventRepository
@@ -109,4 +109,5 @@ class ApplicationFactory:
             session.close()
 
 
-application_factory = ApplicationFactory(SessionFactory)
+def get_application_factory() -> ApplicationFactory:
+    return ApplicationFactory(get_session_factory())

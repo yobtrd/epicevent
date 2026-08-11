@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config, pool
 
 import src.epicevent.models  # noqa: F401
 from alembic import context
-from epicevent.config.settings import settings
+from epicevent.config.settings import get_settings
 from epicevent.infrastructure.base import Base
 
 # this is the Alembic Config object, which provides
@@ -13,7 +13,7 @@ config = context.config
 
 config.set_main_option(
     "sqlalchemy.url",
-    settings.database_url,
+    get_settings().database_url,
 )
 
 # Interpret the config file for Python logging.

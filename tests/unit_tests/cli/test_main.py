@@ -32,7 +32,7 @@ def test_main_displays_unexpected_error(mocker, capsys):
 def test_main_captures_unexpected_error(mocker):
     capture = mocker.patch("epicevent.cli.main.monitoring.capture_exception")
 
-    display = mocker.patch("epicevent.cli.main.display_unexpected_error")
+    display = mocker.patch("epicevent.cli.main.error_handler.display_unexpected_error")
 
     mocker.patch("epicevent.cli.main.cli", side_effect=RuntimeError())
 
@@ -45,7 +45,7 @@ def test_main_captures_unexpected_error(mocker):
 def test_main_captures_database_error(mocker):
     capture = mocker.patch("epicevent.cli.main.monitoring.capture_exception")
 
-    display = mocker.patch("epicevent.cli.main.display_unexpected_error")
+    display = mocker.patch("epicevent.cli.main.error_handler.display_unexpected_error")
 
     mocker.patch("epicevent.cli.main.cli", side_effect=DatabaseError())
 

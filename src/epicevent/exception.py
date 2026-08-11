@@ -108,6 +108,16 @@ class InvalidInputError(ApplicationError):
         self.errors = errors
 
 
+# Configuration errors
+##################################
+class ConfigurationError(ApplicationError):
+    """Raised when the application configuration is invalid."""
+
+    def __init__(self, errors: list[dict]):
+        super().__init__()
+        self.errors = errors
+
+
 # Persistence errors
 ##################################
 class DatabaseError(Exception):

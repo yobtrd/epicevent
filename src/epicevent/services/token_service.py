@@ -7,9 +7,7 @@ from jwt.exceptions import (
 )
 from pydantic import ValidationError
 
-from epicevent.config.settings import (
-    settings,
-)
+from epicevent.config.settings import get_settings
 from epicevent.exception import ExpiredTokenError, InvalidTokenError
 from epicevent.models.user import User
 from epicevent.schemas.auth_schema import TokenPayload
@@ -17,6 +15,9 @@ from epicevent.schemas.auth_schema import TokenPayload
 
 class TokenService:
     """Handle JWT token creation and validation."""
+
+    def __init__(self) -> None:
+        self.settings = get_settings()
 
     def _now(self) -> datetime:
         return datetime.now(UTC)
@@ -26,20 +27,24 @@ class TokenService:
         payload = {
             "sub": str(user.id),
             "iat": now,
-            "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
+            "exp": now + timedelta(minutes=self.settings.access_token_expire_minutes),
             "type": "access",
         }
-        return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+        return jwt.encode(
+            payload, self.settings.secret_key, algorithm=self.settings.algorithm
+        )
 
     def create_refresh_token(self, user: User) -> str:
         now = self._now()
         payload = {
             "sub": str(user.id),
             "iat": now,
-            "exp": now + timedelta(days=settings.refresh_token_expire_days),
+            "exp": now + timedelta(days=self.settings.refresh_token_expire_days),
             "type": "refresh",
         }
-        return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+        return jwt.encode(
+            payload, self.settings.secret_key, algorithm=self.settings.algorithm
+        )
 
     def decode_token(
         self,
@@ -56,8 +61,8 @@ class TokenService:
         try:
             payload = jwt.decode(
                 token,
-                settings.secret_key,
-                algorithms=settings.algorithm,
+                self.settings.secret_key,
+                algorithms=self.settings.algorithm,
             )
             if token_type and payload.get("type") != token_type:
                 raise InvalidTokenError()
