@@ -16,6 +16,12 @@ def cli():
 
 
 def main():
+    """
+    Entry point of the application.
+
+    Initializes monitoring and handles configuration errors and unexpected
+    application errors. Unexpected errors are reported to Sentry.
+    """
     try:
         monitoring.init_monitoring()
         cli()
