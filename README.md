@@ -254,6 +254,10 @@ Le `Bootstrap` assure l'injection des dépendances et le cycle de vie des sessio
 
 Les contrôles effectués au niveau de la CLI peuvent anticiper certaines erreurs afin d'améliorer l'expérience utilisateur, tandis que les services conservent leurs propres validations métier et de sécurité.
 
+### Modèle de données
+
+Le modèle de données est disponible dans le [diagramme ERD](docs/erd.png).
+
 ## Sécurité
 
 - **Authentification** : JWT avec access tokens et refresh tokens, avec durée d'expiration configurable.
