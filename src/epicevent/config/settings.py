@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def database_url(self) -> str:
-        """Constructs the SQLAlchemy database URL from individual components."""
+        """Builds the database connection URL from the configured components."""
         encoded_password = quote_plus(self.db_password)
         return f"postgresql://{self.db_user}:{encoded_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
