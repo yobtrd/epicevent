@@ -52,7 +52,7 @@ def ask_contract_update_data() -> dict:
     fields = {
         "1": ("total_amount", "Montant total du contrat"),
         "2": ("remaining_amount", "Montant restant du contrat"),
-        "3": ("is_signed", "Statut du contrat ([Y] Signé | [N] Non signé"),
+        "3": ("is_signed", "Statut du contrat"),
     }
 
     return ask_update_fields(fields)
