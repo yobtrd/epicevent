@@ -2,15 +2,15 @@ from decimal import Decimal
 
 import pytest
 
-from epicevent.exception import (
+from epicevents.exception import (
     ClientOwnershipError,
     ContractNotFoundError,
     InvalidContractAmountError,
     RolePermissionError,
 )
-from epicevent.models.contract import Contract
-from epicevent.schemas.contract_schema import ContractUpdate
-from epicevent.security.roles import UserRole
+from epicevents.models.contract import Contract
+from epicevents.schemas.contract_schema import ContractUpdate
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_contract_dto,
     create_persisted_client,
@@ -64,7 +64,7 @@ def test_create_contract_triggers_monitoring_if_created_signed(
     client = create_persisted_client(session, sales_representative_id=current_user.id)
     contract_dto = create_contract_dto()
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
     created = contract_service.create_contract(current_user, client.email, contract_dto)
 
     capture.assert_called_once_with(
@@ -264,7 +264,7 @@ def test_update_contract_triggers_monitoring_when_signing(
 
     new_data = ContractUpdate(is_signed=True)
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
 
     contract_service.update_contract(
         current_user,
@@ -296,7 +296,7 @@ def test_update_contract_does_not_trigger_monitoring_if_already_signed(
 
     new_data = ContractUpdate(is_signed=True)
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
 
     contract_service.update_contract(
         current_user,

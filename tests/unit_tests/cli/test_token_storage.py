@@ -1,6 +1,6 @@
 import json
 
-from epicevent.cli.token_storage import TokenStorage
+from epicevents.cli.token_storage import TokenStorage
 
 
 def test_save_token_create_json(tmp_path):

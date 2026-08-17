@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
-from epicevent.infrastructure.repositories.event_repository import EventRepository
-from epicevent.security.roles import UserRole
+from epicevents.infrastructure.repositories.event_repository import EventRepository
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_contract_graph,
     create_event,

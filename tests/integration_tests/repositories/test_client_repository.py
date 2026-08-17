@@ -1,8 +1,8 @@
 import pytest
 
-from epicevent.exception import EmailAlreadyExistsError
-from epicevent.infrastructure.repositories.client_repository import ClientRepository
-from epicevent.security.roles import UserRole
+from epicevents.exception import EmailAlreadyExistsError
+from epicevents.infrastructure.repositories.client_repository import ClientRepository
+from epicevents.security.roles import UserRole
 from tests.conftest import create_client, create_persisted_client, create_persisted_user
 
 

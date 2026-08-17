@@ -2,16 +2,16 @@ from datetime import date
 
 import pytest
 
-from epicevent.exception import (
+from epicevents.exception import (
     ClientNotFoundError,
     ClientOwnershipError,
     EmailAlreadyExistsError,
     InvalidContactDatesError,
     RolePermissionError,
 )
-from epicevent.models.client import Client
-from epicevent.schemas.client_schema import ClientUpdate
-from epicevent.security.roles import UserRole
+from epicevents.models.client import Client
+from epicevents.schemas.client_schema import ClientUpdate
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_client_dto,
     create_persisted_client,

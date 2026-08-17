@@ -1,6 +1,6 @@
 from sqlalchemy import inspect, text
 
-from epicevent.infrastructure.base import Base
+from epicevents.infrastructure.base import Base
 
 
 def test_database_connection_is_active(engine):

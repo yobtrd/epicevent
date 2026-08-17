@@ -2,10 +2,10 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
-import src.epicevent.models  # noqa: F401
+import src.epicevents.models  # noqa: F401
 from alembic import context
-from epicevent.config.settings import get_settings
-from epicevent.infrastructure.base import Base
+from epicevents.config.settings import get_settings
+from epicevents.infrastructure.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,20 +1,20 @@
 import pytest
 
-from epicevent.exception import (
+from epicevents.exception import (
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
     RolePermissionError,
     SuperuserAlreadyExistsError,
     UserNotFoundError,
 )
-from epicevent.models.user import User
-from epicevent.schemas.user_schema import (
+from epicevents.models.user import User
+from epicevents.schemas.user_schema import (
     SuperuserCreate,
     UserUpdateManagement,
     UserUpdateSelf,
 )
-from epicevent.security.roles import UserRole
-from epicevent.services.password_service import PasswordService
+from epicevents.security.roles import UserRole
+from epicevents.services.password_service import PasswordService
 from tests.conftest import (
     create_persisted_user,
     create_user,
@@ -132,7 +132,7 @@ def test_create_user_triggers_monitoring(
     current_user = create_user(role_id=UserRole.MANAGEMENT)
     user_dto = create_user_dto()
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
     created = user_service.create_user(current_user, user_dto)
 
     capture.assert_called_once_with(
@@ -187,7 +187,7 @@ def test_update_user_management_triggers_monitoring(
 
     new_data = UserUpdateManagement(role_id=UserRole.SUPPORT)
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
     user_service.update_user(current_user, persisted_user.employee_number, new_data)
 
     capture.assert_called_once_with(
@@ -237,7 +237,7 @@ def test_update_self_triggers_monitoring(
     current_user = create_persisted_user(session)
     new_data = UserUpdateSelf(email="new@email.com")
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
     user_service.update_self(current_user, new_data)
 
     capture.assert_called_once_with("user_profile_updated", user_id=current_user.id)

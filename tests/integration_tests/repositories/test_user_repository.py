@@ -1,11 +1,11 @@
 import pytest
 
-from epicevent.exception import (
+from epicevents.exception import (
     EmailAlreadyExistsError,
     EmployeeNumberAlreadyExistsError,
 )
-from epicevent.infrastructure.repositories.user_repository import UserRepository
-from epicevent.security.roles import UserRole
+from epicevents.infrastructure.repositories.user_repository import UserRepository
+from epicevents.security.roles import UserRole
 from tests.conftest import create_persisted_user, create_user
 
 

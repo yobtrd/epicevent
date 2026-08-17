@@ -1,7 +1,9 @@
 from decimal import Decimal
 
-from epicevent.infrastructure.repositories.contract_repository import ContractRepository
-from epicevent.security.roles import UserRole
+from epicevents.infrastructure.repositories.contract_repository import (
+    ContractRepository,
+)
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_contract,
     create_persisted_client,

@@ -1,4 +1,4 @@
-from epicevent.bootstrap import ApplicationFactory
+from epicevents.bootstrap import ApplicationFactory
 
 
 def test_application_factory_create(session):

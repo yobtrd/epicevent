@@ -2,9 +2,9 @@ import jwt
 import pytest
 from freezegun import freeze_time
 
-from epicevent.config.settings import get_settings
-from epicevent.exception import ExpiredTokenError, InvalidTokenError
-from epicevent.services.auth_service import TokenService
+from epicevents.config.settings import get_settings
+from epicevents.exception import ExpiredTokenError, InvalidTokenError
+from epicevents.services.auth_service import TokenService
 from tests.conftest import create_user
 
 

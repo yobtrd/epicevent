@@ -1,10 +1,10 @@
-from epicevent.cli.main import main
-from epicevent.exception import ApplicationError, DatabaseError
+from epicevents.cli.main import main
+from epicevents.exception import ApplicationError, DatabaseError
 
 
 def test_main_handles_application_error(mocker, capsys):
     mocker.patch(
-        "epicevent.cli.main.cli",
+        "epicevents.cli.main.cli",
         side_effect=ApplicationError("Message de test"),
     )
 
@@ -19,7 +19,7 @@ def test_main_displays_unexpected_error(mocker, capsys):
         pass
 
     mocker.patch(
-        "epicevent.cli.main.cli",
+        "epicevents.cli.main.cli",
         side_effect=UnknownApplicationError(),
     )
 
@@ -30,11 +30,11 @@ def test_main_displays_unexpected_error(mocker, capsys):
 
 
 def test_main_captures_unexpected_error(mocker):
-    capture = mocker.patch("epicevent.cli.main.monitoring.capture_exception")
+    capture = mocker.patch("epicevents.cli.main.monitoring.capture_exception")
 
-    display = mocker.patch("epicevent.cli.main.error_handler.display_unexpected_error")
+    display = mocker.patch("epicevents.cli.main.error_handler.display_unexpected_error")
 
-    mocker.patch("epicevent.cli.main.cli", side_effect=RuntimeError())
+    mocker.patch("epicevents.cli.main.cli", side_effect=RuntimeError())
 
     main()
 
@@ -43,11 +43,11 @@ def test_main_captures_unexpected_error(mocker):
 
 
 def test_main_captures_database_error(mocker):
-    capture = mocker.patch("epicevent.cli.main.monitoring.capture_exception")
+    capture = mocker.patch("epicevents.cli.main.monitoring.capture_exception")
 
-    display = mocker.patch("epicevent.cli.main.error_handler.display_unexpected_error")
+    display = mocker.patch("epicevents.cli.main.error_handler.display_unexpected_error")
 
-    mocker.patch("epicevent.cli.main.cli", side_effect=DatabaseError())
+    mocker.patch("epicevents.cli.main.cli", side_effect=DatabaseError())
 
     main()
 

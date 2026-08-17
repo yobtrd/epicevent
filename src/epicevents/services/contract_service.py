@@ -1,0 +1,190 @@
+from decimal import Decimal
+
+from epicevents.exception import (
+    ClientNotFoundError,
+    ClientOwnershipError,
+    ContractNotFoundError,
+    InvalidContractAmountError,
+)
+from epicevents.infrastructure import monitoring
+from epicevents.infrastructure.unit_of_work import UnitOfWork
+from epicevents.models.client import Client
+from epicevents.models.contract import Contract
+from epicevents.schemas.client_schema import ClientResponse
+from epicevents.schemas.contract_schema import ContractCreate, ContractUpdate
+from epicevents.schemas.types import normalize_email
+from epicevents.schemas.user_schema import UserResponse
+from epicevents.security.decorators import require_permission
+from epicevents.security.permission import Permission
+from epicevents.security.roles import UserRole
+
+
+class ContractService:
+    """Handle contract management operations."""
+
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
+
+    def get_contract_by_id(self, contract_id: int) -> Contract:
+        """
+        Retrieve a contract by ID.
+
+        Raises:
+            ContractNotFoundError: If no contract matches the ID.
+        """
+        contract = self.uow.contracts.find_by_id(contract_id)
+        if contract is None:
+            raise ContractNotFoundError()
+        return contract
+
+    def ensure_can_update_contract(
+        self,
+        current_user: UserResponse,
+        client: Client | ClientResponse,
+    ) -> None:
+        """
+        Ensure that the user can update a contract.
+
+        Management users bypass ownership checks.
+        Sales users must own the associated client.
+
+        Raises:
+            ClientOwnershipError: If the user does not own the client.
+        """
+        if current_user.role_id == UserRole.MANAGEMENT:
+            return
+        if current_user.id != client.sales_representative_id:
+            raise ClientOwnershipError()
+
+    def _validate_contract_amount(
+        self,
+        total_amount: Decimal,
+        remaining_amount: Decimal,
+    ) -> None:
+        """
+        Validate contract amounts.
+
+        The remaining amount cannot exceed the total amount and
+        both amounts must be non-negative.
+
+        Raises:
+            InvalidContractAmountError: If the amounts are invalid.
+        """
+        if (
+            (total_amount < 0)
+            or (remaining_amount < 0)
+            or (remaining_amount > total_amount)
+        ):
+            raise InvalidContractAmountError()
+
+    @require_permission(Permission.CREATE_CONTRACT)
+    def create_contract(
+        self,
+        current_user: UserResponse,
+        client_email: str,
+        contract_data: ContractCreate,
+    ) -> Contract:
+        with self.uow:
+            client_email = normalize_email(client_email)
+            client = self.uow.clients.find_by_email(client_email)
+            if client is None:
+                raise ClientNotFoundError()
+
+            self._validate_contract_amount(
+                contract_data.total_amount,
+                contract_data.remaining_amount,
+            )
+
+            data = contract_data.model_dump()
+            contract = Contract(
+                **data,
+                client=client,
+                sales_representative_id=client.sales_representative_id,
+            )
+            self.uow.contracts.save(contract)
+
+        if contract.is_signed:
+            monitoring.capture_event(
+                "contract_signed",
+                contract_id=contract.id,
+                actor_id=current_user.id,
+            )
+
+        return contract
+
+    @require_permission(Permission.UPDATE_CONTRACT)
+    def update_contract(
+        self,
+        current_user: UserResponse,
+        contract_id: int,
+        contract_data: ContractUpdate,
+    ) -> Contract:
+        with self.uow:
+            contract = self.get_contract_by_id(contract_id)
+
+            was_signed = contract.is_signed
+
+            self.ensure_can_update_contract(current_user, contract.client)
+            data = contract_data.model_dump(exclude_unset=True)
+
+            total_amount = data.get("total_amount", contract.total_amount)
+            remaining_amount = data.get("remaining_amount", contract.remaining_amount)
+            self._validate_contract_amount(total_amount, remaining_amount)
+
+            for field, value in data.items():
+                setattr(contract, field, value)
+            self.uow.contracts.save(contract)
+
+        if not was_signed and contract.is_signed:
+            monitoring.capture_event(
+                "contract_signed",
+                contract_id=contract.id,
+                actor_id=current_user.id,
+            )
+
+        return contract
+
+    @require_permission(Permission.LIST_CONTRACTS)
+    def list_contracts(
+        self,
+        current_user: UserResponse,
+        is_signed: bool | None = None,
+        is_paid: bool | None = None,
+        sales_assigned: bool = False,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> tuple[list[Contract], int]:
+        """
+        Retrieve contracts with pagination.
+
+        Returns the paginated contracts and the total matching count.
+        """
+        with self.uow:
+            contracts = self.uow.contracts.list(
+                user_id=current_user.id,
+                user_role=current_user.role_id,
+                is_signed=is_signed,
+                is_paid=is_paid,
+                sales_assigned=sales_assigned,
+                limit=limit,
+                offset=offset,
+            )
+            total_count = self.uow.contracts.count(
+                user_id=current_user.id,
+                user_role=current_user.role_id,
+                is_signed=is_signed,
+                is_paid=is_paid,
+                sales_assigned=sales_assigned,
+            )
+
+        return contracts, total_count
+
+    @require_permission(Permission.SHOW_CONTRACT)
+    def show_contract(
+        self,
+        current_user: UserResponse,
+        contract_id: int,
+    ) -> Contract:
+        with self.uow:
+            contract = self.get_contract_by_id(contract_id)
+        return contract

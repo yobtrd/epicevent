@@ -42,7 +42,7 @@ L'application nécessite d'avoir ces technologies installées au préalable :
 
 ## Installation
 
-Après avoir cloné ou téléchargé le dépôt, ouvrez un terminal dans le dossier `epicevent`. Toutes les commandes présentées ci-dessous, ainsi que l'utilisation de l'application, doivent être effectuées depuis ce dossier.
+Après avoir cloné ou téléchargé le dépôt, ouvrez un terminal dans le dossier `epicevents`. Toutes les commandes présentées ci-dessous, ainsi que l'utilisation de l'application, doivent être effectuées depuis ce dossier.
 
 ### Environnement Python
 
@@ -64,7 +64,7 @@ source .venv/bin/activate
 
 Une fois votre environnement virtuel activé, installez les dépendances :
 
-    uv sync
+    uv sync --no-dev
 
 L'environnement virtuel doit être activé pour exécuter l'application et ses commandes.
 
@@ -114,7 +114,7 @@ Cette commande applique l'ensemble des migrations disponibles, crée le schéma 
 
 ### Stockage des tokens
 
-Par défaut, les tokens d'authentification sont stockés dans `.epicevent/tokens.json` à la racine du projet.
+Par défaut, les tokens d'authentification sont stockés dans `.epicevents/tokens.json` à la racine du projet.
 
 Cet emplacement est adapté à une utilisation en développement. Pour utiliser un autre emplacement, notamment dans un environnement de déploiement, définissez la variable `TOKEN_PATH` dans le fichier `.env` :
 
@@ -122,17 +122,21 @@ Cet emplacement est adapté à une utilisation en développement. Pour utiliser 
 
 ## Commandes CLI
 
-L'application est accessible via la commande `epicevent`.
+Une fois votre environnement virtuel activé, l'application est accessible via la commande `epicevents`.
+
+Vous pouvez également utiliser l'application sans activer manuellement l'environnement virtuel en préfixant chaque commande avec uv run :
+
+    uv run epicevents <commande>
 
 Pour vérifier que l'installation est correctement configurée et afficher le menu principal :
 
-    epicevent
+    epicevents
 
 Chaque commande dispose d'une aide détaillée accessible avec l'option `--help` :
 
-    epicevent --help
-    epicevent user --help
-    epicevent event list --help
+    epicevents --help
+    epicevents user --help
+    epicevents event list --help
 
 Lors de la saisie d'un formulaire ou de l'exécution d'une commande, `Ctrl+C` permet d'annuler l'opération en cours.
 
@@ -140,7 +144,7 @@ Lors de la saisie d'un formulaire ou de l'exécution d'une commande, `Ctrl+C` pe
 
 Lors de la première installation, un superutilisateur doit être créé avant de pouvoir utiliser les fonctionnalités nécessitant une authentification :
 
-    epicevent user create-superuser
+    epicevents user create-superuser
 
 Cette commande ouvre un formulaire permettant de renseigner les informations du superutilisateur.
 
@@ -150,7 +154,7 @@ Une fois le compte créé, d'autres collaborateurs peuvent être ajoutés et l'a
 
 Les commandes sont organisées par ressource :
 
-    epicevent <resource> <command> [options]
+    epicevents <resource> <command> [options]
 
 Les principales ressources disponibles sont :
 
@@ -171,11 +175,11 @@ Certaines commandes disposent d'options ou d'arguments spécifiques permettant n
 
 Pour connaître les commandes et options disponibles pour une ressource :
 
-    epicevent <resource> --help
+    epicevents <resource> --help
 
 Et pour obtenir l'aide d'une commande spécifique :
 
-    epicevent <resource> <command> --help
+    epicevents <resource> <command> --help
 
 ## Journalisation
 

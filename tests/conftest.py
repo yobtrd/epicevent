@@ -9,34 +9,36 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-import epicevent.models  # noqa: F401
-from epicevent import bootstrap
-from epicevent.cli.console import console
-from epicevent.cli.token_storage import get_token_storage
-from epicevent.config.settings import get_settings
-from epicevent.infrastructure.base import Base
-from epicevent.infrastructure.repositories.client_repository import ClientRepository
-from epicevent.infrastructure.repositories.contract_repository import ContractRepository
-from epicevent.infrastructure.repositories.event_repository import EventRepository
-from epicevent.infrastructure.repositories.user_repository import UserRepository
-from epicevent.infrastructure.unit_of_work import UnitOfWork
-from epicevent.models.client import Client
-from epicevent.models.contract import Contract
-from epicevent.models.event import Event
-from epicevent.models.role import Role
-from epicevent.models.user import User
-from epicevent.schemas.client_schema import ClientCreate
-from epicevent.schemas.contract_schema import ContractCreate
-from epicevent.schemas.event_schema import EventCreate
-from epicevent.schemas.user_schema import UserCreate
-from epicevent.security.roles import UserRole
-from epicevent.services.auth_service import AuthService
-from epicevent.services.client_service import ClientService
-from epicevent.services.contract_service import ContractService
-from epicevent.services.event_service import EventService
-from epicevent.services.password_service import PasswordService
-from epicevent.services.token_service import TokenService
-from epicevent.services.user_service import UserService
+import epicevents.models  # noqa: F401
+from epicevents import bootstrap
+from epicevents.cli.console import console
+from epicevents.cli.token_storage import get_token_storage
+from epicevents.config.settings import get_settings
+from epicevents.infrastructure.base import Base
+from epicevents.infrastructure.repositories.client_repository import ClientRepository
+from epicevents.infrastructure.repositories.contract_repository import (
+    ContractRepository,
+)
+from epicevents.infrastructure.repositories.event_repository import EventRepository
+from epicevents.infrastructure.repositories.user_repository import UserRepository
+from epicevents.infrastructure.unit_of_work import UnitOfWork
+from epicevents.models.client import Client
+from epicevents.models.contract import Contract
+from epicevents.models.event import Event
+from epicevents.models.role import Role
+from epicevents.models.user import User
+from epicevents.schemas.client_schema import ClientCreate
+from epicevents.schemas.contract_schema import ContractCreate
+from epicevents.schemas.event_schema import EventCreate
+from epicevents.schemas.user_schema import UserCreate
+from epicevents.security.roles import UserRole
+from epicevents.services.auth_service import AuthService
+from epicevents.services.client_service import ClientService
+from epicevents.services.contract_service import ContractService
+from epicevents.services.event_service import EventService
+from epicevents.services.password_service import PasswordService
+from epicevents.services.token_service import TokenService
+from epicevents.services.user_service import UserService
 
 
 # Database / config
@@ -116,7 +118,7 @@ def token_path(monkeypatch, tmp_path):
     settings.token_path = path
 
     monkeypatch.setattr(
-        "epicevent.cli.token_storage.get_settings",
+        "epicevents.cli.token_storage.get_settings",
         lambda: settings,
     )
 

@@ -1,9 +1,9 @@
 from click.testing import CliRunner
 
-from epicevent.cli.main import cli
-from epicevent.models import User
-from epicevent.security.roles import UserRole
-from epicevent.services.password_service import PasswordService
+from epicevents.cli.main import cli
+from epicevents.models import User
+from epicevents.security.roles import UserRole
+from epicevents.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 

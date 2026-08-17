@@ -1,6 +1,6 @@
 import pytest
 
-from epicevent.cli.pagination import handle_pagination
+from epicevents.cli.pagination import handle_pagination
 
 
 @pytest.mark.parametrize(
@@ -17,7 +17,7 @@ from epicevent.cli.pagination import handle_pagination
 def test_handle_pagination_logic(
     mocker, user_choice, offset, limit, received, total, expected
 ):
-    mocker.patch("epicevent.cli.pagination.ask", return_value=user_choice)
+    mocker.patch("epicevents.cli.pagination.ask", return_value=user_choice)
 
     result = handle_pagination(offset, limit, received, total)
 

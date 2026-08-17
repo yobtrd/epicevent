@@ -1,10 +1,10 @@
 import pytest
 from freezegun import freeze_time
 
-from epicevent.cli.auth_session import get_authenticated_user
-from epicevent.cli.token_storage import TokenStorage
-from epicevent.exception import AuthenticationError
-from epicevent.services.token_service import TokenService
+from epicevents.cli.auth_session import get_authenticated_user
+from epicevents.cli.token_storage import TokenStorage
+from epicevents.exception import AuthenticationError
+from epicevents.services.token_service import TokenService
 from tests.conftest import create_persisted_user
 
 

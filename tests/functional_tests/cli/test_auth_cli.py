@@ -2,8 +2,8 @@ import json
 
 from click.testing import CliRunner
 
-from epicevent.cli.main import cli
-from epicevent.services.password_service import PasswordService
+from epicevents.cli.main import cli
+from epicevents.services.password_service import PasswordService
 from tests.conftest import create_persisted_user
 
 

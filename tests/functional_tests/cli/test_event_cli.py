@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 
 from click.testing import CliRunner
 
-from epicevent.cli.main import cli
-from epicevent.models.event import Event
-from epicevent.security.roles import UserRole
+from epicevents.cli.main import cli
+from epicevents.models.event import Event
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_contract_graph,
     create_persisted_client,

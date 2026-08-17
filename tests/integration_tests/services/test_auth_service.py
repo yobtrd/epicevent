@@ -1,15 +1,15 @@
 import pytest
 from freezegun import freeze_time
 
-from epicevent.exception import (
+from epicevents.exception import (
     AuthenticationError,
     InvalidCredentialsError,
     UserDisabledError,
     UserNotFoundError,
 )
-from epicevent.schemas.auth_schema import AuthRequest
-from epicevent.services.password_service import PasswordService
-from epicevent.services.token_service import TokenService
+from epicevents.schemas.auth_schema import AuthRequest
+from epicevents.services.password_service import PasswordService
+from epicevents.services.token_service import TokenService
 from tests.conftest import create_persisted_user, create_user
 
 

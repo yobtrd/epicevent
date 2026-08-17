@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from epicevent.exception import (
+from epicevents.exception import (
     ClientOwnershipError,
     ContractNotFoundError,
     ContractNotSignedError,
@@ -13,9 +13,9 @@ from epicevent.exception import (
     SupportAssignmentError,
     UserNotFoundError,
 )
-from epicevent.models.event import Event
-from epicevent.schemas.event_schema import EventUpdate
-from epicevent.security.roles import UserRole
+from epicevents.models.event import Event
+from epicevents.schemas.event_schema import EventUpdate
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_contract_graph,
     create_event_dto,
@@ -147,7 +147,7 @@ def test_create_event_triggers_monitoring(
     )
     event_dto = create_event_dto()
 
-    capture = mocker.patch("epicevent.infrastructure.monitoring.capture_event")
+    capture = mocker.patch("epicevents.infrastructure.monitoring.capture_event")
     created = event_service.create_event(current_user, contract.id, event_dto)
 
     capture.assert_called_once_with(
@@ -325,7 +325,7 @@ def test_update_event_unauthorized_user_raises_error(event_service, session):
         notes="Modification",
     )
 
-    from epicevent.exception import RolePermissionError
+    from epicevents.exception import RolePermissionError
 
     with pytest.raises(RolePermissionError):
         event_service.update_event(

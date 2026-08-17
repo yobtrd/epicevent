@@ -3,9 +3,9 @@ from decimal import Decimal
 
 from click.testing import CliRunner
 
-from epicevent.cli.main import cli
-from epicevent.models.contract import Contract
-from epicevent.security.roles import UserRole
+from epicevents.cli.main import cli
+from epicevents.models.contract import Contract
+from epicevents.security.roles import UserRole
 from tests.conftest import (
     create_persisted_client,
     create_persisted_contract,
