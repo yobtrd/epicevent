@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from epicevents.infrastructure.base import Base
+from epicevents.security.encryption import EncryptedString
 
 if TYPE_CHECKING:
     from .client import Client
@@ -19,20 +20,20 @@ class User(Base):
         primary_key=True,
     )
     employee_number: Mapped[str] = mapped_column(
-        String(20),
+        EncryptedString(),
         unique=True,
         nullable=False,
     )
     last_name: Mapped[str] = mapped_column(
-        String(50),
+        EncryptedString(),
         nullable=False,
     )
     first_name: Mapped[str] = mapped_column(
-        String(50),
+        EncryptedString(),
         nullable=False,
     )
     email: Mapped[str] = mapped_column(
-        String(100),
+        EncryptedString(),
         unique=True,
         nullable=False,
     )

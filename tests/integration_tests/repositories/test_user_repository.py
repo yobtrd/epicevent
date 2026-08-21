@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import text
 
 from epicevents.exception import (
     EmailAlreadyExistsError,
@@ -58,6 +59,17 @@ def test_find_by_email_returns_none_when_email_does_not_exist(session):
     repository = UserRepository(session)
 
     assert repository.find_by_email("invalid@test.com") is None
+
+
+def test_email_is_stored_encrypted(session):
+    persisted_user = create_persisted_user(session)
+
+    result = session.execute(
+        text('SELECT email FROM "user" WHERE id = :user_id'),
+        {"user_id": persisted_user.id},
+    ).scalar_one()
+
+    assert result != persisted_user.email
 
 
 # find_by_id

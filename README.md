@@ -19,15 +19,31 @@ L'application permet de centraliser et de gérer les clients, contrats et évén
 
 ## Stack technique
 
-- **Python**
+### Langage et gestion du projet
+
+- **Python** — langage de programmation
 - **uv** — gestionnaire de projet et d'environnement Python
-- **PostgreSQL** — base de données
+
+### Base de données et persistance
+
+- **PostgreSQL** — base de données relationnelle
 - **SQLAlchemy** — ORM et gestion de la persistance
-- **Alembic** — outil de migration
-- **Click** — interface en ligne de commande (CLI)
+- **Alembic** — gestion des migrations de base de données
+
+### Interface CLI
+
+- **Click** — framework pour l'interface en ligne de commande
 - **Rich** — affichage et mise en forme de l'interface CLI
-- **Pydantic** — validation des données
-- **Sentry** — monitoring des erreurs
+
+### Validation et sécurité
+
+- **Pydantic** — validation des données et de la configuration
+- **cryptography** — chiffrement des données sensibles
+- **argon2-cffi** — hachage sécurisé des mots de passe
+
+### Monitoring et qualité
+
+- **Sentry** — monitoring et suivi des erreurs
 - **pytest** — tests automatisés
 - **Ruff** — linting et formatage du code
 
@@ -95,14 +111,28 @@ Puis modifiez `.env` avec vos propres valeurs, notamment :
 - `DB_PORT`
 - `DB_NAME`
 - `SECRET_KEY`
+- `ENCRYPTION_KEY`
 
-La variable `SECRET_KEY` doit contenir une clé secrète de 256 bits (64 caractères hexadécimaux). Vous pouvez en générer une avec :
+La variable `SENTRY_DSN` est optionnelle et peut rester vide si Sentry n'est pas utilisé.
+
+### Clés de sécurité
+
+L'application utilise deux clés distinctes :
+
+- `SECRET_KEY` est utilisée pour la signature des tokens JWT ;
+- `ENCRYPTION_KEY` est utilisée pour le chiffrement des données sensibles stockées en base de données.
+
+Les deux clés doivent être générées aléatoirement et ne doivent jamais être versionnées dans le dépôt.
+
+La `SECRET_KEY` doit contenir une clé de 256 bits (32 octets, soit 64 caractères hexadécimaux). Elle peut être générée avec :
 
     python -c "import secrets; print(secrets.token_hex(32))"
 
-Copiez ensuite la clé générée dans `SECRET_KEY` dans votre fichier `.env`.
+La `ENCRYPTION_KEY` doit contenir une clé de 512 bits (64 octets, soit 128 caractères hexadécimaux), nécessaire pour le chiffrement AES-SIV utilisé par l'application. Elle peut être générée avec :
 
-La variable `SENTRY_DSN` est optionnelle et peut rester vide si Sentry n'est pas utilisé.
+    python -c "import secrets; print(secrets.token_hex(64))"
+
+Copiez ensuite les clés générées dans votre fichier `.env`.
 
 ### Migrations de la base de données
 
@@ -198,7 +228,6 @@ Certains événements métier sont également journalisés, notamment :
 
 La configuration de `SENTRY_DSN` est optionnelle. En son absence, l'application reste fonctionnelle, mais les erreurs et événements ne sont pas transmis à Sentry.
 
-
 ## Tests
 
 L'application est couverte par des tests unitaires, d'intégration et fonctionnels afin de vérifier le comportement de ses différentes couches.
@@ -248,7 +277,7 @@ La CLI constitue actuellement la seule interface de l'application. Les Controlle
 Les principales couches sont :
 
 - **Interface (CLI)** : `Click` et `Rich` gèrent les interactions avec l'utilisateur et l'affichage.
-- **Controllers** : assurent la coordination entre l'interface et les services.
+- **Controllers** : assurent la coordination entre l'interface et les services et valident les données d'entrée à l'aide des schémas Pydantic.
 - **Services** : centralisent la logique métier et appliquent les règles métier et de sécurité.
 - **Infrastructure** : gère la persistance et les interactions avec les services externes. Les `Repositories` gèrent l'accès à la base de données via `SQLAlchemy`, tandis que le `Unit of Work` gère les transactions.
 
@@ -265,9 +294,10 @@ Le modèle de données est disponible dans le [diagramme ERD](docs/erd.png).
 ## Sécurité
 
 - **Authentification** : JWT avec access tokens et refresh tokens, avec durée d'expiration configurable.
-- **Mots de passe** : hachage avec `Argon2`, aucun mot de passe n'est stocké en clair.
+- **Mots de passe** : hachage sécurisé avec `Argon2`, aucun mot de passe n'est stocké en clair.
 - **Autorisation** : système de rôles et permissions permettant de contrôler l'accès aux différentes fonctionnalités.
-- **Validation** : les données entrantes sont validées avec `Pydantic`.
+- **Validation** : les données entrantes et la configuration sont validées avec `Pydantic`.
+- **Chiffrement des données** : les données sensibles stockées en base de données sont chiffrées avec `AES-SIV` via la bibliothèque `cryptography`.
 - **Secrets** : clés et informations sensibles configurées via les variables d'environnement.
 - **Contrôles métier** : les règles de sécurité sont également appliquées au niveau des services, indépendamment de l'interface utilisée.
 

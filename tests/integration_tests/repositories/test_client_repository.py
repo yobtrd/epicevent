@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import text
 
 from epicevents.exception import EmailAlreadyExistsError
 from epicevents.infrastructure.repositories.client_repository import ClientRepository
@@ -54,6 +55,21 @@ def test_find_by_email_returns_none_when_email_does_not_exist(session):
     repository = ClientRepository(session)
 
     assert repository.find_by_email("invalid@test.com") is None
+
+
+def test_email_is_stored_encrypted(session):
+    sales_representative = create_persisted_user(session, role_id=UserRole.SALES)
+    persisted_client = create_persisted_client(
+        session,
+        sales_representative_id=sales_representative.id,
+    )
+
+    stored_email = session.execute(
+        text("SELECT email FROM client WHERE id = :client_id"),
+        {"client_id": persisted_client.id},
+    ).scalar_one()
+
+    assert stored_email != persisted_client.email
 
 
 # list

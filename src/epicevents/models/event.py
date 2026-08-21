@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from epicevents.infrastructure.base import Base
+from epicevents.security.encryption import EncryptedString
 
 if TYPE_CHECKING:
     from .contract import Contract
@@ -18,7 +19,7 @@ class Event(Base):
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
-        String(255),
+        EncryptedString(),
         nullable=False,
     )
     start: Mapped[datetime] = mapped_column(
@@ -30,7 +31,7 @@ class Event(Base):
         nullable=False,
     )
     location: Mapped[str] = mapped_column(
-        String(100),
+        EncryptedString(),
         nullable=False,
     )
     attendees: Mapped[int] = mapped_column(
@@ -38,7 +39,7 @@ class Event(Base):
         nullable=False,
     )
     notes: Mapped[str | None] = mapped_column(
-        Text,
+        EncryptedString(),
         nullable=True,
     )
     contract_id: Mapped[int] = mapped_column(

@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+from sqlalchemy import text
+
 from epicevents.infrastructure.repositories.event_repository import EventRepository
 from epicevents.security.roles import UserRole
 from tests.conftest import (
@@ -38,6 +40,26 @@ def test_save_event_success(session):
     assert created.attendees == event.attendees
     assert created.notes == event.notes
     assert created.contract_id == contract.id
+
+
+def test_event_data_is_stored_encrypted(session):
+    contract = create_contract_graph(session)
+    event = create_persisted_event(session, contract_id=contract.id)
+
+    stored_name, stored_location, stored_notes = session.execute(
+        text(
+            """
+            SELECT name, location, notes
+            FROM event
+            WHERE id = :event_id
+            """
+        ),
+        {"event_id": event.id},
+    ).one()
+
+    assert stored_name != event.name
+    assert stored_location != event.location
+    assert stored_notes != event.notes
 
 
 # find_by_id

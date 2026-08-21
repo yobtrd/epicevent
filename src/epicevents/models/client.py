@@ -1,10 +1,11 @@
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Date, ForeignKey, String
+from sqlalchemy import Date, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from epicevents.infrastructure.base import Base
+from epicevents.security.encryption import EncryptedString
 
 if TYPE_CHECKING:
     from .contract import Contract
@@ -18,24 +19,24 @@ class Client(Base):
         primary_key=True,
     )
     last_name: Mapped[str] = mapped_column(
-        String(50),
+        EncryptedString(),
         nullable=False,
     )
     first_name: Mapped[str] = mapped_column(
-        String(50),
+        EncryptedString(),
         nullable=False,
     )
     email: Mapped[str] = mapped_column(
-        String(100),
+        EncryptedString(),
         unique=True,
         nullable=False,
     )
     phone: Mapped[str] = mapped_column(
-        String(20),
+        EncryptedString(),
         nullable=False,
     )
     business_name: Mapped[str] = mapped_column(
-        String(100),
+        EncryptedString(),
         nullable=False,
     )
     first_contact: Mapped[date | None] = mapped_column(

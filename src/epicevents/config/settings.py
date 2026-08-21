@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     # Security
     ###############
     secret_key: str
+    encryption_key: str
 
     # Monitoring
     ###############
